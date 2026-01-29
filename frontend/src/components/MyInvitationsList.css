@@ -1,0 +1,133 @@
+/* Mobile-first my invitations list styles */
+.my-invitations-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.my-invitations-list.empty {
+  padding: 2rem;
+  text-align: center;
+}
+
+.empty-message {
+  color: var(--text-muted, #b0b0b0);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.invitation-card {
+  background: var(--bg-card, #1e1e3f);
+  border: 1px solid var(--border-color, #4a4a6a);
+  border-radius: 8px;
+  padding: 1rem;
+  transition: box-shadow 0.2s;
+}
+
+.invitation-card:hover {
+  box-shadow: var(--shadow-md, 0 4px 15px rgba(0, 0, 0, 0.4));
+}
+
+.invitation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.group-name {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary, #ffffff);
+  flex: 1;
+  word-break: break-word;
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.status-badge.pending {
+  background-color: rgba(108, 92, 231, 0.2);
+  color: var(--accent-secondary, #a29bfe);
+}
+
+.status-badge.rejected {
+  background-color: rgba(231, 76, 60, 0.2);
+  color: var(--error-light, #ff6b6b);
+}
+
+.invitation-info {
+  margin-bottom: 0.75rem;
+}
+
+.invitation-date {
+  font-size: 0.85rem;
+  color: var(--text-dim, #9a9a9a);
+}
+
+.invitation-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.accept-button,
+.reject-button {
+  flex: 1;
+  padding: 0.625rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 44px;
+}
+
+.accept-button {
+  background: var(--success-gradient, linear-gradient(135deg, #00b894 0%, #55efc4 100%));
+  color: var(--text-primary, #ffffff);
+}
+
+.accept-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 184, 148, 0.4);
+}
+
+.reject-button {
+  background-color: transparent;
+  color: var(--error-light, #ff6b6b);
+  border: 1px solid var(--error-color, #e74c3c);
+}
+
+.reject-button:hover:not(:disabled) {
+  background-color: rgba(231, 76, 60, 0.15);
+}
+
+.accept-button:disabled,
+.reject-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Tablet and desktop */
+@media (min-width: 768px) {
+  .invitation-actions {
+    flex-direction: row;
+  }
+
+  .accept-button,
+  .reject-button {
+    flex: 0 1 auto;
+    min-width: 120px;
+  }
+}

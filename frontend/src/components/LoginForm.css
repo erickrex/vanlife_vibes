@@ -1,0 +1,123 @@
+/* Mobile-first login form styles */
+.login-form {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  font-size: 0.95rem;
+  color: var(--text-secondary, #e8e8e8);
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: 1px solid var(--border-color, #4a4a6a);
+  border-radius: 8px;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+  background-color: var(--bg-tertiary, #0f0f23);
+  color: var(--text-primary, #ffffff);
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--accent-primary, #6c5ce7);
+}
+
+.form-group input.error {
+  border-color: var(--error-color, #e74c3c);
+}
+
+.form-group input::placeholder {
+  color: var(--text-dim, #9a9a9a);
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper input {
+  padding-right: 3rem;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 0.5rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  color: var(--text-muted, #b0b0b0);
+}
+
+.toggle-password:hover {
+  border-color: transparent;
+  color: var(--text-secondary, #e8e8e8);
+}
+
+.error-message {
+  display: block;
+  color: var(--error-light, #ff6b6b);
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+.form-error {
+  background-color: rgba(231, 76, 60, 0.15);
+  color: var(--error-light, #ff6b6b);
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  border: 1px solid var(--error-color, #e74c3c);
+}
+
+.submit-button {
+  width: 100%;
+  padding: 0.875rem;
+  font-size: 1rem;
+  font-weight: 600;
+  background: var(--accent-gradient, linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%));
+  color: var(--text-primary, #ffffff);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 44px;
+}
+
+.submit-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-accent, 0 4px 15px rgba(108, 92, 231, 0.3));
+  border-color: transparent;
+}
+
+.submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Tablet and desktop */
+@media (min-width: 768px) {
+  .login-form {
+    max-width: 450px;
+  }
+}

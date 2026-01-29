@@ -1,0 +1,123 @@
+/* Mobile-first group list styles */
+.group-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.group-card {
+  background: var(--bg-card, #1e1e3f);
+  border: 1px solid var(--border-color, #4a4a6a);
+  border-radius: 12px;
+  padding: 1.25rem;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s;
+  display: block;
+}
+
+.group-card:hover {
+  border-color: var(--accent-primary, #6c5ce7);
+  box-shadow: var(--shadow-md, 0 4px 15px rgba(0, 0, 0, 0.4));
+  transform: translateY(-2px);
+}
+
+.group-card:active {
+  transform: translateY(0);
+}
+
+.group-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+  gap: 0.5rem;
+}
+
+.group-name {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+  flex: 1;
+}
+
+.admin-badge {
+  background: var(--accent-gradient, linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%));
+  color: white;
+  padding: 0.25rem 0.625rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.group-description {
+  margin: 0 0 1rem 0;
+  color: var(--text-muted, #b0b0b0);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.group-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: var(--text-dim, #9a9a9a);
+}
+
+.member-count,
+.decision-count {
+  display: flex;
+  align-items: center;
+}
+
+.loading,
+.error-message,
+.empty-state {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--text-muted, #b0b0b0);
+}
+
+.error-message {
+  color: var(--error-light, #ff6b6b);
+  background-color: rgba(231, 76, 60, 0.15);
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid var(--error-color, #e74c3c);
+}
+
+.empty-state p {
+  margin: 0.5rem 0;
+}
+
+.empty-state p:first-child {
+  font-weight: 600;
+  color: var(--text-secondary, #e8e8e8);
+}
+
+/* Tablet and desktop */
+@media (min-width: 768px) {
+  .group-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .group-card {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .group-list {
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  }
+}

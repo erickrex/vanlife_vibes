@@ -1,0 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&display=swap');
+
+:root {
+  font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  line-height: 1.6;
+  font-weight: 400;
+  color: #eff1ff;
+  background-color: #030810;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --bg-primary: #030810;
+  --bg-secondary: rgba(8, 12, 30, 0.9);
+  --bg-tertiary: rgba(16, 18, 30, 0.8);
+  --text-primary: #f5f3ff;
+  --text-secondary: #c9d0ff;
+  --textbox: rgba(255, 255, 255, 0.08);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --accent-primary: #6c5ce7;
+  --accent-secondary: #feca57;
+  --accent-gradient: linear-gradient(135deg, #ff6b6b, #feca57, #0abde3);
+  --success-color: #00b894;
+  --success-light: #55efc4;
+  --success-gradient: linear-gradient(135deg, #00b894, #55efc4);
+  --error-color: #ff4757;
+  --error-light: #ff6b6b;
+  --shadow-accent: 0 15px 40px rgba(108, 92, 231, 0.4);
+  --shadow-md: 0 20px 40px rgba(0, 0, 0, 0.55);
+  --spacing-md: 1rem;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--bg-primary);
+  background-image: radial-gradient(circle at 20% -20%, rgba(255, 107, 107, 0.18), transparent 45%), 
+    radial-gradient(circle at 80% 0%, rgba(10, 189, 224, 0.25), transparent 40%), 
+    linear-gradient(180deg, #030810, #050c20 55%, #090b18);
+  color: var(--text-primary);
+}
+
+a {
+  color: var(--accent-secondary);
+  text-decoration: none;
+}
+
+button, input, textarea, select {
+  font-family: inherit;
+}
