@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useSwipeable } from 'react-swipeable';
 import CandidateCard from './CandidateCard';
-import './SwipeCardStack.css';
 
 function SwipeCardStack({ candidates, onSwipe, currentIndex }) {
   const [swipeDirection, setSwipeDirection] = useState(null);
@@ -192,20 +191,20 @@ function SwipeCardStack({ candidates, onSwipe, currentIndex }) {
 
   if (!currentCandidate) {
     return (
-      <div className="swipe-card-stack">
-        <div className="no-items-message">
-          <h2>No more candidates to swipe on!</h2>
-          <p>Check back later or view the matches.</p>
+      <div className="relative h-96 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-white text-xl font-semibold mb-2">No more candidates to swipe on!</h2>
+          <p className="text-zinc-400">Check back later or view the matches.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="swipe-card-stack">
+    <div className="relative h-96">
       {/* Next card (background) */}
       {nextCandidate && (
-        <div className="card-wrapper card-background">
+        <div className="absolute inset-0 scale-95 opacity-50">
           <CandidateCard candidate={nextCandidate} />
         </div>
       )}
@@ -214,7 +213,7 @@ function SwipeCardStack({ candidates, onSwipe, currentIndex }) {
       <div
         {...handlers}
         ref={cardRef}
-        className="card-wrapper card-foreground"
+        className="absolute inset-0 cursor-grab active:cursor-grabbing"
         style={getCardStyle()}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
@@ -228,20 +227,24 @@ function SwipeCardStack({ candidates, onSwipe, currentIndex }) {
         
         {/* Swipe overlays */}
         <div
-          className="swipe-overlay swipe-overlay-like"
+          className="absolute inset-0 flex items-center justify-center bg-emerald-500/20 rounded-xl pointer-events-none"
           style={{
             opacity: dragOffset.x > 0 ? getOverlayOpacity() : 0,
           }}
         >
-          <span className="overlay-text">LIKE</span>
+          <span className="text-4xl font-bold text-emerald-400 border-4 border-emerald-400 px-6 py-2 rounded-lg rotate-[-15deg]">
+            LIKE
+          </span>
         </div>
         <div
-          className="swipe-overlay swipe-overlay-dislike"
+          className="absolute inset-0 flex items-center justify-center bg-red-500/20 rounded-xl pointer-events-none"
           style={{
             opacity: dragOffset.x < 0 ? getOverlayOpacity() : 0,
           }}
         >
-          <span className="overlay-text">NOPE</span>
+          <span className="text-4xl font-bold text-red-400 border-4 border-red-400 px-6 py-2 rounded-lg rotate-[15deg]">
+            NOPE
+          </span>
         </div>
       </div>
     </div>

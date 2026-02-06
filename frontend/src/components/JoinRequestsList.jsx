@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import './JoinRequestsList.css';
 
 function JoinRequestsList({ requests, onApprove, onReject, onSuccess, onError }) {
   const [loadingAction, setLoadingAction] = useState(null);
@@ -56,34 +55,34 @@ function JoinRequestsList({ requests, onApprove, onReject, onSuccess, onError })
 
   if (!requests || requests.length === 0) {
     return (
-      <div className="join-requests-list empty">
-        <p className="empty-message">No pending join requests</p>
+      <div className="py-8 text-center">
+        <p className="text-zinc-400 italic">No pending join requests</p>
       </div>
     );
   }
 
   return (
-    <div className="join-requests-list">
+    <div className="flex flex-col gap-4">
       {requests.map((request) => (
-        <div key={request.id} className="request-card">
-          <div className="request-header">
-            <h3 className="username">{request.user?.username || 'Unknown User'}</h3>
+        <div key={request.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 transition-all hover:border-blue-500 hover:shadow-lg">
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="text-lg font-semibold text-white">{request.user?.username || 'Unknown User'}</h3>
           </div>
-          <div className="request-info">
-            <span className="request-date">
+          <div className="mb-4">
+            <span className="text-zinc-500 text-sm">
               Requested {formatDate(request.invited_at)}
             </span>
           </div>
-          <div className="request-actions">
+          <div className="flex flex-col md:flex-row gap-2">
             <button
-              className="approve-button"
+              className="flex-1 md:flex-none md:min-w-[120px] px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg transition-all hover:-translate-y-0.5 min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
               onClick={() => handleApprove(request.id)}
               disabled={loadingAction === `approve-${request.id}`}
             >
               {loadingAction === `approve-${request.id}` ? 'Approving...' : 'Approve'}
             </button>
             <button
-              className="reject-button"
+              className="flex-1 md:flex-none md:min-w-[120px] px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg transition-all hover:-translate-y-0.5 min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
               onClick={() => handleReject(request.id)}
               disabled={loadingAction === `reject-${request.id}`}
             >

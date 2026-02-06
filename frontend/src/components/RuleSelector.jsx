@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import './RuleSelector.css';
 
 function RuleSelector({ rules, onChange, disabled }) {
   const [ruleType, setRuleType] = useState(rules?.type || 'unanimous');
@@ -27,12 +26,6 @@ function RuleSelector({ rules, onChange, disabled }) {
     }
   };
 
-  const handleThresholdChange = (e) => {
-    const value = parseFloat(e.target.value);
-    setThresholdValue(value);
-    onChange({ type: 'threshold', value });
-  };
-
   const handlePercentageChange = (e) => {
     const percentage = parseInt(e.target.value, 10);
     const value = percentage / 100;
@@ -45,9 +38,11 @@ function RuleSelector({ rules, onChange, disabled }) {
   };
 
   return (
-    <div className="rule-selector">
-      <div className="rule-type-options">
-        <label className="rule-option">
+    <div className="p-4 bg-zinc-900 rounded-lg border border-zinc-800">
+      <div className="flex flex-col gap-3 mb-4">
+        <label className={`flex items-start gap-3 p-4 bg-zinc-800 border-2 rounded-lg cursor-pointer transition-all hover:border-blue-500 ${
+          ruleType === 'unanimous' ? 'border-blue-500 bg-zinc-800/80' : 'border-zinc-700'
+        }`}>
           <input
             type="radio"
             name="ruleType"
@@ -55,16 +50,19 @@ function RuleSelector({ rules, onChange, disabled }) {
             checked={ruleType === 'unanimous'}
             onChange={handleRuleTypeChange}
             disabled={disabled}
+            className="mt-1 w-4 h-4 accent-blue-500 cursor-pointer disabled:cursor-not-allowed"
           />
-          <div className="rule-option-content">
-            <span className="rule-option-title">Unanimous</span>
-            <span className="rule-option-description">
+          <div className="flex flex-col gap-1">
+            <span className="font-semibold text-zinc-200">Unanimous</span>
+            <span className="text-zinc-400 text-sm">
               All members must approve for candidates to become matches
             </span>
           </div>
         </label>
 
-        <label className="rule-option">
+        <label className={`flex items-start gap-3 p-4 bg-zinc-800 border-2 rounded-lg cursor-pointer transition-all hover:border-blue-500 ${
+          ruleType === 'threshold' ? 'border-blue-500 bg-zinc-800/80' : 'border-zinc-700'
+        }`}>
           <input
             type="radio"
             name="ruleType"
@@ -72,10 +70,11 @@ function RuleSelector({ rules, onChange, disabled }) {
             checked={ruleType === 'threshold'}
             onChange={handleRuleTypeChange}
             disabled={disabled}
+            className="mt-1 w-4 h-4 accent-blue-500 cursor-pointer disabled:cursor-not-allowed"
           />
-          <div className="rule-option-content">
-            <span className="rule-option-title">Threshold</span>
-            <span className="rule-option-description">
+          <div className="flex flex-col gap-1">
+            <span className="font-semibold text-zinc-200">Threshold</span>
+            <span className="text-zinc-400 text-sm">
               A percentage of members must approve
             </span>
           </div>
@@ -83,10 +82,10 @@ function RuleSelector({ rules, onChange, disabled }) {
       </div>
 
       {ruleType === 'threshold' && (
-        <div className="threshold-config">
-          <div className="threshold-input-group">
-            <label htmlFor="threshold-percentage" className="threshold-label">
-              Approval Threshold: <strong>{getThresholdPercentage()}%</strong>
+        <div className="mt-4 p-4 bg-zinc-800 rounded-lg border border-zinc-700">
+          <div className="mb-4">
+            <label htmlFor="threshold-percentage" className="block mb-3 text-sm text-zinc-300">
+              Approval Threshold: <span className="text-blue-400 text-lg font-semibold">{getThresholdPercentage()}%</span>
             </label>
             <input
               type="range"
@@ -95,10 +94,10 @@ function RuleSelector({ rules, onChange, disabled }) {
               max="100"
               value={getThresholdPercentage()}
               onChange={handlePercentageChange}
-              className="threshold-slider"
+              className="w-full h-2 rounded-full appearance-none cursor-pointer bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={disabled}
             />
-            <div className="threshold-markers">
+            <div className="flex justify-between mt-2 text-xs text-zinc-500">
               <span>1%</span>
               <span>25%</span>
               <span>50%</span>
@@ -107,8 +106,8 @@ function RuleSelector({ rules, onChange, disabled }) {
             </div>
           </div>
           
-          <div className="threshold-example">
-            <p className="example-text">
+          <div className="p-3 bg-zinc-900 rounded border-l-4 border-blue-500">
+            <p className="text-sm text-zinc-400">
               Example: With {getThresholdPercentage()}% threshold and 10 members, 
               at least {Math.ceil(10 * thresholdValue)} members must approve.
             </p>

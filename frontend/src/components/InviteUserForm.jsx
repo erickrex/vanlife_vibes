@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { groupsAPI } from '../services/api';
-import './InviteUserForm.css';
 
 function InviteUserForm({ onSuccess, onError }) {
   const [myAdminGroups, setMyAdminGroups] = useState([]);
@@ -62,19 +61,19 @@ function InviteUserForm({ onSuccess, onError }) {
 
   if (loading) {
     return (
-      <div className="invite-user-form">
-        <p className="loading-text">Loading your groups...</p>
+      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-8">
+        <p className="text-center text-zinc-300">Loading your groups...</p>
       </div>
     );
   }
 
   if (myAdminGroups.length === 0) {
     return (
-      <div className="invite-user-form empty">
-        <p className="empty-message">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8 mb-8 text-center">
+        <p className="text-white mb-2">
           You need to be an admin of a group to send invitations.
         </p>
-        <p className="empty-hint">
+        <p className="text-zinc-400 text-sm">
           Create a group first, then you can invite users to join!
         </p>
       </div>
@@ -82,16 +81,18 @@ function InviteUserForm({ onSuccess, onError }) {
   }
 
   return (
-    <div className="invite-user-form">
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="group-select">Select Group</label>
+    <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-8">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2">
+          <label htmlFor="group-select" className="text-sm font-medium text-zinc-300">
+            Select Group
+          </label>
           <select
             id="group-select"
             value={selectedGroupId}
             onChange={(e) => setSelectedGroupId(e.target.value)}
             disabled={submitting}
-            className="form-select"
+            className="px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-zinc-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {myAdminGroups.map((group) => (
               <option key={group.id} value={group.id}>
@@ -101,8 +102,10 @@ function InviteUserForm({ onSuccess, onError }) {
           </select>
         </div>
 
-        <div className="form-group">
-          <label htmlFor="username-input">Username to Invite</label>
+        <div className="flex flex-col gap-2">
+          <label htmlFor="username-input" className="text-sm font-medium text-zinc-300">
+            Username to Invite
+          </label>
           <input
             type="text"
             id="username-input"
@@ -110,14 +113,14 @@ function InviteUserForm({ onSuccess, onError }) {
             onChange={(e) => setUsername(e.target.value)}
             placeholder="Enter username"
             disabled={submitting}
-            className="form-input"
+            className="px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           />
         </div>
 
         <button
           type="submit"
           disabled={submitting || !username.trim()}
-          className="submit-button"
+          className="w-full sm:w-auto px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
         >
           {submitting ? 'Sending...' : 'Send Invitation'}
         </button>

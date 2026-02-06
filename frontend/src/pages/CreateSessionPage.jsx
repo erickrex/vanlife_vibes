@@ -2,7 +2,6 @@ import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { sessionsAPI } from '../services/api';
 import CreateSessionForm from '../components/CreateSessionForm';
-import './CreateSessionPage.css';
 
 function CreateSessionPage() {
   const { groupId } = useParams();
@@ -11,7 +10,6 @@ function CreateSessionPage() {
   const handleSubmit = async (sessionData) => {
     try {
       const response = await sessionsAPI.create(sessionData);
-      // Navigate to the newly created session
       const sessionId = response.data.data?.id || response.data.id;
       navigate(`/sessions/${sessionId}`);
     } catch (err) {
@@ -24,8 +22,8 @@ function CreateSessionPage() {
   };
 
   return (
-    <div className="create-decision-page">
-      <div className="page-container">
+    <div className="min-h-screen bg-black px-4 pb-20 pt-4">
+      <div className="max-w-3xl mx-auto">
         <CreateSessionForm
           groupId={groupId}
           onSubmit={handleSubmit}

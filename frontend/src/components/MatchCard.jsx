@@ -1,5 +1,4 @@
 import React from 'react';
-import './MatchCard.css';
 
 function MatchCard({ match, onSelect, isSelected = false }) {
   const candidate = match.candidate || {};
@@ -39,7 +38,9 @@ function MatchCard({ match, onSelect, isSelected = false }) {
 
   return (
     <div
-      className={`match-card ${isSelected ? 'is-selected' : ''}`}
+      className={`bg-zinc-900 rounded-xl border overflow-hidden cursor-pointer transition-all ${
+        isSelected ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-zinc-800 hover:border-zinc-700'
+      }`}
       onClick={handleSelect}
       onKeyDown={handleKeyDown}
       role={onSelect ? 'button' : 'article'}
@@ -50,42 +51,42 @@ function MatchCard({ match, onSelect, isSelected = false }) {
         <img 
           src={imageUrl} 
           alt={candidate.label} 
-          className="match-card-image"
+          className="w-full h-32 object-cover"
         />
       ) : (
-        <div className="match-card-image-placeholder">
-          <span className="match-icon">⚡</span>
+        <div className="w-full h-32 bg-gradient-to-br from-emerald-600 to-blue-600 flex items-center justify-center">
+          <span className="text-3xl">⚡</span>
         </div>
       )}
       
       {/* Item Label */}
-      <div className="match-card-content">
-        <h3 className="match-card-label">
+      <div className="p-4">
+        <h3 className="text-white font-semibold mb-3">
           {candidate.label || 'Untitled Option'}
         </h3>
         
         {/* Vote Snapshot */}
-        <div className="match-card-snapshot">
-          <div className="snapshot-row">
-            <div className="snapshot-stat">
-              <span className="stat-label">Approvals</span>
-              <span className="stat-value">{snapshot.approvals || 0}</span>
+        <div className="space-y-3">
+          <div className="flex justify-between text-sm">
+            <div>
+              <span className="text-zinc-500 block text-xs">Approvals</span>
+              <span className="text-white font-medium">{snapshot.approvals || 0}</span>
             </div>
-            <div className="snapshot-stat">
-              <span className="stat-label">Total Members</span>
-              <span className="stat-value">{snapshot.total_members || 0}</span>
+            <div className="text-right">
+              <span className="text-zinc-500 block text-xs">Total Members</span>
+              <span className="text-white font-medium">{snapshot.total_members || 0}</span>
             </div>
           </div>
           
           {/* Approval Percentage Bar */}
-          <div className="approval-bar-container">
-            <div className="approval-bar-label">
-              <span>Approval Rate</span>
-              <span className="approval-percentage">{approvalPercentage}%</span>
+          <div>
+            <div className="flex justify-between text-xs mb-1">
+              <span className="text-zinc-500">Approval Rate</span>
+              <span className="text-emerald-400 font-medium">{approvalPercentage}%</span>
             </div>
-            <div className="approval-bar">
+            <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
               <div 
-                className="approval-bar-fill" 
+                className="h-full bg-emerald-500 transition-all duration-300" 
                 style={{ width: `${approvalPercentage}%` }}
               ></div>
             </div>
@@ -93,9 +94,9 @@ function MatchCard({ match, onSelect, isSelected = false }) {
           
           {/* Rule Information */}
           {snapshot.rule && (
-            <div className="snapshot-rule">
-              <span className="rule-label">Rule:</span>
-              <span className="rule-value">
+            <div className="flex justify-between text-xs">
+              <span className="text-zinc-500">Rule:</span>
+              <span className="text-zinc-300">
                 {snapshot.rule.type === 'unanimous' 
                   ? 'Unanimous' 
                   : `${Math.round(snapshot.rule.value * 100)}% Threshold`}
@@ -106,25 +107,23 @@ function MatchCard({ match, onSelect, isSelected = false }) {
         
         {/* Item Attributes */}
         {Object.keys(attributes).length > 0 && (
-          <div className="match-card-attributes">
+          <div className="mt-3 pt-3 border-t border-zinc-800 space-y-1">
             {Object.entries(attributes)
               .filter(([key]) => key !== 'image_url')
               .slice(0, 3)
               .map(([key, value]) => (
-                <div key={key} className="match-attribute">
-                  <span className="attribute-key">{key}</span>
-                  <span className="attribute-value">{String(value)}</span>
+                <div key={key} className="flex justify-between text-xs">
+                  <span className="text-zinc-500">{key}</span>
+                  <span className="text-zinc-300">{String(value)}</span>
                 </div>
               ))}
           </div>
         )}
         
         {/* Selected Date */}
-        <div className="match-card-meta">
-          <span className="meta-icon">🌓</span>
-          <span className="meta-text">
-            Matched on {formattedDate} · {formattedTime}
-          </span>
+        <div className="mt-3 pt-3 border-t border-zinc-800 flex items-center gap-2 text-xs text-zinc-500">
+          <span>🌓</span>
+          <span>Matched on {formattedDate} · {formattedTime}</span>
         </div>
       </div>
     </div>

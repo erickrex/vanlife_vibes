@@ -1,5 +1,4 @@
 import usePullToRefresh from '../hooks/usePullToRefresh';
-import './PullToRefresh.css';
 
 /**
  * PullToRefresh wrapper component for mobile lists
@@ -20,16 +19,16 @@ const PullToRefresh = ({
   } = usePullToRefresh(onRefresh, { enabled, threshold });
 
   return (
-    <div className="pull-to-refresh-wrapper">
+    <div className="relative w-full h-full overflow-hidden">
       {(isPulling || isRefreshing) && (
         <div 
-          className="pull-to-refresh-indicator"
+          className="absolute top-[-80px] left-0 right-0 h-20 flex flex-col items-center justify-center gap-2 bg-gradient-to-b from-zinc-900/95 to-zinc-900/80 z-50 transition-opacity duration-200"
           style={{ 
             transform: `translateY(${Math.min(pullDistance, threshold)}px)`,
             opacity: pullProgress / 100
           }}
         >
-          <div className={`refresh-spinner ${isRefreshing ? 'spinning' : ''}`}>
+          <div className={`w-8 h-8 text-blue-400 transition-transform duration-300 ${isRefreshing ? 'animate-spin' : ''}`}>
             <svg 
               width="24" 
               height="24" 
@@ -39,17 +38,18 @@ const PullToRefresh = ({
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
+              className="w-full h-full"
             >
               <polyline points="23 4 23 10 17 10"></polyline>
               <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
             </svg>
           </div>
-          <span className="refresh-text">
+          <span className="text-sm font-medium text-zinc-400">
             {isRefreshing ? 'Refreshing...' : pullProgress >= 100 ? 'Release to refresh' : 'Pull to refresh'}
           </span>
         </div>
       )}
-      <div ref={containerRef} className="pull-to-refresh-content">
+      <div ref={containerRef} className="w-full h-full overflow-y-auto touch-pan-y">
         {children}
       </div>
     </div>

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import './RejectedRequestsList.css';
 
 function RejectedRequestsList({ requests, onDelete, onSuccess, onError }) {
   const [loadingAction, setLoadingAction] = useState(null);
@@ -50,38 +49,38 @@ function RejectedRequestsList({ requests, onDelete, onSuccess, onError }) {
 
   if (!requests || requests.length === 0) {
     return (
-      <div className="rejected-requests-list empty">
-        <p className="empty-message">No rejected requests</p>
+      <div className="py-8 text-center">
+        <p className="text-zinc-400 italic">No rejected requests</p>
       </div>
     );
   }
 
   return (
-    <div className="rejected-requests-list">
+    <div className="flex flex-col gap-4">
       {requests.map((request) => (
-        <div key={request.id} className="request-card">
-          <div className="request-header">
-            <h3 className="username">{request.user?.username || 'Unknown User'}</h3>
+        <div key={request.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 transition-all hover:border-blue-500 hover:shadow-lg">
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="text-lg font-semibold text-white">{request.user?.username || 'Unknown User'}</h3>
           </div>
-          <div className="request-info">
-            <span className="request-date">
+          <div className="mb-4">
+            <span className="text-zinc-500 text-sm">
               Rejected {formatDate(request.rejected_at)}
             </span>
           </div>
-          <div className="request-actions">
+          <div className="flex flex-col md:flex-row gap-2">
             {showDeleteConfirm === request.id ? (
-              <div className="delete-confirm">
-                <p className="confirm-message">Are you sure you want to delete this request?</p>
-                <div className="confirm-buttons">
+              <div className="w-full">
+                <p className="text-zinc-300 text-sm mb-3">Are you sure you want to delete this request?</p>
+                <div className="flex flex-col md:flex-row gap-2">
                   <button
-                    className="cancel-button"
+                    className="flex-1 px-4 py-2.5 border border-zinc-700 hover:bg-zinc-800 text-zinc-300 font-medium rounded-lg transition-colors min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={handleDeleteCancel}
                     disabled={loadingAction === `delete-${request.id}`}
                   >
                     Cancel
                   </button>
                   <button
-                    className="confirm-delete-button"
+                    className="flex-1 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-all hover:-translate-y-0.5 min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                     onClick={() => handleDeleteConfirm(request.id)}
                     disabled={loadingAction === `delete-${request.id}`}
                   >
@@ -91,7 +90,7 @@ function RejectedRequestsList({ requests, onDelete, onSuccess, onError }) {
               </div>
             ) : (
               <button
-                className="delete-button"
+                className="flex-1 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-all hover:-translate-y-0.5 min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                 onClick={() => handleDeleteClick(request.id)}
                 disabled={loadingAction}
               >

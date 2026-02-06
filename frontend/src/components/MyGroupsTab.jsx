@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { groupsAPI } from '../services/api';
 import GroupList from './GroupList';
 import SkeletonLoader from './SkeletonLoader';
-import './MyGroupsTab.css';
 
 function MyGroupsTab() {
   const [groups, setGroups] = useState([]);
@@ -31,17 +30,17 @@ function MyGroupsTab() {
 
   if (loading) {
     return (
-      <div className="my-groups-tab">
+      <div className="py-2 md:py-4">
         <SkeletonLoader type="card" count={3} />
       </div>
     );
   }
 
   return (
-    <div className="my-groups-tab">
-      <div className="tab-header">
-        <h2 className="section-title">My Groups</h2>
-        <p className="section-description">
+    <div className="py-2 md:py-4">
+      <div className="mb-6 md:mb-8">
+        <h2 className="text-xl md:text-2xl font-semibold text-white mb-2">My Groups</h2>
+        <p className="text-sm md:text-base text-zinc-300">
           Groups you've created or joined
         </p>
       </div>

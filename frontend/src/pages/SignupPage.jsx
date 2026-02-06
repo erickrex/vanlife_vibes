@@ -1,35 +1,35 @@
-import React from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import SignupForm from '../components/SignupForm';
 import { useAuth } from '../contexts/AuthContext';
-import './SignupPage.css';
 
 function SignupPage() {
   const { isAuthenticated } = useAuth();
 
-  // Redirect to groups if already authenticated
   if (isAuthenticated) {
-    return <Navigate to="/groups" replace />;
+    return <Navigate to="/feed" replace />;
   }
 
   return (
-    <div className="signup-page">
-      <div className="auth-container">
-        <div className="auth-header">
-          <h1>Create Account</h1>
-          <p>Join VanlifeVibes and swipe as a crew.</p>
+    <div className="min-h-screen bg-black flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-sm space-y-8">
+        {/* Header */}
+        <div className="text-center space-y-2">
+          <h1 className="text-2xl font-bold text-white">Create Account</h1>
+          <p className="text-zinc-400">Join the van life community</p>
         </div>
         
-        <SignupForm />
-        
-        <div className="auth-footer">
-          <p>
-            Already have an account?{' '}
-            <Link to="/login" className="auth-link">
-              Log in
-            </Link>
-          </p>
+        {/* Form Card */}
+        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6">
+          <SignupForm />
         </div>
+        
+        {/* Footer */}
+        <p className="text-center text-zinc-400 text-sm">
+          Already have an account?{' '}
+          <Link to="/login" className="text-blue-500 hover:text-blue-400 font-medium">
+            Log in
+          </Link>
+        </p>
       </div>
     </div>
   );

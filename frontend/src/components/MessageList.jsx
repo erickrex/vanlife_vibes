@@ -1,6 +1,5 @@
 import React, { useRef, useEffect } from 'react';
 import MessageBubble from './MessageBubble';
-import './MessageList.css';
 
 function MessageList({ messages, currentUserId, loading = false }) {
   const messagesEndRef = useRef(null);
@@ -22,26 +21,27 @@ function MessageList({ messages, currentUserId, loading = false }) {
 
   if (loading) {
     return (
-      <div className="message-list loading">
-        <div className="loading-spinner">Loading messages...</div>
+      <div className="flex items-center justify-center py-8 text-zinc-400">
+        <div className="w-5 h-5 border-2 border-zinc-600 border-t-blue-500 rounded-full animate-spin mr-2"></div>
+        Loading messages...
       </div>
     );
   }
 
   if (messages.length === 0) {
     return (
-      <div className="message-list empty">
-        <div className="empty-state">
-          <p>No messages yet</p>
-          <p className="empty-hint">Start the conversation!</p>
+      <div className="flex items-center justify-center py-8">
+        <div className="text-center">
+          <p className="text-zinc-400">No messages yet</p>
+          <p className="text-zinc-500 text-sm mt-1">Start the conversation!</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="message-list" ref={containerRef}>
-      <div className="messages-container">
+    <div className="overflow-y-auto p-4" ref={containerRef}>
+      <div className="space-y-2">
         {messages.map((message) => (
           <MessageBubble
             key={message.id}

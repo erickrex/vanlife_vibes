@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import './SignupForm.css';
 
 function SignupForm() {
   const navigate = useNavigate();
@@ -22,28 +21,24 @@ function SignupForm() {
   const validateForm = () => {
     const newErrors = {};
 
-    // Username validation
     if (!formData.username.trim()) {
       newErrors.username = 'Username is required';
     } else if (formData.username.length < 3) {
       newErrors.username = 'Username must be at least 3 characters';
     }
 
-    // Email validation
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
 
-    // Password validation (minimum 4 characters only)
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 4) {
       newErrors.password = 'Password must be at least 4 characters';
     }
 
-    // Confirm password validation
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = 'Please confirm your password';
     } else if (formData.password !== formData.confirmPassword) {
@@ -56,130 +51,144 @@ function SignupForm() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-    }));
-    
-    // Clear error for this field when user starts typing
+    setFormData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: '',
-      }));
+      setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     setIsSubmitting(true);
-
     const result = await signup({
       username: formData.username,
       email: formData.email,
       password: formData.password,
       password_confirm: formData.confirmPassword,
     });
-
     setIsSubmitting(false);
 
     if (result.success) {
-      navigate('/groups');
+      navigate('/feed');
     } else {
       setErrors({ submit: result.error });
     }
   };
 
+  const inputClasses = (hasError) => `
+    w-full px-4 py-3 bg-zinc-900 border rounded-lg text-white placeholder-zinc-500 
+    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors
+    ${hasError ? 'border-red-500' : 'border-zinc-700'}
+  `;
+
   return (
-    <form className="signup-form" onSubmit={handleSubmit}>
-      <div className="form-group">
-        <label htmlFor="username">Username</label>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Username */}
+      <div className="space-y-1.5">
+        <label htmlFor="username" className="block text-sm font-medium text-zinc-300">
+          Username
+        </label>
         <input
           type="text"
           id="username"
           name="username"
           value={formData.username}
           onChange={handleChange}
-          className={errors.username ? 'error' : ''}
           disabled={isSubmitting}
+          className={inputClasses(errors.username)}
+          placeholder="Choose a username"
         />
-        {errors.username && <span className="error-message">{errors.username}</span>}
+        {errors.username && <p className="text-sm text-red-400">{errors.username}</p>}
       </div>
 
-      <div className="form-group">
-        <label htmlFor="email">Email</label>
+      {/* Email */}
+      <div className="space-y-1.5">
+        <label htmlFor="email" className="block text-sm font-medium text-zinc-300">
+          Email
+        </label>
         <input
           type="email"
           id="email"
           name="email"
           value={formData.email}
           onChange={handleChange}
-          className={errors.email ? 'error' : ''}
           disabled={isSubmitting}
+          className={inputClasses(errors.email)}
+          placeholder="you@example.com"
         />
-        {errors.email && <span className="error-message">{errors.email}</span>}
+        {errors.email && <p className="text-sm text-red-400">{errors.email}</p>}
       </div>
 
-      <div className="form-group">
-        <label htmlFor="password">Password</label>
-        <div className="password-input-wrapper">
+      {/* Password */}
+      <div className="space-y-1.5">
+        <label htmlFor="password" className="block text-sm font-medium text-zinc-300">
+          Password
+        </label>
+        <div className="relative">
           <input
             type={showPassword ? 'text' : 'password'}
             id="password"
             name="password"
             value={formData.password}
             onChange={handleChange}
-            className={errors.password ? 'error' : ''}
             disabled={isSubmitting}
+            className={`${inputClasses(errors.password)} pr-12`}
+            placeholder="Create a password"
           />
           <button
             type="button"
-            className="toggle-password"
             onClick={() => setShowPassword(!showPassword)}
-            aria-label={showPassword ? 'Hide password' : 'Show password'}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
           >
             {showPassword ? '👁️' : '👁️‍🗨️'}
           </button>
         </div>
-        {errors.password && <span className="error-message">{errors.password}</span>}
+        {errors.password && <p className="text-sm text-red-400">{errors.password}</p>}
       </div>
 
-      <div className="form-group">
-        <label htmlFor="confirmPassword">Confirm Password</label>
-        <div className="password-input-wrapper">
+      {/* Confirm Password */}
+      <div className="space-y-1.5">
+        <label htmlFor="confirmPassword" className="block text-sm font-medium text-zinc-300">
+          Confirm Password
+        </label>
+        <div className="relative">
           <input
             type={showConfirmPassword ? 'text' : 'password'}
             id="confirmPassword"
             name="confirmPassword"
             value={formData.confirmPassword}
             onChange={handleChange}
-            className={errors.confirmPassword ? 'error' : ''}
             disabled={isSubmitting}
+            className={`${inputClasses(errors.confirmPassword)} pr-12`}
+            placeholder="Confirm your password"
           />
           <button
             type="button"
-            className="toggle-password"
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
           >
             {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
           </button>
         </div>
-        {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
+        {errors.confirmPassword && <p className="text-sm text-red-400">{errors.confirmPassword}</p>}
       </div>
 
+      {/* Submit Error */}
       {errors.submit && (
-        <div className="form-error">
-          {errors.submit}
+        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+          <p className="text-sm text-red-400">{errors.submit}</p>
         </div>
       )}
 
-      <button type="submit" className="submit-button" disabled={isSubmitting}>
+      {/* Submit Button */}
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="w-full py-3 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed 
+          text-white font-semibold rounded-lg transition-colors"
+      >
         {isSubmitting ? 'Creating Account...' : 'Sign Up'}
       </button>
     </form>

@@ -1,5 +1,4 @@
 import React from 'react';
-import './CandidateCard.css';
 
 /**
  * CandidateCard component displays a candidate for swiping.
@@ -11,34 +10,34 @@ function CandidateCard({ candidate, style }) {
   const description = attributes.description || candidate.label;
 
   return (
-    <div className="item-card" style={style}>
-      <div className="item-card-content">
+    <div className="h-full bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden" style={style}>
+      <div className="h-full flex flex-col">
         {/* Image placeholder or actual image if available */}
         {imageUrl ? (
           <img 
             src={imageUrl} 
             alt={candidate.label} 
-            className="item-card-image"
+            className="w-full h-48 object-cover"
           />
         ) : (
-          <div className="item-card-image-placeholder">
-            <span className="item-card-label-large">{candidate.label}</span>
+          <div className="w-full h-48 bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
+            <span className="text-white text-2xl font-bold text-center px-4">{candidate.label}</span>
           </div>
         )}
         
         {/* Candidate label */}
-        <div className="item-card-info">
-          <h2 className="item-card-label">{description}</h2>
+        <div className="flex-1 p-4">
+          <h2 className="text-white text-lg font-semibold mb-2">{description}</h2>
           
           {/* Display attributes */}
           {Object.keys(attributes).length > 0 && (
-            <div className="item-card-attributes">
+            <div className="space-y-1">
               {Object.entries(attributes)
                 .filter(([key]) => !['image_url', 'description'].includes(key))
                 .map(([key, value]) => (
-                  <div key={key} className="item-card-attribute">
-                    <span className="attribute-key">{key}:</span>
-                    <span className="attribute-value">{String(value)}</span>
+                  <div key={key} className="flex justify-between text-sm">
+                    <span className="text-zinc-500">{key}:</span>
+                    <span className="text-zinc-300">{String(value)}</span>
                   </div>
                 ))}
             </div>

@@ -6,7 +6,6 @@ import CandidateFilter from '../components/CandidateFilter';
 import Toast from '../components/Toast';
 import { candidatesAPI, taxonomiesAPI, sessionsAPI, groupsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
-import './CandidateManagementPage.css';
 
 function CandidateManagementPage() {
   const { sessionId } = useParams();
@@ -37,12 +36,10 @@ function CandidateManagementPage() {
     try {
       setIsLoading(true);
       
-      // Load session details
       const sessionResponse = await sessionsAPI.get(sessionId);
       const sessionData = sessionResponse.data.data;
       setSession(sessionData);
       
-      // Check if user is admin of the group
       try {
         const membersResponse = await groupsAPI.listMembers(sessionData.group);
         const members = membersResponse.data.data || [];
@@ -53,11 +50,9 @@ function CandidateManagementPage() {
         setIsAdmin(false);
       }
       
-      // Load taxonomies with terms
       const taxonomiesResponse = await taxonomiesAPI.list();
       const taxonomiesData = taxonomiesResponse.data.data || [];
-      
-      // Load terms for each taxonomy
+
       const taxonomiesWithTerms = await Promise.all(
         taxonomiesData.map(async (taxonomy) => {
           try {
@@ -77,8 +72,6 @@ function CandidateManagementPage() {
       );
       
       setTaxonomies(taxonomiesWithTerms);
-      
-      // Load candidates
       await loadCandidates();
     } catch (err) {
       console.error('Failed to load data:', err);
@@ -92,14 +85,12 @@ function CandidateManagementPage() {
     try {
       const params = new URLSearchParams();
       
-      // Add tag filters
       if (filters.tags && filters.tags.length > 0) {
         filters.tags.forEach((tagId) => {
           params.append('tag', tagId);
         });
       }
       
-      // Add attribute filters
       if (filters.attributes && Object.keys(filters.attributes).length > 0) {
         Object.entries(filters.attributes).forEach(([key, value]) => {
           params.append(key, value);
@@ -193,9 +184,9 @@ function CandidateManagementPage() {
 
   if (isLoading) {
     return (
-      <div className="item-management-page">
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
+      <div className="min-h-screen bg-black px-4 pb-20 pt-4">
+        <div className="max-w-5xl mx-auto flex flex-col items-center justify-center min-h-[400px] gap-4 text-zinc-400">
+          <div className="w-10 h-10 border-4 border-zinc-700 border-t-blue-500 rounded-full animate-spin"></div>
           <p>Loading candidates...</p>
         </div>
       </div>
@@ -203,78 +194,80 @@ function CandidateManagementPage() {
   }
 
   return (
-    <div className="item-management-page">
-      <div className="page-header">
-        <div className="header-content">
-          <button
-            className="back-button"
-            onClick={() => navigate(`/sessions/${sessionId}`)}
-          >
-            ← Back
-          </button>
-          <div className="header-info">
-            <h1 className="page-title">Manage Candidates</h1>
-            {session && (
-              <p className="decision-name">{session.title}</p>
-            )}
-          </div>
-        </div>
-        
-        {isAdmin && !showAddForm && !editingCandidate && (
-          <button
-            className="add-item-button"
-            onClick={() => setShowAddForm(true)}
-          >
-            + Add Candidate
-          </button>
-        )}
-      </div>
-
-      {(showAddForm || editingCandidate) && (
-        <div className="form-container">
-          <AddCandidateForm
-            onSubmit={editingCandidate ? handleEditCandidate : handleAddCandidate}
-            onCancel={() => {
-              setShowAddForm(false);
-              setEditingCandidate(null);
-            }}
-            initialData={editingCandidate}
-            taxonomies={taxonomies}
-          />
-        </div>
-      )}
-
-      {!showAddForm && !editingCandidate && (
-        <>
-          <CandidateFilter
-            taxonomies={taxonomies}
-            onFilterChange={handleFilterChange}
-          />
-
-          <div className="items-container">
-            <div className="items-header">
-              <h2 className="items-count">
-                {candidates.length} {candidates.length === 1 ? 'Candidate' : 'Candidates'}
-              </h2>
+    <div className="min-h-screen bg-black px-4 pb-20 pt-4">
+      <div className="max-w-5xl mx-auto">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
+          <div className="flex-1">
+            <button
+              className="text-blue-500 hover:text-blue-400 font-semibold bg-transparent border-none cursor-pointer py-2 mb-2 min-h-[44px] flex items-center transition-colors"
+              onClick={() => navigate(`/sessions/${sessionId}`)}
+            >
+              ← Back
+            </button>
+            <div className="mt-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-white m-0 mb-1">Manage Candidates</h1>
+              {session && (
+                <p className="text-zinc-400 m-0">{session.title}</p>
+              )}
             </div>
+          </div>
+          
+          {isAdmin && !showAddForm && !editingCandidate && (
+            <button
+              className="w-full sm:w-auto px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-all hover:-translate-y-0.5 shadow-lg whitespace-nowrap min-h-[44px]"
+              onClick={() => setShowAddForm(true)}
+            >
+              + Add Candidate
+            </button>
+          )}
+        </div>
 
-            <CandidateList
-              candidates={candidates}
-              onEdit={(candidate) => setEditingCandidate(candidate)}
-              onDelete={handleDeleteCandidate}
-              isAdmin={isAdmin}
+        {(showAddForm || editingCandidate) && (
+          <div className="mb-8 bg-zinc-900 rounded-xl border border-zinc-800">
+            <AddCandidateForm
+              onSubmit={editingCandidate ? handleEditCandidate : handleAddCandidate}
+              onCancel={() => {
+                setShowAddForm(false);
+                setEditingCandidate(null);
+              }}
+              initialData={editingCandidate}
+              taxonomies={taxonomies}
             />
           </div>
-        </>
-      )}
+        )}
 
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={handleCloseToast}
-        />
-      )}
+        {!showAddForm && !editingCandidate && (
+          <>
+            <CandidateFilter
+              taxonomies={taxonomies}
+              onFilterChange={handleFilterChange}
+            />
+
+            <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+              <div className="flex justify-between items-center mb-4 pb-4 border-b-2 border-zinc-800">
+                <h2 className="text-xl font-semibold text-white m-0">
+                  {candidates.length} {candidates.length === 1 ? 'Candidate' : 'Candidates'}
+                </h2>
+              </div>
+
+              <CandidateList
+                candidates={candidates}
+                onEdit={(candidate) => setEditingCandidate(candidate)}
+                onDelete={handleDeleteCandidate}
+                isAdmin={isAdmin}
+              />
+            </div>
+          </>
+        )}
+
+        {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={handleCloseToast}
+          />
+        )}
+      </div>
     </div>
   );
 }

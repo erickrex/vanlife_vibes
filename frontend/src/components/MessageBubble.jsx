@@ -1,5 +1,4 @@
 import React from 'react';
-import './MessageBubble.css';
 
 function MessageBubble({ message, isCurrentUser }) {
   const formatTime = (timestamp) => {
@@ -25,16 +24,18 @@ function MessageBubble({ message, isCurrentUser }) {
   };
 
   return (
-    <div className={`message-bubble ${isCurrentUser ? 'current-user' : 'other-user'}`}>
-      <div className="message-content">
+    <div className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
+      <div className={`max-w-[80%] rounded-2xl px-4 py-2 ${
+        isCurrentUser ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-white'
+      }`}>
         {!isCurrentUser && (
-          <div className="message-sender">
+          <div className="text-xs text-zinc-400 mb-1">
             {message.user?.username || message.user_username || 'Unknown user'}
           </div>
         )}
-        <div className="message-text">{message.content || message.text}</div>
-        <div className="message-meta">
-          <span className="message-time">{formatTime(message.created_at || message.sent_at)}</span>
+        <div className="text-sm whitespace-pre-wrap break-words">{message.content || message.text}</div>
+        <div className={`text-xs mt-1 ${isCurrentUser ? 'text-blue-200' : 'text-zinc-500'}`}>
+          {formatTime(message.created_at || message.sent_at)}
         </div>
       </div>
     </div>

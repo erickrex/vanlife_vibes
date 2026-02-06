@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { sessionsAPI } from '../services/api';
 import MatchCard from './MatchCard';
-import './MatchList.css';
 
 function MatchList({
   sessionId,
@@ -104,8 +103,8 @@ function MatchList({
 
   if (loading) {
     return (
-      <div className="match-list-loading">
-        <div className="spinner"></div>
+      <div className="flex items-center justify-center py-8 text-zinc-400">
+        <div className="w-5 h-5 border-2 border-zinc-600 border-t-blue-500 rounded-full animate-spin mr-2"></div>
         <p>Loading matches...</p>
       </div>
     );
@@ -113,9 +112,12 @@ function MatchList({
 
   if (error) {
     return (
-      <div className="match-list-error">
-        <p>{error}</p>
-        <button onClick={handleRefresh} className="retry-button">
+      <div className="text-center py-8">
+        <p className="text-red-400 mb-4">{error}</p>
+        <button 
+          onClick={handleRefresh} 
+          className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition-colors"
+        >
           Try Again
         </button>
       </div>
@@ -123,23 +125,24 @@ function MatchList({
   }
 
   return (
-    <div className="match-list">
-      <div className="match-list-controls">
-        <div className="control-group">
-          <label htmlFor="sort-by">Sort by:</label>
+    <div className="space-y-4">
+      {/* Controls */}
+      <div className="flex flex-wrap gap-3 items-center">
+        <div className="flex items-center gap-2">
+          <label htmlFor="sort-by" className="text-zinc-500 text-sm">Sort:</label>
           <select
             id="sort-by"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="sort-select"
+            className="px-3 py-1.5 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm focus:outline-none focus:border-zinc-600"
           >
             <option value="date">Most Recent</option>
             <option value="approval">Highest Approval</option>
           </select>
         </div>
         
-        <div className="control-group">
-          <label htmlFor="min-approval">Min Approval %:</label>
+        <div className="flex items-center gap-2">
+          <label htmlFor="min-approval" className="text-zinc-500 text-sm">Min %:</label>
           <input
             id="min-approval"
             type="number"
@@ -147,28 +150,32 @@ function MatchList({
             max="100"
             value={filterMinApproval}
             onChange={(e) => setFilterMinApproval(Number(e.target.value))}
-            className="filter-input"
+            className="w-16 px-2 py-1.5 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm focus:outline-none focus:border-zinc-600"
           />
         </div>
         
-        <button onClick={handleRefresh} className="refresh-button" title="Refresh">
+        <button 
+          onClick={handleRefresh} 
+          className="px-3 py-1.5 text-zinc-400 hover:text-white text-sm transition-colors"
+          title="Refresh"
+        >
           ↻ Refresh
         </button>
       </div>
 
       {sortedMatches.length === 0 ? (
-        <div className="match-list-empty">
+        <div className="text-center py-8 text-zinc-500">
           {matches.length === 0 ? (
             <>
               <p>No matches yet.</p>
-              <p>VanlifeVibes will pin the top-approved options here.</p>
+              <p className="text-sm mt-1">VanlifeVibes will pin the top-approved options here.</p>
             </>
           ) : (
             <p>No matches match the current filter.</p>
           )}
         </div>
       ) : (
-        <div className="match-grid">
+        <div className="grid gap-4">
           {sortedMatches.map((match) => (
             <MatchCard
               key={match.id}
@@ -181,8 +188,8 @@ function MatchList({
       )}
       
       {autoRefresh && (
-        <div className="auto-refresh-indicator">
-          <span className="refresh-dot"></span>
+        <div className="flex items-center justify-center gap-2 text-xs text-zinc-500">
+          <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
           Auto-refreshing every {refreshInterval / 1000}s
         </div>
       )}

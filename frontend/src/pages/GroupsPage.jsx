@@ -4,7 +4,6 @@ import MyGroupsTab from '../components/MyGroupsTab';
 import JoinTab from '../components/JoinTab';
 import CreateGroupForm from '../components/CreateGroupForm';
 import { Tabs, Tab } from '../components/Tabs';
-import './GroupsPage.css';
 
 function GroupsPage() {
   const [pendingInvitationsCount, setPendingInvitationsCount] = useState(0);
@@ -35,26 +34,28 @@ function GroupsPage() {
   };
 
   return (
-    <div className="groups-page">
-      <div className="page-header">
-        <h1 className="page-title">Groups</h1>
-      </div>
+    <div className="min-h-screen bg-black px-4 py-6 pb-24">
+      <div className="max-w-lg mx-auto">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-white">Groups</h1>
+        </div>
 
-      <Tabs defaultTab={pendingInvitationsCount > 0 ? 1 : 0}>
-        <Tab label="My Groups">
-          <MyGroupsTab />
-        </Tab>
-        <Tab label="Join" badge={pendingInvitationsCount}>
-          <JoinTab />
-        </Tab>
-        <Tab label="Create">
-          <div className="create-tab">
-            <CreateGroupForm 
-              onSubmit={handleCreateGroup}
-            />
-          </div>
-        </Tab>
-      </Tabs>
+        <Tabs defaultTab={pendingInvitationsCount > 0 ? 1 : 0}>
+          <Tab label="My Groups">
+            <MyGroupsTab />
+          </Tab>
+          <Tab label="Join" badge={pendingInvitationsCount}>
+            <JoinTab />
+          </Tab>
+          <Tab label="Create">
+            <div className="mt-4">
+              <CreateGroupForm 
+                onSubmit={handleCreateGroup}
+              />
+            </div>
+          </Tab>
+        </Tabs>
+      </div>
     </div>
   );
 }

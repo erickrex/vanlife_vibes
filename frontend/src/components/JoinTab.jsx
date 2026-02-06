@@ -6,7 +6,6 @@ import MyJoinRequestsList from './MyJoinRequestsList';
 import MyInvitationsList from './MyInvitationsList';
 import Toast from './Toast';
 import SkeletonLoader from './SkeletonLoader';
-import './JoinTab.css';
 
 function JoinTab() {
   const [myRequests, setMyRequests] = useState([]);
@@ -69,7 +68,7 @@ function JoinTab() {
   };
 
   return (
-    <div className="join-tab">
+    <div className="w-full flex flex-col gap-8 md:gap-12">
       {toast && (
         <Toast
           message={toast.message}
@@ -78,9 +77,9 @@ function JoinTab() {
         />
       )}
 
-      <section className="invite-section">
-        <h2 className="section-title">Send Invitation</h2>
-        <p className="section-description">
+      <section>
+        <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">Send Invitation</h2>
+        <p className="text-zinc-400 text-sm mb-6">
           Invite users to join your groups
         </p>
         <InviteUserForm
@@ -89,8 +88,8 @@ function JoinTab() {
         />
       </section>
 
-      <section className="join-requests-section">
-        <h2 className="section-title">Request to Join a Group</h2>
+      <section>
+        <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">Request to Join a Group</h2>
         <JoinRequestForm
           onSubmit={handleJoinRequest}
           onSuccess={showToast}
@@ -99,12 +98,12 @@ function JoinTab() {
         
         {loading ? (
           <>
-            <h3 className="subsection-title">My Join Requests</h3>
+            <h3 className="text-xl md:text-2xl font-semibold text-zinc-200 mt-8 mb-4">My Join Requests</h3>
             <SkeletonLoader type="card" count={2} />
           </>
         ) : myRequests.length > 0 ? (
           <>
-            <h3 className="subsection-title">My Join Requests</h3>
+            <h3 className="text-xl md:text-2xl font-semibold text-zinc-200 mt-8 mb-4">My Join Requests</h3>
             <MyJoinRequestsList
               requests={myRequests}
               onResend={handleResendRequest}
@@ -116,8 +115,8 @@ function JoinTab() {
         ) : null}
       </section>
 
-      <section className="invitations-section">
-        <h2 className="section-title">Received Invitations</h2>
+      <section>
+        <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">Received Invitations</h2>
         {loading ? (
           <SkeletonLoader type="card" count={2} />
         ) : (

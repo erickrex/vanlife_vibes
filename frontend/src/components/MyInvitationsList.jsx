@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import './MyInvitationsList.css';
 
 function MyInvitationsList({ invitations, onAccept, onReject, onSuccess, onError }) {
   const [loadingAction, setLoadingAction] = useState(null);
@@ -56,24 +55,28 @@ function MyInvitationsList({ invitations, onAccept, onReject, onSuccess, onError
 
   if (!invitations || invitations.length === 0) {
     return (
-      <div className="my-invitations-list empty">
-        <p className="empty-message">No invitations yet</p>
+      <div className="py-8 text-center">
+        <p className="text-zinc-400 text-sm">No invitations yet</p>
       </div>
     );
   }
 
   return (
-    <div className="my-invitations-list">
+    <div className="w-full flex flex-col gap-4">
       {invitations.map((invitation) => (
-        <div key={invitation.id} className={`invitation-card ${invitation.status}`}>
-          <div className="invitation-header">
-            <h3 className="group-name">{invitation.group_name}</h3>
-            <span className={`status-badge ${invitation.status}`}>
+        <div key={invitation.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 transition-shadow hover:shadow-lg">
+          <div className="flex justify-between items-start gap-2 mb-2">
+            <h3 className="text-lg font-semibold text-white flex-1 break-words">{invitation.group_name}</h3>
+            <span className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
+              invitation.status === 'pending' 
+                ? 'bg-blue-500/20 text-blue-400' 
+                : 'bg-red-500/20 text-red-400'
+            }`}>
               {invitation.status === 'pending' ? 'Pending' : 'Rejected'}
             </span>
           </div>
-          <div className="invitation-info">
-            <span className="invitation-date">
+          <div className="mb-3">
+            <span className="text-zinc-500 text-sm">
               {invitation.status === 'rejected' 
                 ? `Rejected ${formatDate(invitation.rejected_at)}`
                 : `Invited ${formatDate(invitation.invited_at)}`
@@ -81,16 +84,16 @@ function MyInvitationsList({ invitations, onAccept, onReject, onSuccess, onError
             </span>
           </div>
           {invitation.status === 'pending' && (
-            <div className="invitation-actions">
+            <div className="flex flex-col md:flex-row gap-2 mt-4">
               <button
-                className="accept-button"
+                className="flex-1 md:flex-none md:min-w-[120px] px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg transition-all hover:-translate-y-0.5 min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                 onClick={() => handleAccept(invitation.id)}
                 disabled={loadingAction === `accept-${invitation.id}`}
               >
                 {loadingAction === `accept-${invitation.id}` ? 'Accepting...' : 'Accept'}
               </button>
               <button
-                className="reject-button"
+                className="flex-1 md:flex-none md:min-w-[120px] px-4 py-2.5 border border-red-500 text-red-400 hover:bg-red-500/10 font-semibold rounded-lg transition-colors min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => handleReject(invitation.id)}
                 disabled={loadingAction === `reject-${invitation.id}`}
               >

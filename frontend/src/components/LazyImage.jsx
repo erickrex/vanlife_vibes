@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import './LazyImage.css';
 
 /**
  * LazyImage component with Intersection Observer for performance optimization
@@ -56,17 +55,21 @@ const LazyImage = ({
   };
 
   return (
-    <div ref={imgRef} className={`lazy-image-container ${className}`}>
+    <div ref={imgRef} className={`relative w-full h-full overflow-hidden ${className}`}>
       {!isLoaded && (
-        <div className="lazy-image-placeholder">
-          {placeholder || <div className="lazy-image-spinner" />}
+        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-zinc-700 to-zinc-800">
+          {placeholder || (
+            <div className="w-10 h-10 border-4 border-white/30 border-t-white/80 rounded-full animate-spin" />
+          )}
         </div>
       )}
       {isInView && (
         <img
           src={src}
           alt={alt}
-          className={`lazy-image ${isLoaded ? 'lazy-image-loaded' : 'lazy-image-loading'}`}
+          className={`w-full h-full object-cover transition-opacity duration-300 ${
+            isLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
           onLoad={handleLoad}
           loading="lazy"
         />

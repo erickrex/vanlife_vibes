@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import SwipeCardStack from '../components/SwipeCardStack';
 import Toast from '../components/Toast';
 import { candidatesAPI, swipesAPI, sessionsAPI } from '../services/api';
-import './SwipePage.css';
 
 /**
  * SwipePage component for swipe-based voting on session candidates.
@@ -146,19 +145,22 @@ function SwipePage() {
 
   if (loading) {
     return (
-      <div className="voting-page">
-        <div className="loading-message">Loading candidates...</div>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-zinc-400">Loading candidates...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="voting-page">
-        <div className="error-message">
-          <h2>Error</h2>
-          <p>{error}</p>
-          <button onClick={() => navigate(`/sessions/${sessionId}`)}>
+      <div className="min-h-screen bg-black flex items-center justify-center px-4">
+        <div className="text-center">
+          <h2 className="text-white text-xl font-semibold mb-2">Error</h2>
+          <p className="text-zinc-400 mb-4">{error}</p>
+          <button 
+            onClick={() => navigate(`/sessions/${sessionId}`)}
+            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+          >
             Back to Session
           </button>
         </div>
@@ -167,77 +169,79 @@ function SwipePage() {
   }
 
   return (
-    <div className="voting-page">
-      {/* Header */}
-      <div className="voting-header">
-        <button 
-          className="back-button"
-          onClick={() => navigate(`/sessions/${sessionId}`)}
-        >
-          ← Back
-        </button>
-        <h1>{session?.title || 'Swipe on Candidates'}</h1>
-      </div>
-
-      {/* Progress indicator */}
-      <div className="progress-section">
-        <div className="progress-bar">
-          <div 
-            className="progress-fill" 
-            style={{ width: `${progressPercentage}%` }}
-          />
-        </div>
-        <div className="progress-text">
-          {swipedCandidates} / {totalCandidates} candidates swiped
-        </div>
-      </div>
-
-      {/* Swipe card stack */}
-      <SwipeCardStack
-        candidates={candidates}
-        currentIndex={currentIndex}
-        onSwipe={handleSwipe}
-      />
-
-      {/* Vote buttons */}
-      {currentIndex < candidates.length && (
-        <div className="vote-controls">
+    <div className="min-h-screen bg-black px-4 py-6 pb-24">
+      <div className="max-w-lg mx-auto">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-6">
           <button 
-            className="vote-button vote-button-dislike"
-            onClick={() => handleButtonSwipe(false)}
+            className="text-zinc-400 hover:text-white transition-colors"
+            onClick={() => navigate(`/sessions/${sessionId}`)}
           >
-            <span className="button-icon">✕</span>
-            <span className="button-label">Nope</span>
+            ← Back
           </button>
-          
-          <button 
-            className="vote-button vote-button-like"
-            onClick={() => handleButtonSwipe(true)}
-          >
-            <span className="button-icon">♥</span>
-            <span className="button-label">Like</span>
-          </button>
+          <h1 className="text-white font-semibold truncate">{session?.title || 'Swipe on Candidates'}</h1>
         </div>
-      )}
 
-      {/* Undo button - show if there's history, even after all candidates swiped */}
-      {swipeHistory.length > 0 && (
-        <button 
-          className="undo-button"
-          onClick={handleUndo}
-        >
-          ↶ Undo
-        </button>
-      )}
+        {/* Progress indicator */}
+        <div className="mb-6">
+          <div className="h-1 bg-zinc-800 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-blue-500 transition-all duration-300" 
+              style={{ width: `${progressPercentage}%` }}
+            />
+          </div>
+          <div className="text-zinc-500 text-sm mt-2 text-center">
+            {swipedCandidates} / {totalCandidates} candidates swiped
+          </div>
+        </div>
 
-      {/* Toast notifications */}
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
+        {/* Swipe card stack */}
+        <SwipeCardStack
+          candidates={candidates}
+          currentIndex={currentIndex}
+          onSwipe={handleSwipe}
         />
-      )}
+
+        {/* Vote buttons */}
+        {currentIndex < candidates.length && (
+          <div className="flex justify-center gap-8 mt-6">
+            <button 
+              className="w-16 h-16 flex flex-col items-center justify-center bg-zinc-900 hover:bg-red-900/50 border-2 border-zinc-700 hover:border-red-500 rounded-full transition-all"
+              onClick={() => handleButtonSwipe(false)}
+            >
+              <span className="text-2xl">✕</span>
+              <span className="text-xs text-zinc-400 mt-0.5">Nope</span>
+            </button>
+            
+            <button 
+              className="w-16 h-16 flex flex-col items-center justify-center bg-zinc-900 hover:bg-emerald-900/50 border-2 border-zinc-700 hover:border-emerald-500 rounded-full transition-all"
+              onClick={() => handleButtonSwipe(true)}
+            >
+              <span className="text-2xl text-rose-500">♥</span>
+              <span className="text-xs text-zinc-400 mt-0.5">Like</span>
+            </button>
+          </div>
+        )}
+
+        {/* Undo button - show if there's history, even after all candidates swiped */}
+        {swipeHistory.length > 0 && (
+          <button 
+            className="w-full mt-4 py-2 text-zinc-400 hover:text-white text-sm transition-colors"
+            onClick={handleUndo}
+          >
+            ↶ Undo
+          </button>
+        )}
+
+        {/* Toast notifications */}
+        {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        )}
+      </div>
     </div>
   );
 }

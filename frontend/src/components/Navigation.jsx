@@ -1,78 +1,98 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { groupsAPI } from '../services/api';
-import './Navigation.css';
 
+/**
+ * Top Navigation Bar Component
+ * 
+ * Simplified navigation for the 3-tab architecture:
+ * - Brand logo (VanlifeVibes)
+ * - Profile link (when authenticated)
+ * - Logout button (when authenticated)
+ * 
+ * The main navigation (Feed, Dating, Activities) is handled by TabNavigation
+ * at the bottom of the screen.
+ * 
+ * Requirements:
+ * - 10.1: Remove Groups feature from main navigation
+ * - 10.2: Remove Sessions feature from main navigation
+ * - 10.5: Profile page accessible from within each tab via profile icon
+ */
 function Navigation() {
   const navigate = useNavigate();
-  const { isAuthenticated, logout, user } = useAuth();
-  const [pendingCount, setPendingCount] = useState(0);
-  
-  // Fetch pending invitations count
-  useEffect(() => {
-    const fetchPendingCount = async () => {
-      if (!isAuthenticated) {
-        setPendingCount(0);
-        return;
-      }
-      
-      try {
-        const response = await groupsAPI.listMyInvitations();
-        const invitations = response.data.data || response.data.results || response.data;
-        const pending = Array.isArray(invitations) 
-          ? invitations.filter(inv => inv.status === 'pending').length 
-          : 0;
-        setPendingCount(pending);
-      } catch (err) {
-        console.error('Failed to fetch pending invitations:', err);
-      }
-    };
-    
-    fetchPendingCount();
-    
-    // Poll every 30 seconds for new invitations
-    const interval = setInterval(fetchPendingCount, 30000);
-    return () => clearInterval(interval);
-  }, [isAuthenticated]);
+  const location = useLocation();
+  const { isAuthenticated, logout } = useAuth();
   
   const handleLogout = async () => {
     await logout();
     navigate('/login');
   };
+
+  const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
   
   return (
-    <nav className="navigation">
-      <div className="nav-container">
-        <Link to="/" className="nav-brand">
+    <nav className="sticky top-0 z-50 bg-black/95 backdrop-blur border-b border-zinc-800">
+      <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
+        {/* Brand */}
+        <Link 
+          to={isAuthenticated ? "/feed" : "/"} 
+          className="text-xl font-bold bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 bg-clip-text text-transparent"
+        >
           VanlifeVibes
         </Link>
         
-        <div className="nav-links">
+        {/* Nav Links */}
+        <div className="flex items-center gap-1">
           {isAuthenticated ? (
             <>
-              {user && <span className="nav-username">Hi, {user.username}</span>}
-              <Link to="/groups" className="nav-link nav-link-with-badge">
-                Groups
-                {pendingCount > 0 && (
-                  <span className="notification-badge" title={`${pendingCount} pending invitation${pendingCount > 1 ? 's' : ''}`}>
-                    {pendingCount > 9 ? '9+' : pendingCount}
-                  </span>
-                )}
-              </Link>
-              <button onClick={handleLogout} className="nav-link nav-button">
+              {/* Profile link - accessible from all tabs (Requirement 10.5) */}
+              <NavLink to="/profile" active={isActive('/profile')}>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </NavLink>
+              <button 
+                onClick={handleLogout}
+                className="px-3 py-1.5 text-sm text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+              >
                 Logout
               </button>
             </>
           ) : (
             <>
-              <Link to="/login" className="nav-link">Login</Link>
-              <Link to="/signup" className="nav-link">Sign Up</Link>
+              <NavLink to="/login" active={isActive('/login')}>
+                Login
+              </NavLink>
+              <Link 
+                to="/signup"
+                className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold rounded-lg transition-colors"
+              >
+                Sign Up
+              </Link>
             </>
           )}
         </div>
       </div>
     </nav>
+  );
+}
+
+function NavLink({ to, active, children, badge }) {
+  return (
+    <Link
+      to={to}
+      className={`relative px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+        active 
+          ? 'text-white bg-zinc-800' 
+          : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+      }`}
+    >
+      {children}
+      {badge > 0 && (
+        <span className="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+          {badge > 9 ? '9+' : badge}
+        </span>
+      )}
+    </Link>
   );
 }
 

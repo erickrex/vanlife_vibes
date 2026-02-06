@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import './JoinRequestForm.css';
 
 function JoinRequestForm({ onSubmit, onSuccess, onError }) {
   const [groupName, setGroupName] = useState('');
@@ -37,9 +36,11 @@ function JoinRequestForm({ onSubmit, onSuccess, onError }) {
   };
 
   return (
-    <form className="join-request-form" onSubmit={handleSubmit}>
-      <div className="form-group">
-        <label htmlFor="group-name">Group Name</label>
+    <form className="w-full max-w-lg" onSubmit={handleSubmit}>
+      <div className="mb-4">
+        <label htmlFor="group-name" className="block mb-2 font-medium text-sm text-zinc-300">
+          Group Name
+        </label>
         <input
           id="group-name"
           type="text"
@@ -47,13 +48,15 @@ function JoinRequestForm({ onSubmit, onSuccess, onError }) {
           onChange={(e) => setGroupName(e.target.value)}
           placeholder="Enter group name..."
           disabled={loading}
-          className={error ? 'error' : ''}
+          className={`w-full px-4 py-3 bg-zinc-800 border rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-500 transition-colors ${
+            error ? 'border-red-500' : 'border-zinc-700'
+          }`}
         />
-        {error && <span className="error-message">{error}</span>}
+        {error && <span className="text-red-400 text-sm mt-1 block">{error}</span>}
       </div>
       <button 
         type="submit" 
-        className="submit-button"
+        className="w-full px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-all hover:-translate-y-0.5 min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
         disabled={loading || !groupName.trim()}
       >
         {loading ? 'Sending...' : 'Request to Join'}
