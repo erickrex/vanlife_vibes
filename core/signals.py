@@ -16,11 +16,9 @@ def create_profile_on_user_creation(sender, instance, created, **kwargs):
     Automatically create a Profile when a new UserAccount is created.
     
     The Profile is created with default values:
-    - interested_in_friends = True
-    - interested_in_dating = False
+    - looking_for_friends = True
+    - looking_for_dating = False
     - has_van = False
-    
-    Validates: Requirements 13.3
     """
     if created:
         Profile.objects.create(user=instance)

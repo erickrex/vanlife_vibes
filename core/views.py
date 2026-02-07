@@ -15,7 +15,7 @@ from core.models import (
     Candidate, CandidateTerm, Swipe, Match, MatchMessage,
     Question, AnswerOption, UserAnswer,
     Profile, Region, Country, Follow, HobbyTag, Vehicle, VehiclePhoto,
-    InTownWindow, ProfilePrompt, PersonSwipe, PersonMatch, DirectMessage,
+    InTownWindow, City, Prompt, ProfilePrompt, PersonSwipe, PersonMatch, DirectMessage,
     UserReport, Plan, PlanAttendee, PlanMessage,
     Activity, ActivitySwipe, ActivityMatch, ActivityMessage,
     FriendRequest, Friendship, FriendMessage
@@ -57,8 +57,10 @@ from core.serializers import (
     FeedCardSerializer,
     RegionSerializer,
     InTownWindowSerializer,
+    CitySerializer,
     ProfilePromptSerializer,
     AvailablePromptSerializer,
+    PromptListSerializer,
     DirectMessageCreateSerializer,
     DirectMessageSerializer,
     PersonMatchSerializer,
@@ -3223,7 +3225,7 @@ class ProfileViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
         
         Request body for POST:
         {
-            "prompt_question": "string (one of the valid prompt keys)",
+            "prompt_name": "string (prompt identifier)",
             "prompt_answer": "string (max 200 chars)",
             "display_order": integer (optional)
         }
@@ -3320,18 +3322,22 @@ class ProfileViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
         {
             "status": "success",
             "data": [
-                {"key": "perfect_day", "text": "My perfect day on the road looks like..."},
+                {
+                    "prompt_name": "next_stop_journey",
+                    "prompt_question": "Next stop on my journey is...",
+                    "prompt_placeholder": "Update this with your upcoming destination or region (e.g., “the Rockies,” “Route 66,” “southern Utah”). It signals where you’ll be and invites nearby travelers to link up.",
+                    "prompt_type": "travel"
+                },
                 ...
             ]
         }
         """
-        # Get all available prompts from the model's PROMPT_CHOICES
-        available_prompts = [
-            {'key': key, 'text': text}
-            for key, text in ProfilePrompt.PROMPT_CHOICES
-        ]
-        
-        serializer = AvailablePromptSerializer(available_prompts, many=True)
+        prompt_type = request.query_params.get('type')
+        queryset = Prompt.objects.all()
+        if prompt_type:
+            queryset = queryset.filter(prompt_type=prompt_type)
+        queryset = queryset.order_by('prompt_name')
+        serializer = PromptListSerializer(queryset, many=True)
         
         return Response({
             'status': 'success',
@@ -3709,6 +3715,25 @@ class LocationViewSet(viewsets.GenericViewSet):
             'data': serializer.data
         }, status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=['get'], url_path='cities')
+    def cities(self, request):
+        """
+        List cities for autocomplete.
+
+        GET /api/v1/locations/cities/?q={query}
+        """
+        query = request.query_params.get('q', '').strip()
+        queryset = City.objects.all()
+        if query:
+            queryset = queryset.filter(display_name__icontains=query)
+        queryset = queryset.order_by('display_name')[:10]
+        serializer = CitySerializer(queryset, many=True)
+
+        return Response({
+            'status': 'success',
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+
 
 # ============================================================================
 # Feed ViewSet (Van Lifer Profiles Feature)
@@ -3859,8 +3884,11 @@ class FeedViewSet(viewsets.GenericViewSet):
                 'message': 'Profile not found. Please contact support.'
             }, status=status.HTTP_404_NOT_FOUND)
         
-        # Check if user has a "Now In" location set
-        if not user_profile.now_in:
+        # Check if user has a "Now In" location set (either region-based or city-based)
+        user_region = user_profile.now_in
+        user_city = user_profile.now_in_city
+        
+        if not user_region and not user_city:
             return Response({
                 'status': 'success',
                 'data': {
@@ -3870,8 +3898,6 @@ class FeedViewSet(viewsets.GenericViewSet):
                 },
                 'message': 'Set your "Now In" location to see nearby travelers.'
             }, status=status.HTTP_200_OK)
-        
-        user_region = user_profile.now_in
         
         # Query profiles for each timing category
         # Exclude current user from all queries (Requirement 8.8)
@@ -3905,16 +3931,34 @@ class FeedViewSet(viewsets.GenericViewSet):
         # Apply all query parameter filters to base queryset
         base_queryset = feed_filter_service.apply_filters(base_queryset, request, user_profile)
         
-        # Here Now: profiles whose now_in matches user's now_in region (Requirement 8.2)
-        here_now_profiles = base_queryset.filter(now_in=user_region)
+        # Build location filters - support both region-based and city-based matching
+        from django.db.models import Q
         
-        # Here Next Week: profiles whose next_week_in matches user's now_in region (Requirement 8.3)
-        here_next_week_profiles = base_queryset.filter(next_week_in=user_region)
+        # Here Now: profiles whose now_in region OR now_in_city matches user's location
+        here_now_q = Q()
+        if user_region:
+            here_now_q |= Q(now_in=user_region)
+        if user_city:
+            here_now_q |= Q(now_in_city__iexact=user_city)
+        here_now_profiles = base_queryset.filter(here_now_q) if here_now_q else base_queryset.none()
         
-        # Here Next Month: profiles whose next_month_in matches user's now_in region (Requirement 8.4)
-        here_next_month_profiles = base_queryset.filter(next_month_in=user_region)
+        # Here Next Week: profiles whose next_week_in region OR next_week_in_city matches user's location
+        here_next_week_q = Q()
+        if user_region:
+            here_next_week_q |= Q(next_week_in=user_region)
+        if user_city:
+            here_next_week_q |= Q(next_week_in_city__iexact=user_city)
+        here_next_week_profiles = base_queryset.filter(here_next_week_q) if here_next_week_q else base_queryset.none()
         
-        # Create RelevanceScorer instance for sorting profiles (Requirements 2.1, 2.2, 2.3)
+        # Here Next Month: profiles whose next_month_in region OR next_month_in_city matches user's location
+        here_next_month_q = Q()
+        if user_region:
+            here_next_month_q |= Q(next_month_in=user_region)
+        if user_city:
+            here_next_month_q |= Q(next_month_in_city__iexact=user_city)
+        here_next_month_profiles = base_queryset.filter(here_next_month_q) if here_next_month_q else base_queryset.none()
+        
+        # Create RelevanceScorer instance for sorting profiles
         relevance_scorer = RelevanceScorer()
         
         # Convert querysets to lists and sort by relevance within each timing category
@@ -4064,7 +4108,7 @@ class DiscoveryViewSet(viewsets.GenericViewSet):
         """
         Get profiles for discovery based on mode (dating/friends).
         
-        - Filters by intent (interested_in_dating or looking_for_friends)
+        - Filters by intent (looking_for_dating or looking_for_friends)
         - Excludes already-swiped profiles
         - Excludes current user
         - Applies additional filters
@@ -4090,8 +4134,8 @@ class DiscoveryViewSet(viewsets.GenericViewSet):
         # Filter by intent based on mode
         if mode == 'dating':
             # Property 5: Discovery Intent Filtering
-            # Only show profiles where interested_in_dating is true
-            queryset = queryset.filter(interested_in_dating=True)
+            # Only show profiles where looking_for_dating is true
+            queryset = queryset.filter(looking_for_dating=True)
         else:  # friends mode
             # Property 5: Discovery Intent Filtering
             # Only show profiles where looking_for_friends is true
@@ -4130,7 +4174,7 @@ class DiscoveryViewSet(viewsets.GenericViewSet):
         - profile_type: Filter by profile type (solo, couple, group)
         - pet_compatible: Filter by pet compatibility (true/false)
         
-        Returns profiles with interested_in_dating=True, excluding already-swiped
+        Returns profiles with looking_for_dating=True, excluding already-swiped
         profiles and the current user. Results are boosted by in-town window overlap.
         """
         profiles, error_response = self._get_discovery_profiles(request, 'dating')

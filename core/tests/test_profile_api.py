@@ -10,7 +10,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from django.utils import timezone
 from core.models import (
-    UserAccount, Profile, Country, Region, HobbyTag, Vehicle, Follow
+    UserAccount, Profile, Country, Region, HobbyTag, Vehicle, Follow, Prompt
 )
 
 
@@ -619,6 +619,10 @@ class VehicleAPITestCase(TestCase):
         )
         self.client.force_authenticate(user=self.user)
         self.profile = Profile.objects.get(user=self.user)
+        self.next_stop_journey = Prompt.objects.get(prompt_name='next_stop_journey')
+        self.always_down_team_up = Prompt.objects.get(prompt_name='always_down_team_up')
+        self.looking_for_travel_buddy = Prompt.objects.get(prompt_name='looking_for_travel_buddy')
+        self.best_hidden_gem = Prompt.objects.get(prompt_name='best_hidden_gem')
 
     def test_get_vehicle_not_found(self):
         """Test GET /profiles/me/vehicle/ returns 404 when no vehicle exists"""
@@ -1865,13 +1869,13 @@ class ProfilePromptAPITestCase(TestCase):
         # Create some prompts
         prompt1 = ProfilePrompt.objects.create(
             profile=self.profile,
-            prompt_question='perfect_day',
+            prompt=self.next_stop_journey,
             prompt_answer='Waking up to a mountain view',
             display_order=1
         )
         prompt2 = ProfilePrompt.objects.create(
             profile=self.profile,
-            prompt_question='cant_live_without',
+            prompt=self.always_down_team_up,
             prompt_answer='My coffee maker',
             display_order=2
         )
@@ -1894,13 +1898,13 @@ class ProfilePromptAPITestCase(TestCase):
         # Create prompts with specific display orders
         ProfilePrompt.objects.create(
             profile=self.profile,
-            prompt_question='perfect_day',
+            prompt=self.next_stop_journey,
             prompt_answer='Later prompt',
             display_order=2
         )
         ProfilePrompt.objects.create(
             profile=self.profile,
-            prompt_question='cant_live_without',
+            prompt=self.always_down_team_up,
             prompt_answer='First prompt',
             display_order=1
         )
@@ -1932,7 +1936,7 @@ class ProfilePromptAPITestCase(TestCase):
         
         ProfilePrompt.objects.create(
             profile=other_profile,
-            prompt_question='perfect_day',
+            prompt=self.next_stop_journey,
             prompt_answer='Other user prompt',
             display_order=1
         )
@@ -1940,7 +1944,7 @@ class ProfilePromptAPITestCase(TestCase):
         # Create a prompt for the current user
         ProfilePrompt.objects.create(
             profile=self.profile,
-            prompt_question='cant_live_without',
+            prompt=self.always_down_team_up,
             prompt_answer='My prompt',
             display_order=1
         )
@@ -1958,7 +1962,7 @@ class ProfilePromptAPITestCase(TestCase):
     def test_create_prompt_success(self):
         """Test POST /profiles/me/prompts/ creates a new prompt"""
         data = {
-            'prompt_question': 'perfect_day',
+            'prompt_name': 'next_stop_journey',
             'prompt_answer': 'Waking up to a beautiful sunrise'
         }
         
@@ -1966,13 +1970,13 @@ class ProfilePromptAPITestCase(TestCase):
         
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['status'], 'success')
-        self.assertEqual(response.data['data']['prompt_question'], 'perfect_day')
+        self.assertEqual(response.data['data']['prompt_name'], 'next_stop_journey')
         self.assertEqual(response.data['data']['prompt_answer'], 'Waking up to a beautiful sunrise')
 
     def test_create_prompt_with_display_order(self):
         """Test POST /profiles/me/prompts/ respects display_order"""
         data = {
-            'prompt_question': 'perfect_day',
+            'prompt_name': 'next_stop_journey',
             'prompt_answer': 'Test answer',
             'display_order': 5
         }
@@ -1989,14 +1993,14 @@ class ProfilePromptAPITestCase(TestCase):
         # Create first prompt
         ProfilePrompt.objects.create(
             profile=self.profile,
-            prompt_question='perfect_day',
+            prompt=self.next_stop_journey,
             prompt_answer='First',
             display_order=1
         )
         
         # Create second prompt without display_order
         data = {
-            'prompt_question': 'cant_live_without',
+            'prompt_name': 'always_down_team_up',
             'prompt_answer': 'Second'
         }
         
@@ -2011,7 +2015,7 @@ class ProfilePromptAPITestCase(TestCase):
         self.client.logout()
         
         data = {
-            'prompt_question': 'perfect_day',
+            'prompt_name': 'next_stop_journey',
             'prompt_answer': 'Test answer'
         }
         
@@ -2022,7 +2026,7 @@ class ProfilePromptAPITestCase(TestCase):
     def test_create_prompt_invalid_question(self):
         """Test POST /profiles/me/prompts/ rejects invalid prompt_question"""
         data = {
-            'prompt_question': 'invalid_question',
+            'prompt_name': 'invalid_question',
             'prompt_answer': 'Test answer'
         }
         
@@ -2030,12 +2034,12 @@ class ProfilePromptAPITestCase(TestCase):
         
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data['status'], 'error')
-        self.assertIn('prompt_question', response.data['errors'])
+        self.assertIn('prompt_name', response.data['errors'])
 
     def test_create_prompt_answer_too_long(self):
         """Test POST /profiles/me/prompts/ rejects answer over 200 characters"""
         data = {
-            'prompt_question': 'perfect_day',
+            'prompt_name': 'next_stop_journey',
             'prompt_answer': 'A' * 201  # 201 characters
         }
         
@@ -2048,7 +2052,7 @@ class ProfilePromptAPITestCase(TestCase):
     def test_create_prompt_answer_exactly_200_chars(self):
         """Test POST /profiles/me/prompts/ accepts answer of exactly 200 characters"""
         data = {
-            'prompt_question': 'perfect_day',
+            'prompt_name': 'next_stop_journey',
             'prompt_answer': 'A' * 200  # Exactly 200 characters
         }
         
@@ -2060,7 +2064,7 @@ class ProfilePromptAPITestCase(TestCase):
     def test_create_prompt_empty_answer(self):
         """Test POST /profiles/me/prompts/ rejects empty answer"""
         data = {
-            'prompt_question': 'perfect_day',
+            'prompt_name': 'next_stop_journey',
             'prompt_answer': ''
         }
         
@@ -2073,7 +2077,7 @@ class ProfilePromptAPITestCase(TestCase):
     def test_create_prompt_whitespace_only_answer(self):
         """Test POST /profiles/me/prompts/ rejects whitespace-only answer"""
         data = {
-            'prompt_question': 'perfect_day',
+            'prompt_name': 'next_stop_journey',
             'prompt_answer': '   '
         }
         
@@ -2090,26 +2094,26 @@ class ProfilePromptAPITestCase(TestCase):
         # Create 3 prompts (max)
         ProfilePrompt.objects.create(
             profile=self.profile,
-            prompt_question='perfect_day',
+            prompt=self.next_stop_journey,
             prompt_answer='First',
             display_order=1
         )
         ProfilePrompt.objects.create(
             profile=self.profile,
-            prompt_question='cant_live_without',
+            prompt=self.always_down_team_up,
             prompt_answer='Second',
             display_order=2
         )
         ProfilePrompt.objects.create(
             profile=self.profile,
-            prompt_question='looking_for',
+            prompt=self.looking_for_travel_buddy,
             prompt_answer='Third',
             display_order=3
         )
         
         # Try to create 4th prompt
         data = {
-            'prompt_question': 'best_adventure',
+            'prompt_name': 'best_hidden_gem',
             'prompt_answer': 'Fourth'
         }
         
@@ -2125,14 +2129,14 @@ class ProfilePromptAPITestCase(TestCase):
         # Create a prompt
         ProfilePrompt.objects.create(
             profile=self.profile,
-            prompt_question='perfect_day',
+            prompt=self.next_stop_journey,
             prompt_answer='First answer',
             display_order=1
         )
         
         # Try to create another prompt with the same question
         data = {
-            'prompt_question': 'perfect_day',
+            'prompt_name': 'next_stop_journey',
             'prompt_answer': 'Different answer'
         }
         
@@ -2140,22 +2144,22 @@ class ProfilePromptAPITestCase(TestCase):
         
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data['status'], 'error')
-        self.assertIn('prompt_question', response.data['errors'])
+        self.assertIn('prompt_name', response.data['errors'])
 
     def test_create_prompt_includes_question_display(self):
         """Test POST /profiles/me/prompts/ response includes prompt_question_display"""
         data = {
-            'prompt_question': 'perfect_day',
+            'prompt_name': 'next_stop_journey',
             'prompt_answer': 'Test answer'
         }
         
         response = self.client.post('/api/v1/profiles/me/prompts/', data, format='json')
         
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertIn('prompt_question_display', response.data['data'])
+        self.assertIn('prompt_question', response.data['data'])
         self.assertEqual(
-            response.data['data']['prompt_question_display'],
-            'My perfect day on the road looks like...'
+            response.data['data']['prompt_question'],
+            'Next stop on my journey is...'
         )
 
     # ========================================================================
@@ -2168,7 +2172,7 @@ class ProfilePromptAPITestCase(TestCase):
         
         prompt = ProfilePrompt.objects.create(
             profile=self.profile,
-            prompt_question='perfect_day',
+            prompt=self.next_stop_journey,
             prompt_answer='Delete me',
             display_order=1
         )
@@ -2187,7 +2191,7 @@ class ProfilePromptAPITestCase(TestCase):
         
         prompt = ProfilePrompt.objects.create(
             profile=self.profile,
-            prompt_question='perfect_day',
+            prompt=self.next_stop_journey,
             prompt_answer='Delete me',
             display_order=1
         )
@@ -2228,7 +2232,7 @@ class ProfilePromptAPITestCase(TestCase):
         
         other_prompt = ProfilePrompt.objects.create(
             profile=other_profile,
-            prompt_question='perfect_day',
+            prompt=self.next_stop_journey,
             prompt_answer='Other user prompt',
             display_order=1
         )
@@ -2248,11 +2252,11 @@ class ProfilePromptAPITestCase(TestCase):
         
         # Create 3 prompts (max)
         prompts = []
-        questions = ['perfect_day', 'cant_live_without', 'looking_for']
+        questions = [self.next_stop_journey, self.always_down_team_up, self.looking_for_travel_buddy]
         for i, question in enumerate(questions):
             prompt = ProfilePrompt.objects.create(
                 profile=self.profile,
-                prompt_question=question,
+                prompt=question,
                 prompt_answer=f'Answer {i}',
                 display_order=i + 1
             )
@@ -2264,7 +2268,7 @@ class ProfilePromptAPITestCase(TestCase):
         
         # Now should be able to create a new prompt
         data = {
-            'prompt_question': 'best_adventure',
+            'prompt_name': 'best_hidden_gem',
             'prompt_answer': 'New prompt'
         }
         
@@ -2290,8 +2294,10 @@ class ProfilePromptAPITestCase(TestCase):
         
         # Verify structure
         for prompt in prompts:
-            self.assertIn('key', prompt)
-            self.assertIn('text', prompt)
+            self.assertIn('prompt_name', prompt)
+            self.assertIn('prompt_question', prompt)
+            self.assertIn('prompt_placeholder', prompt)
+            self.assertIn('prompt_type', prompt)
 
     def test_list_available_prompts_contains_expected_prompts(self):
         """Test GET /profiles/prompts/available/ contains expected prompt keys"""
@@ -2299,18 +2305,16 @@ class ProfilePromptAPITestCase(TestCase):
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
-        prompt_keys = [p['key'] for p in response.data['data']]
+        prompt_keys = [p['prompt_name'] for p in response.data['data']]
         
         # Verify expected prompts are present
         expected_keys = [
-            'perfect_day',
-            'cant_live_without',
-            'looking_for',
-            'best_adventure',
-            'next_destination',
-            'van_life_lesson',
-            'ideal_travel_buddy',
-            'hidden_talent'
+            'next_stop_journey',
+            'always_down_team_up',
+            'looking_for_travel_buddy',
+            'best_hidden_gem',
+            'perfect_vanlife_meetup',
+            'best_part_meeting_vanlifers'
         ]
         
         for key in expected_keys:
@@ -2329,14 +2333,14 @@ class ProfilePromptAPITestCase(TestCase):
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
-        # Find the perfect_day prompt and verify its text
-        prompts = {p['key']: p['text'] for p in response.data['data']}
+        # Find the next_stop_journey prompt and verify its text
+        prompts = {p['prompt_name']: p['prompt_question'] for p in response.data['data']}
         
         self.assertEqual(
-            prompts.get('perfect_day'),
-            'My perfect day on the road looks like...'
+            prompts.get('next_stop_journey'),
+            'Next stop on my journey is...'
         )
         self.assertEqual(
-            prompts.get('cant_live_without'),
-            "I can't live without..."
+            prompts.get('always_down_team_up'),
+            'Always down to team up for ____ when I’m on the road.'
         )

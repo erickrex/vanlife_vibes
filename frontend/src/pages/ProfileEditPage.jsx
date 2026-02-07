@@ -88,18 +88,24 @@ const CAMPING_PREFERENCE_OPTIONS = [
   { value: 'friends_driveways', label: "Friend's Driveways" },
 ];
 
+const GENDER_OPTIONS = [
+  { value: 'man', label: 'Man' },
+  { value: 'woman', label: 'Woman' },
+  { value: 'non_binary', label: 'Non-binary' },
+];
+
 function ProfileEditPage() {
   const navigate = useNavigate();
   
   const [formData, setFormData] = useState({
     display_name: '', bio: '', avatar_url: '', cover_url: '', has_van: false,
-    interested_in_dating: false, interested_in_friends: true,
     looking_for_dating: false, looking_for_friends: true, travel_status: '',
     travel_companions: '', work_status: '', camping_preferences: [], travel_pace: '',
     now_in_city: '', next_week_in_city: '', next_month_in_city: '',
     hobby_ids: [], profile_type: 'solo', group_description: '', rig_status: '',
     social_vibe: '', lifestyle_schedule: '', lifestyle_social: '', lifestyle_environment: '',
     has_pets: false, pet_type: '', pet_friendly_only: false,
+    gender: '',
   });
   
   const [vehicleData, setVehicleData] = useState({
@@ -119,7 +125,7 @@ function ProfileEditPage() {
   const [deletingWindowId, setDeletingWindowId] = useState(null);
   const [prompts, setPrompts] = useState([]);
   const [availablePrompts, setAvailablePrompts] = useState([]);
-  const [newPrompt, setNewPrompt] = useState({ prompt_question: '', prompt_answer: '' });
+  const [newPrompt, setNewPrompt] = useState({ prompt_name: '', prompt_answer: '' });
   const [promptError, setPromptError] = useState('');
   const [addingPrompt, setAddingPrompt] = useState(false);
   const [deletingPromptId, setDeletingPromptId] = useState(null);
@@ -155,9 +161,8 @@ function ProfileEditPage() {
       setFormData({
         display_name: profile.display_name || '', bio: profile.bio || '',
         avatar_url: profile.avatar_url || '', cover_url: profile.cover_url || '',
+        gender: profile.gender || '',
         has_van: profile.has_van || false,
-        interested_in_dating: profile.interested_in_dating || false,
-        interested_in_friends: profile.interested_in_friends !== false,
         looking_for_dating: profile.looking_for_dating || false,
         looking_for_friends: profile.looking_for_friends !== false,
         travel_status: profile.travel_status || '', travel_companions: profile.travel_companions || '',
@@ -273,11 +278,11 @@ function ProfileEditPage() {
   };
 
   const validatePrompt = () => {
-    if (!newPrompt.prompt_question) { setPromptError('Please select a prompt'); return false; }
+    if (!newPrompt.prompt_name) { setPromptError('Please select a prompt'); return false; }
     if (!newPrompt.prompt_answer.trim()) { setPromptError('Please write an answer'); return false; }
     if (newPrompt.prompt_answer.length > 200) { setPromptError('Answer must be 200 characters or less'); return false; }
     if (prompts.length >= 3) { setPromptError('Maximum 3 prompts allowed'); return false; }
-    if (prompts.some(p => p.prompt_question === newPrompt.prompt_question)) { setPromptError('You have already answered this prompt'); return false; }
+    if (prompts.some(p => p.prompt_name === newPrompt.prompt_name)) { setPromptError('You have already answered this prompt'); return false; }
     return true;
   };
 
@@ -287,11 +292,11 @@ function ProfileEditPage() {
       setAddingPrompt(true);
       setPromptError('');
       const response = await profilesAPI.createPrompt({
-        prompt_question: newPrompt.prompt_question, prompt_answer: newPrompt.prompt_answer.trim(),
+        prompt_name: newPrompt.prompt_name, prompt_answer: newPrompt.prompt_answer.trim(),
       });
       const createdPrompt = response.data.data || response.data;
       setPrompts(prev => [...prev, createdPrompt]);
-      setNewPrompt({ prompt_question: '', prompt_answer: '' });
+      setNewPrompt({ prompt_name: '', prompt_answer: '' });
     } catch (err) {
       setPromptError(err.message || 'Failed to add prompt');
     } finally {
@@ -312,13 +317,18 @@ function ProfileEditPage() {
   };
 
   const getUnusedPrompts = () => {
-    const usedQuestions = prompts.map(p => p.prompt_question);
-    return availablePrompts.filter(ap => !usedQuestions.includes(ap.key));
+    const usedQuestions = prompts.map(p => p.prompt_name);
+    return availablePrompts.filter(ap => !usedQuestions.includes(ap.prompt_name));
   };
 
-  const getPromptDisplayText = (questionKey) => {
-    const prompt = availablePrompts.find(ap => ap.key === questionKey);
-    return prompt ? prompt.text : questionKey;
+  const getPromptDisplayText = (promptName) => {
+    const prompt = availablePrompts.find(ap => ap.prompt_name === promptName);
+    return prompt ? prompt.prompt_question : promptName;
+  };
+
+  const getPromptPlaceholder = (promptName) => {
+    const prompt = availablePrompts.find(ap => ap.prompt_name === promptName);
+    return prompt?.prompt_placeholder || 'Write your answer...';
   };
 
   const formatDate = (dateString) => {
@@ -358,8 +368,8 @@ function ProfileEditPage() {
       const profileUpdate = {
         display_name: formData.display_name, bio: formData.bio,
         avatar_url: formData.avatar_url || null, cover_url: formData.cover_url || null,
+        gender: formData.gender || null,
         has_van: formData.has_van,
-        interested_in_dating: formData.looking_for_dating, interested_in_friends: formData.looking_for_friends,
         looking_for_dating: formData.looking_for_dating, looking_for_friends: formData.looking_for_friends,
         travel_status: formData.travel_status || null, travel_companions: formData.travel_companions || null,
         work_status: formData.work_status || null, camping_preferences: formData.has_van ? formData.camping_preferences : [],
@@ -423,6 +433,17 @@ function ProfileEditPage() {
           <div className={sectionClass}>
             <h2 className="text-lg font-semibold text-white mb-4">Basic Information</h2>
             
+            <div className="mb-4">
+              <label className={labelClass}>Gender</label>
+              <select name="gender" value={formData.gender} onChange={handleChange}
+                className={selectClass} disabled={saving}>
+                <option value="">Select...</option>
+                {GENDER_OPTIONS.map(option => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </select>
+            </div>
+
             <div className="mb-4">
               <label className={labelClass}>Display Name</label>
               <input type="text" name="display_name" value={formData.display_name} onChange={handleChange}
@@ -497,14 +518,14 @@ function ProfileEditPage() {
             <div className="flex gap-4">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={formData.looking_for_dating} onChange={(e) => {
-                  setFormData(prev => ({ ...prev, looking_for_dating: e.target.checked, interested_in_dating: e.target.checked }));
+                  setFormData(prev => ({ ...prev, looking_for_dating: e.target.checked }));
                   if (fieldErrors.looking_for) setFieldErrors(prev => ({ ...prev, looking_for: '' }));
                 }} disabled={saving} className="w-5 h-5 rounded border-zinc-600 bg-zinc-800 text-blue-500 focus:ring-blue-500" />
                 <span className="text-white">💕 Dating</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={formData.looking_for_friends} onChange={(e) => {
-                  setFormData(prev => ({ ...prev, looking_for_friends: e.target.checked, interested_in_friends: e.target.checked }));
+                  setFormData(prev => ({ ...prev, looking_for_friends: e.target.checked }));
                   if (fieldErrors.looking_for) setFieldErrors(prev => ({ ...prev, looking_for: '' }));
                 }} disabled={saving} className="w-5 h-5 rounded border-zinc-600 bg-zinc-800 text-blue-500 focus:ring-blue-500" />
                 <span className="text-white">👋 Making Friends</span>
@@ -535,9 +556,8 @@ function ProfileEditPage() {
                 value={formData.next_week_in_city}
                 onChange={handleChange}
                 name="next_week_in_city"
-                placeholder="Search cities or select 'Open plans'"
+                placeholder="Search cities"
                 disabled={saving}
-                showOpenPlans={true}
               />
             </div>
 
@@ -547,9 +567,8 @@ function ProfileEditPage() {
                 value={formData.next_month_in_city}
                 onChange={handleChange}
                 name="next_month_in_city"
-                placeholder="Search cities or select 'Open plans'"
+                placeholder="Search cities"
                 disabled={saving}
-                showOpenPlans={true}
               />
             </div>
           </div>
@@ -617,7 +636,7 @@ function ProfileEditPage() {
                   <div key={prompt.id} className="p-3 bg-zinc-800 rounded-lg">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <span className="text-zinc-500 text-xs block mb-1">{getPromptDisplayText(prompt.prompt_question)}</span>
+                        <span className="text-zinc-500 text-xs block mb-1">{getPromptDisplayText(prompt.prompt_name)}</span>
                         <span className="text-white">{prompt.prompt_answer}</span>
                       </div>
                       <button type="button" onClick={() => handleDeletePrompt(prompt.id)} disabled={deletingPromptId === prompt.id || saving}
@@ -634,23 +653,25 @@ function ProfileEditPage() {
               <div className="p-3 bg-zinc-800/50 rounded-lg">
                 <h4 className="text-white text-sm font-medium mb-3">Add New Prompt</h4>
                 <div className="mb-3">
-                  <select name="prompt_question" value={newPrompt.prompt_question} onChange={handleNewPromptChange}
+                  <select name="prompt_name" value={newPrompt.prompt_name} onChange={handleNewPromptChange}
                     className={selectClass} disabled={addingPrompt || saving}>
                     <option value="">Choose a prompt...</option>
-                    {getUnusedPrompts().map(p => <option key={p.key} value={p.key}>{p.text}</option>)}
+                    {getUnusedPrompts().map(p => (
+                      <option key={p.prompt_name} value={p.prompt_name}>{p.prompt_question}</option>
+                    ))}
                   </select>
                 </div>
-                {newPrompt.prompt_question && (
+                {newPrompt.prompt_name && (
                   <div className="mb-3">
                     <textarea name="prompt_answer" value={newPrompt.prompt_answer} onChange={handleNewPromptChange}
-                      className={`${inputClass} resize-none`} placeholder="Write your answer..." rows={3} maxLength={200} disabled={addingPrompt || saving} />
+                      className={`${inputClass} resize-none`} placeholder={getPromptPlaceholder(newPrompt.prompt_name)} rows={3} maxLength={200} disabled={addingPrompt || saving} />
                     <span className={`text-xs ${newPrompt.prompt_answer.length > 180 ? 'text-yellow-400' : 'text-zinc-500'}`}>
                       {newPrompt.prompt_answer.length}/200
                     </span>
                   </div>
                 )}
                 {promptError && <span className={errorClass}>{promptError}</span>}
-                <button type="button" onClick={handleAddPrompt} disabled={addingPrompt || saving || !newPrompt.prompt_question || !newPrompt.prompt_answer.trim()}
+                <button type="button" onClick={handleAddPrompt} disabled={addingPrompt || saving || !newPrompt.prompt_name || !newPrompt.prompt_answer.trim()}
                   className="w-full py-2 border border-zinc-700 hover:border-zinc-500 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50">
                   {addingPrompt ? 'Adding...' : '+ Add Prompt'}
                 </button>

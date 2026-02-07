@@ -71,7 +71,7 @@ function SignupForm() {
     setIsSubmitting(false);
 
     if (result.success) {
-      navigate('/feed');
+      navigate('/onboarding');
     } else {
       setErrors({ submit: result.error });
     }

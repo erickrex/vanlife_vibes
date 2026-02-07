@@ -2,12 +2,15 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useSwipeable } from 'react-swipeable';
 import { discoveryAPI } from '../services/api';
 
+const SWIPE_ANIM_MS = 320;
+
 function DiscoverySwipeCard({ profiles, mode, onSwipe, onMatch, onEmpty, onNavigateToChat }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [swipeDirection, setSwipeDirection] = useState(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isAdvancing, setIsAdvancing] = useState(false);
   const [showMatch, setShowMatch] = useState(false);
   const [matchedProfile, setMatchedProfile] = useState(null);
   const [matchId, setMatchId] = useState(null);
@@ -18,18 +21,22 @@ function DiscoverySwipeCard({ profiles, mode, onSwipe, onMatch, onEmpty, onNavig
 
   const currentProfile = profiles[currentIndex];
   const nextProfile = profiles[currentIndex + 1];
-
   const getSwipeThreshold = () => {
     const screenWidth = window.innerWidth;
     const threshold = screenWidth * 0.25;
     return Math.max(80, Math.min(threshold, 150));
   };
 
+  const getDragProgress = () => {
+    const threshold = getSwipeThreshold();
+    return Math.min(Math.abs(dragOffset.x) / threshold, 1);
+  };
+
   const handleSwipeAPI = useCallback(async (profile, isLike) => {
     try {
       setIsProcessing(true);
       const response = await discoveryAPI.swipe({
-        swiped_on_id: profile.id,
+        swiped_on: profile.id,
         is_like: isLike,
         mode: mode
       });
@@ -53,16 +60,18 @@ function DiscoverySwipeCard({ profiles, mode, onSwipe, onMatch, onEmpty, onNavig
   const handleSwipeComplete = useCallback((direction) => {
     if (!currentProfile || isProcessing) return;
     
+    setIsDragging(false);
+    setIsAdvancing(true);
     setSwipeDirection(direction);
+    setDragOffset({ x: 0, y: 0 });
     const isLike = direction === 'right';
     handleSwipeAPI(currentProfile, isLike);
     
     setTimeout(() => {
       setSwipeDirection(null);
-      setDragOffset({ x: 0, y: 0 });
-      setIsDragging(false);
       setCurrentIndex(prev => prev + 1);
-    }, 300);
+      setIsAdvancing(false);
+    }, SWIPE_ANIM_MS);
   }, [currentProfile, isProcessing, handleSwipeAPI]);
 
   useEffect(() => {
@@ -204,19 +213,36 @@ function DiscoverySwipeCard({ profiles, mode, onSwipe, onMatch, onEmpty, onNavig
       return {
         transform: `translateX(${direction * 500}px) rotate(${direction * 30}deg)`,
         opacity: 0,
-        transition: 'all 0.3s ease-out',
+        transition: 'transform 0.32s ease-out, opacity 0.32s ease-out',
       };
     }
     if (isDragging) {
       const rotation = dragOffset.x / 20;
       return {
         transform: `translateX(${dragOffset.x}px) translateY(${dragOffset.y}px) rotate(${rotation}deg)`,
+        opacity: 1,
         transition: 'none',
       };
     }
     return {
       transform: 'translateX(0) translateY(0) rotate(0deg)',
-      transition: 'all 0.3s ease-out',
+      opacity: 1,
+      transition: 'transform 0.32s ease-out, opacity 0.32s ease-out',
+    };
+  };
+
+  const getNextCardStyle = () => {
+    if (!nextProfile) return undefined;
+    const progress = isAdvancing ? 1 : getDragProgress();
+    const scale = 0.96 + 0.04 * progress;
+    const opacity = 0.6 + 0.4 * progress;
+    const translateX = -12 + 12 * progress;
+    return {
+      transform: `translateX(${translateX}px) scale(${scale})`,
+      opacity,
+      transition: isDragging
+        ? 'none'
+        : 'transform 0.32s ease-out, opacity 0.32s ease-out',
     };
   };
 
@@ -230,7 +256,7 @@ function DiscoverySwipeCard({ profiles, mode, onSwipe, onMatch, onEmpty, onNavig
     
     return (
       <div className={`relative w-full h-full rounded-2xl overflow-hidden ${
-        isBackground ? 'scale-95 opacity-50' : ''
+        isBackground ? 'pointer-events-none' : ''
       } ${mode === 'dating' ? 'ring-rose-500/20' : 'ring-blue-500/20'}`}>
         {/* Profile image */}
         <div className="absolute inset-0 bg-zinc-800">
@@ -297,17 +323,17 @@ function DiscoverySwipeCard({ profiles, mode, onSwipe, onMatch, onEmpty, onNavig
           </div>
           
           {/* Prompts */}
-          {profile.prompts && profile.prompts.length > 0 && (
-            <div className="space-y-2">
-              {profile.prompts.slice(0, 1).map((prompt, index) => (
-                <div key={index} className="bg-zinc-900/80 rounded-lg p-3">
-                  <span className="text-zinc-500 text-xs block mb-1">
-                    {prompt.prompt_question_display || prompt.prompt_question}
-                  </span>
-                  <p className="text-white text-sm">{prompt.prompt_answer}</p>
-                </div>
-              ))}
-            </div>
+            {profile.prompts && profile.prompts.length > 0 && (
+              <div className="space-y-2">
+                {profile.prompts.slice(0, 1).map((prompt, index) => (
+                  <div key={index} className="bg-zinc-900/80 rounded-lg p-3">
+                    <span className="text-zinc-500 text-xs block mb-1">
+                    {prompt.prompt_question || prompt.prompt_name}
+                    </span>
+                    <p className="text-white text-sm">{prompt.prompt_answer}</p>
+                  </div>
+                ))}
+              </div>
           )}
           
           {/* Location */}
@@ -347,7 +373,7 @@ function DiscoverySwipeCard({ profiles, mode, onSwipe, onMatch, onEmpty, onNavig
       <div className="relative h-[60vh] max-h-[500px]">
         {/* Next card (background) */}
         {nextProfile && (
-          <div className="absolute inset-0">
+          <div className="absolute inset-0" style={getNextCardStyle()}>
             {renderProfileCard(nextProfile, true)}
           </div>
         )}
@@ -356,6 +382,7 @@ function DiscoverySwipeCard({ profiles, mode, onSwipe, onMatch, onEmpty, onNavig
         <div
           {...handlers}
           ref={cardRef}
+          key={currentProfile?.id || currentIndex}
           className="absolute inset-0 cursor-grab active:cursor-grabbing"
           style={getCardStyle()}
           onMouseDown={handleMouseDown}

@@ -210,6 +210,7 @@ export const locationsAPI = {
     }
     return api.get('/locations/regions/');
   },
+  getCities: (query = '') => api.get('/locations/cities/', { params: query ? { q: query } : {} }),
 };
 
 // Feed API

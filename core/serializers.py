@@ -8,7 +8,7 @@ from core.models import (
     Taxonomy, Term, Candidate, CandidateTerm,
     Swipe, Match, MatchMessage, Question, AnswerOption, UserAnswer,
     Profile, Vehicle, VehiclePhoto, Follow, HobbyTag, Country, Region,
-    InTownWindow, ProfilePrompt, PersonSwipe, PersonMatch, DirectMessage,
+    InTownWindow, City, Prompt, ProfilePrompt, PersonSwipe, PersonMatch, DirectMessage,
     UserReport, Plan, PlanAttendee, PlanMessage,
     Activity, ActivitySwipe, ActivityMatch, ActivityMessage,
     FriendRequest, Friendship, FriendMessage
@@ -857,12 +857,16 @@ class ProfileSerializer(serializers.ModelSerializer):
             'username',
             'display_name',
             'bio',
+            'has_completed_onboarding',
+            'gender',
             'avatar_url',
             'cover_url',
             'current_location',
             'home_base',
             'has_van',
-            'interested_in_dating',
+            'interested_in_men',
+            'interested_in_women',
+            'interested_in_nonbinary',
             'travel_status',
             'travel_companions',
             'work_status',
@@ -954,8 +958,8 @@ class ProfileSerializer(serializers.ModelSerializer):
         return [
             {
                 'id': str(prompt.id),
-                'prompt_question': prompt.prompt_question,
-                'prompt_question_display': prompt.get_prompt_question_display(),
+                'prompt_name': prompt.prompt.prompt_name,
+                'prompt_question': prompt.prompt.prompt_question,
                 'prompt_answer': prompt.prompt_answer,
                 'display_order': prompt.display_order,
             }
@@ -1142,10 +1146,14 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         fields = [
             'display_name',
             'bio',
+            'has_completed_onboarding',
+            'gender',
             'current_location',
             'home_base',
             'has_van',
-            'interested_in_dating',
+            'interested_in_men',
+            'interested_in_women',
+            'interested_in_nonbinary',
             'travel_status',
             'travel_companions',
             'work_status',
@@ -1230,6 +1238,27 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 f"Invalid travel companions. Must be one of: {', '.join(valid_choices)}"
             )
+        return value
+
+    def validate_now_in_city(self, value):
+        if value is None or value == '':
+            return value
+        if not City.objects.filter(display_name__iexact=value).exists():
+            raise serializers.ValidationError("Select a city from the list.")
+        return value
+
+    def validate_next_week_in_city(self, value):
+        if value is None or value == '':
+            return value
+        if not City.objects.filter(display_name__iexact=value).exists():
+            raise serializers.ValidationError("Select a city from the list.")
+        return value
+
+    def validate_next_month_in_city(self, value):
+        if value is None or value == '':
+            return value
+        if not City.objects.filter(display_name__iexact=value).exists():
+            raise serializers.ValidationError("Select a city from the list.")
         return value
     
     def validate_work_status(self, value):
@@ -1847,36 +1876,50 @@ class InTownWindowSerializer(serializers.ModelSerializer):
         return InTownWindow.objects.create(**validated_data)
 
 
+class CitySerializer(serializers.ModelSerializer):
+    """Serializer for city autocomplete."""
+    class Meta:
+        model = City
+        fields = ['id', 'name', 'state_code', 'display_name']
+
+
+class PromptListSerializer(serializers.ModelSerializer):
+    """Serializer for prompt choices."""
+    class Meta:
+        model = Prompt
+        fields = ['prompt_name', 'prompt_question', 'prompt_placeholder', 'prompt_type']
+
+
 # ============================================================================
 # ProfilePrompt Serializers (Nomad Logistics Feature)
 # ============================================================================
 
-class AvailablePromptSerializer(serializers.Serializer):
+class AvailablePromptSerializer(serializers.ModelSerializer):
     """
     Serializer for listing available prompt questions.
     """
-    key = serializers.CharField(help_text="The prompt key/identifier")
-    text = serializers.CharField(help_text="The prompt question text")
+    class Meta:
+        model = Prompt
+        fields = ['prompt_name', 'prompt_question', 'prompt_placeholder', 'prompt_type']
 
 
 class ProfilePromptSerializer(serializers.ModelSerializer):
     """
     Serializer for ProfilePrompt model with comprehensive validation.
     
-    Validates prompt_answer length, prompt_question choices, and max 3 prompts per profile.
+    Validates prompt_answer length, prompt_name existence, and max 3 prompts per profile.
     """
     
     MAX_PROMPTS_PER_PROFILE = 3
     MAX_ANSWER_LENGTH = 200
     
-    # Include the prompt question text for display
-    prompt_question_display = serializers.SerializerMethodField()
+    prompt_question = serializers.SerializerMethodField()
+    prompt_name = serializers.CharField(write_only=True)
     
     class Meta:
         model = ProfilePrompt
-        fields = ['id', 'profile', 'prompt_question', 'prompt_question_display', 
-                  'prompt_answer', 'display_order']
-        read_only_fields = ['id', 'prompt_question_display']
+        fields = ['id', 'profile', 'prompt_name', 'prompt_question', 'prompt_answer', 'display_order']
+        read_only_fields = ['id', 'prompt_question']
         extra_kwargs = {
             'profile': {'required': False}  # Will be set from context in create
         }
@@ -1891,23 +1934,9 @@ class ProfilePromptSerializer(serializers.ModelSerializer):
         # Filter out UniqueTogetherValidator - we handle it manually
         return [v for v in validators if not isinstance(v, serializers.UniqueTogetherValidator)]
     
-    def get_prompt_question_display(self, obj):
+    def get_prompt_question(self, obj):
         """Return the human-readable prompt question text."""
-        return obj.get_prompt_question_display()
-    
-    def validate_prompt_question(self, value):
-        """
-        Validate prompt_question is a valid choice from PROMPT_CHOICES.
-        
-        Requirement 5.3: THE Profile_System SHALL provide a list of nomad-themed 
-        prompts for users to answer
-        """
-        valid_choices = [choice[0] for choice in ProfilePrompt.PROMPT_CHOICES]
-        if value not in valid_choices:
-            raise serializers.ValidationError(
-                f"Invalid prompt question. Must be one of: {', '.join(valid_choices)}"
-            )
-        return value
+        return obj.prompt.prompt_question
     
     def validate_prompt_answer(self, value):
         """
@@ -1934,27 +1963,41 @@ class ProfilePromptSerializer(serializers.ModelSerializer):
         - Max 3 prompts per profile (Requirement 5.4)
         - Unique prompt_question per profile (enforced by model, but provide better error)
         """
-        prompt_question = attrs.get('prompt_question')
+        prompt_name = attrs.pop('prompt_name', None)
         profile = attrs.get('profile') or self.context.get('profile')
+
+        if prompt_name:
+            try:
+                attrs['prompt'] = Prompt.objects.get(prompt_name=prompt_name)
+            except Prompt.DoesNotExist:
+                raise serializers.ValidationError({
+                    'prompt_name': 'Invalid prompt name. Please choose a valid prompt.'
+                })
+        
+        prompt = attrs.get('prompt')
+        if not prompt and not self.instance:
+            raise serializers.ValidationError({
+                'prompt_name': 'Prompt name is required.'
+            })
         
         # For updates, use instance's profile if not provided
         if self.instance and not profile:
             profile = self.instance.profile
         
         if profile:
-            # Check for duplicate prompt_question (only for creation or if changing question)
-            if not self.instance or (self.instance and prompt_question != self.instance.prompt_question):
+            # Check for duplicate prompt (only for creation or if changing prompt)
+            if not self.instance or (self.instance and prompt != self.instance.prompt):
                 existing_prompt = ProfilePrompt.objects.filter(
                     profile=profile,
-                    prompt_question=prompt_question
+                    prompt=prompt
                 )
                 if self.instance:
                     existing_prompt = existing_prompt.exclude(id=self.instance.id)
                 
                 if existing_prompt.exists():
                     raise serializers.ValidationError({
-                        'prompt_question': "You have already answered this prompt. "
-                                          "Please choose a different prompt or update the existing one."
+                        'prompt_name': "You have already answered this prompt. "
+                                      "Please choose a different prompt or update the existing one."
                     })
             
             # Validate max 3 prompts per profile (only for creation)
@@ -1977,6 +2020,11 @@ class ProfilePromptSerializer(serializers.ModelSerializer):
                     "Profile context is required to create a prompt."
                 )
             validated_data['profile'] = profile
+
+        if 'prompt' not in validated_data or validated_data['prompt'] is None:
+            raise serializers.ValidationError({
+                'prompt_name': 'Prompt name is required.'
+            })
         
         # If display_order is not provided, set it to the next available order
         if validated_data.get('display_order') is None:
@@ -1988,6 +2036,11 @@ class ProfilePromptSerializer(serializers.ModelSerializer):
             validated_data['display_order'] = (max_order or 0) + 1
         
         return ProfilePrompt.objects.create(**validated_data)
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['prompt_name'] = instance.prompt.prompt_name
+        return data
 
 
 # ============================================================================
@@ -2158,7 +2211,7 @@ class PersonSwipeSerializer(serializers.ModelSerializer):
                     'swiped_on': f"You have already swiped on this user in {mode} mode."
                 })
 
-        if swiped_on and mode == 'dating' and not swiped_on.interested_in_dating:
+        if swiped_on and mode == 'dating' and not swiped_on.looking_for_dating:
             raise serializers.ValidationError({
                 'swiped_on': "This user is not available for dating."
             })

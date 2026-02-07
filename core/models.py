@@ -52,6 +52,31 @@ class Region(models.Model):
         return f"{self.name}, {self.country.name}"
 
 
+class City(models.Model):
+    """City options for location selection."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=100)
+    state_code = models.CharField(max_length=2)
+    country = models.ForeignKey(
+        Country,
+        on_delete=models.CASCADE,
+        related_name='cities'
+    )
+    display_name = models.CharField(max_length=120, unique=True)
+
+    class Meta:
+        db_table = 'city'
+        ordering = ['display_name']
+        indexes = [
+            models.Index(fields=['display_name']),
+            models.Index(fields=['name']),
+        ]
+        unique_together = ['name', 'state_code', 'country']
+
+    def __str__(self):
+        return self.display_name
+
+
 class Profile(models.Model):
     """User profile for van lifers and nomadic travelers"""
     TRAVEL_STATUS_CHOICES = [
@@ -149,6 +174,12 @@ class Profile(models.Model):
         ('prefer_not_to_say', 'Prefer Not to Say'),
     ]
 
+    GENDER_CHOICES = [
+        ('man', 'Man'),
+        ('woman', 'Woman'),
+        ('non_binary', 'Non-binary'),
+    ]
+
     # Looking for friend type choices for friend-intent-filtering feature (Requirement 6.2)
     LOOKING_FOR_FRIEND_TYPE_CHOICES = [
         ('any', 'Any'),
@@ -165,12 +196,22 @@ class Profile(models.Model):
     )
     display_name = models.CharField(max_length=50, blank=True)
     bio = models.TextField(max_length=500, blank=True)
+    has_completed_onboarding = models.BooleanField(default=False)
+    gender = models.CharField(
+        max_length=20,
+        choices=GENDER_CHOICES,
+        blank=True,
+        null=True
+    )
     avatar_url = models.URLField(max_length=500, blank=True, null=True)
     cover_url = models.URLField(max_length=500, blank=True, null=True)
     current_location = models.CharField(max_length=100, blank=True)
     home_base = models.CharField(max_length=100, blank=True)
     has_van = models.BooleanField(default=False)
-    interested_in_dating = models.BooleanField(default=False)
+    # Gender preference fields for dating
+    interested_in_men = models.BooleanField(default=False)
+    interested_in_women = models.BooleanField(default=False)
+    interested_in_nonbinary = models.BooleanField(default=False)
     # New fields for nomad-logistics feature (Requirements 1.1, 1.2, 4.1, 4.2, 5.1)
     profile_type = models.CharField(
         max_length=20,
@@ -904,39 +945,56 @@ class InTownWindow(models.Model):
         return f"{self.profile.user.username} in {self.city_area} ({self.start_date} - {self.end_date})"
 
 
+class Prompt(models.Model):
+    """
+    Canonical prompt definitions used across the app.
+    Stores the prompt identifier and full question text.
+    """
+    PROMPT_TYPE_CHOICES = [
+        ('travel', 'Travel'),
+        ('dating', 'Dating'),
+        ('friendship', 'Friendship'),
+    ]
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    prompt_name = models.CharField(max_length=50, unique=True)
+    prompt_question = models.CharField(max_length=200)
+    prompt_placeholder = models.CharField(max_length=300, blank=True)
+    prompt_type = models.CharField(max_length=20, choices=PROMPT_TYPE_CHOICES)
+
+    class Meta:
+        db_table = 'prompt'
+        ordering = ['prompt_name']
+
+    def __str__(self):
+        return f"{self.prompt_name}: {self.prompt_question}"
+
+
 class ProfilePrompt(models.Model):
     """
     User's prompt answers for their profile.
-    Users can select and answer up to 3 prompts from predefined nomad-themed questions.
+    Users can select and answer up to 3 prompts from predefined questions.
     """
-    PROMPT_CHOICES = [
-        ('perfect_day', 'My perfect day on the road looks like...'),
-        ('cant_live_without', "I can't live without..."),
-        ('looking_for', "I'm looking for someone who..."),
-        ('best_adventure', 'My best adventure so far...'),
-        ('next_destination', 'My next dream destination is...'),
-        ('van_life_lesson', 'The biggest lesson van life taught me...'),
-        ('ideal_travel_buddy', 'My ideal travel buddy is...'),
-        ('hidden_talent', 'My hidden talent is...'),
-    ]
-
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     profile = models.ForeignKey(
         Profile,
         on_delete=models.CASCADE,
         related_name='prompts'
     )
-    prompt_question = models.CharField(max_length=50, choices=PROMPT_CHOICES)
+    prompt = models.ForeignKey(
+        Prompt,
+        on_delete=models.PROTECT,
+        related_name='profile_prompts'
+    )
     prompt_answer = models.TextField(max_length=200)
     display_order = models.PositiveIntegerField(default=0)
 
     class Meta:
         db_table = 'profile_prompt'
         ordering = ['display_order']
-        unique_together = ['profile', 'prompt_question']
+        unique_together = ['profile', 'prompt']
 
     def __str__(self):
-        return f"{self.profile.user.username} - {self.get_prompt_question_display()}"
+        return f"{self.profile.user.username} - {self.prompt.prompt_question}"
 
 
 class PersonSwipe(models.Model):

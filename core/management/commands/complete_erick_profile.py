@@ -6,8 +6,8 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import timedelta
 from core.models import (
-    Profile, Vehicle, InTownWindow, 
-    ProfilePrompt, HobbyTag, Country, Region
+    Profile, Vehicle, InTownWindow,
+    Prompt, ProfilePrompt, HobbyTag, Country, Region
 )
 
 User = get_user_model()
@@ -34,6 +34,7 @@ class Command(BaseCommand):
         profile.profile_type = 'van_lifer'
         profile.intent = 'friends'
         profile.has_vehicle = True
+        profile.has_completed_onboarding = True
         profile.travel_frequency = 'full_time'
         profile.avatar_url = 'https://i.pravatar.cc/300?img=68'
         profile.cover_url = 'https://images.unsplash.com/photo-1527004013197-933c4bb611b3?w=800&h=400&fit=crop'
@@ -100,14 +101,14 @@ class Command(BaseCommand):
         # Create profile prompts
         prompt1 = ProfilePrompt.objects.create(
             profile=profile,
-            prompt_question='perfect_day',
+            prompt=Prompt.objects.get(prompt_name='next_stop_journey'),
             prompt_answer='Coffee at sunrise, a few hours of focused work, then exploring a new trail or scenic overlook. Ending the day with good food and maybe meeting fellow travelers.',
             display_order=1,
         )
         
         prompt2 = ProfilePrompt.objects.create(
             profile=profile,
-            prompt_question='next_destination',
+            prompt=Prompt.objects.get(prompt_name='perfect_vanlife_meetup'),
             prompt_answer='Colorado mountains for cooler weather and epic hiking. Thinking about spending time around Boulder and Rocky Mountain National Park.',
             display_order=2,
         )

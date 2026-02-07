@@ -391,15 +391,15 @@ function ProfilePage() {
             )}
           </div>
           
-          {/* Interested In */}
-          {(profile?.interested_in_dating || profile?.interested_in_friends) && (
+          {/* Looking For */}
+          {(profile?.looking_for_dating || profile?.looking_for_friends) && (
             <div className="flex gap-2 mb-4 flex-wrap">
-              {profile.interested_in_dating && (
+              {profile.looking_for_dating && (
                 <span className="px-3 py-1 bg-pink-500/20 text-pink-400 rounded-full text-xs font-medium">
                   💕 Dating
                 </span>
               )}
-              {profile.interested_in_friends && (
+              {profile.looking_for_friends && (
                 <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs font-medium">
                   👋 Friends
                 </span>

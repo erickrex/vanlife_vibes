@@ -6,7 +6,6 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './contexts/AuthContext';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
-import SignupPage from './pages/SignupPage';
 import GroupsPage from './pages/GroupsPage';
 import GroupDetailPage from './pages/GroupDetailPage';
 import CreateSessionPage from './pages/CreateSessionPage';
@@ -29,6 +28,8 @@ import ActivitiesPage from './pages/ActivitiesPage';
 import CreateActivityPage from './pages/CreateActivityPage';
 import ActivityDetailPage from './pages/ActivityDetailPage';
 import ActivityChatPage from './pages/ActivityChatPage';
+import OnboardingPage from './pages/OnboardingPage';
+import SignupPage from './pages/SignupPage';
 
 /**
  * Determines the active tab based on the current route path.
@@ -73,15 +74,35 @@ function shouldShowTabNavigation(pathname) {
  * - 1.4: When a user is not authenticated, the tab navigation shall not be displayed
  */
 function AppContent() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading, profile, profileLoading } = useAuth();
   const location = useLocation();
   
   const activeTab = getActiveTabFromPath(location.pathname);
   const showTabNav = isAuthenticated && shouldShowTabNavigation(location.pathname);
+  const hideNavigation = location.pathname.startsWith('/onboarding');
+  const needsOnboarding = isAuthenticated && profile && !profile.has_completed_onboarding;
+
+  if (loading || (isAuthenticated && profileLoading)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="text-zinc-500">Loading...</div>
+      </div>
+    );
+  }
+
+  if (needsOnboarding && location.pathname !== '/onboarding') {
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  if (!needsOnboarding && location.pathname === '/onboarding') {
+    const postOnboardingRoute = profile?.looking_for_dating ? '/dating' : '/feed';
+    return <Navigate to={postOnboardingRoute} replace />;
+  }
+  
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-x-hidden bg-black">
-      <Navigation />
+      {!hideNavigation && <Navigation />}
       <main className={`flex-1 mx-auto w-full max-w-6xl px-4 py-6 sm:py-8 ${showTabNav ? 'pb-20' : ''}`}>
         <Routes>
           {/* Public routes */}
@@ -90,6 +111,14 @@ function AppContent() {
           <Route path="/signup" element={<SignupPage />} />
           
           {/* Protected routes */}
+          <Route 
+            path="/onboarding" 
+            element={
+              <ProtectedRoute>
+                <OnboardingPage />
+              </ProtectedRoute>
+            } 
+          />
           <Route 
             path="/groups" 
             element={
