@@ -701,300 +701,18 @@ class UserReport(models.Model):
         return f"{self.reporter.user.username} reported {self.reported.user.username} for {self.reason}"
 
 
-class Plan(models.Model):
-    """
-    Lightweight meetup events for nomads.
-    
-    Plans allow users to create or join casual meetups like coffee, hikes,
-    cowork sessions, etc. Plans have a date, time window, meetup area,
-    and maximum group size.
-    """
-    PLAN_TYPE_CHOICES = [
-        ('coffee', 'Coffee'),
-        ('sunrise_hike', 'Sunrise Hike'),
-        ('dog_walk', 'Dog Walk'),
-        ('cowork', 'Cowork Session'),
-        ('sunset', 'Sunset Viewpoint'),
-        ('other', 'Other'),
-    ]
-
-    STATUS_CHOICES = [
-        ('open', 'Open'),
-        ('full', 'Full'),
-        ('cancelled', 'Cancelled'),
-        ('completed', 'Completed'),
-    ]
-
-    TIME_WINDOW_CHOICES = [
-        ('morning', 'Morning (6am-12pm)'),
-        ('afternoon', 'Afternoon (12pm-5pm)'),
-        ('evening', 'Evening (5pm-9pm)'),
-        ('flexible', 'Flexible'),
-    ]
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    created_by = models.ForeignKey(
-        Profile,
-        on_delete=models.CASCADE,
-        related_name='created_plans'
-    )
-    title = models.CharField(max_length=100)
-    plan_type = models.CharField(max_length=20, choices=PLAN_TYPE_CHOICES)
-    plan_date = models.DateField()
-    time_window = models.CharField(max_length=20, choices=TIME_WINDOW_CHOICES)
-    meetup_area = models.CharField(max_length=100)
-    description = models.TextField(max_length=500, blank=True)
-    max_attendees = models.PositiveIntegerField(default=6)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='open')
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = 'plan'
-        ordering = ['plan_date', 'time_window']
-        indexes = [
-            models.Index(fields=['created_by']),
-            models.Index(fields=['plan_date', 'status']),
-            models.Index(fields=['meetup_area']),
-        ]
-
-    def __str__(self):
-        return f"{self.title} ({self.plan_date})"
 
 
-class PlanAttendee(models.Model):
-    """
-    Tracks plan attendance for users.
-    
-    Users can join plans and later confirm their attendance. The status
-    tracks whether they've joined, confirmed, or declined.
-    """
-    STATUS_CHOICES = [
-        ('joined', 'Joined'),
-        ('confirmed', 'Confirmed'),
-        ('declined', 'Declined'),
-    ]
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    plan = models.ForeignKey(
-        Plan,
-        on_delete=models.CASCADE,
-        related_name='attendees'
-    )
-    user = models.ForeignKey(
-        Profile,
-        on_delete=models.CASCADE,
-        related_name='plan_attendances'
-    )
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='joined')
-    joined_at = models.DateTimeField(auto_now_add=True)
-    confirmed_at = models.DateTimeField(null=True, blank=True)
-
-    class Meta:
-        db_table = 'plan_attendee'
-        unique_together = ['plan', 'user']
-        indexes = [
-            models.Index(fields=['plan', 'status']),
-            models.Index(fields=['user']),
-        ]
-
-    def __str__(self):
-        return f"{self.user.user.username} attending {self.plan.title} ({self.status})"
 
 
-class PlanMessage(models.Model):
-    """
-    Chat messages for plan group chat.
-    
-    Enables group chat for plan attendees. All attendees can send and
-    receive messages in the plan's group chat.
-    """
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    plan = models.ForeignKey(
-        Plan,
-        on_delete=models.CASCADE,
-        related_name='messages'
-    )
-    sender = models.ForeignKey(
-        Profile,
-        on_delete=models.CASCADE,
-        related_name='sent_plan_messages'
-    )
-    content = models.TextField(max_length=500)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = 'plan_message'
-        ordering = ['created_at']
-        indexes = [
-            models.Index(fields=['plan', 'created_at']),
-        ]
-
-    def __str__(self):
-        return f"Message from {self.sender.user.username} in plan {self.plan.title}"
 
 
-class Activity(models.Model):
-    """
-    User-created meetup event for swipe-based activity matching.
-    
-    Activities allow users to create meetups (climbing, coffee, cowork, etc.)
-    that other travelers can discover and swipe on. When enough users swipe
-    right to fill all spots, an ActivityMatch is created.
-    """
-    ACTIVITY_TYPE_CHOICES = [
-        ('climbing', 'Climbing'),
-        ('snowboarding', 'Snowboarding'),
-        ('skiing', 'Skiing'),
-        ('hiking', 'Hiking'),
-        ('kayaking', 'Kayaking'),
-        ('surfing', 'Surfing'),
-        ('biking', 'Biking'),
-        ('camping', 'Camping'),
-        ('coffee', 'Coffee'),
-        ('cowork', 'Cowork'),
-        ('potluck', 'Potluck'),
-        ('campfire', 'Campfire'),
-        ('dog_walk', 'Dog Walk'),
-        ('sunset', 'Sunset'),
-        ('sunrise_hike', 'Sunrise Hike'),
-        ('other', 'Other'),
-    ]
-
-    TIME_WINDOW_CHOICES = [
-        ('morning', 'Morning (6am-12pm)'),
-        ('afternoon', 'Afternoon (12pm-5pm)'),
-        ('evening', 'Evening (5pm-9pm)'),
-        ('flexible', 'Flexible'),
-    ]
-
-    STATUS_CHOICES = [
-        ('open', 'Open'),
-        ('matched', 'Matched'),
-        ('cancelled', 'Cancelled'),
-        ('completed', 'Completed'),
-    ]
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    created_by = models.ForeignKey(
-        Profile,
-        on_delete=models.CASCADE,
-        related_name='created_activities'
-    )
-    title = models.CharField(max_length=100)
-    activity_type = models.CharField(max_length=30, choices=ACTIVITY_TYPE_CHOICES)
-    description = models.TextField(max_length=500, blank=True)
-    image_url = models.URLField(max_length=500, blank=True, null=True)
-    spots = models.PositiveIntegerField()  # Total spots including creator
-    activity_date = models.DateField()
-    time_window = models.CharField(max_length=20, choices=TIME_WINDOW_CHOICES)
-    location = models.CharField(max_length=100)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='open')
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = 'activity'
-        ordering = ['activity_date', 'time_window']
-        indexes = [
-            models.Index(fields=['status', 'activity_date']),
-            models.Index(fields=['location']),
-            models.Index(fields=['activity_type']),
-        ]
-
-    def __str__(self):
-        return f"{self.title} ({self.activity_date})"
 
 
-class ActivitySwipe(models.Model):
-    """
-    User swipe on an activity for swipe-based activity matching.
-    
-    Tracks when a user swipes right (like) or left (pass) on an activity.
-    Each user can only swipe once per activity. When enough users swipe
-    right to fill all spots, an ActivityMatch is created.
-    """
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    activity = models.ForeignKey(
-        Activity,
-        on_delete=models.CASCADE,
-        related_name='swipes'
-    )
-    user = models.ForeignKey(
-        Profile,
-        on_delete=models.CASCADE,
-        related_name='activity_swipes'
-    )
-    is_like = models.BooleanField()
-    swiped_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = 'activity_swipe'
-        unique_together = ['activity', 'user']
-        indexes = [
-            models.Index(fields=['activity', 'is_like']),
-            models.Index(fields=['user']),
-        ]
-
-    def __str__(self):
-        action = "liked" if self.is_like else "passed on"
-        return f"{self.user.user.username} {action} {self.activity.title}"
 
 
-class ActivityMatch(models.Model):
-    """
-    Represents a matched activity when enough users have swiped right.
-    
-    Created when the number of likes equals available spots. Includes all
-    users who liked the activity plus the creator as attendees.
-    """
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    activity = models.OneToOneField(
-        Activity,
-        on_delete=models.CASCADE,
-        related_name='match'
-    )
-    matched_at = models.DateTimeField(auto_now_add=True)
-    attendees = models.ManyToManyField(
-        Profile,
-        related_name='activity_matches'
-    )
-
-    class Meta:
-        db_table = 'activity_match'
-
-    def __str__(self):
-        return f"Match for {self.activity.title}"
 
 
-class ActivityMessage(models.Model):
-    """
-    Chat message for matched activity group chat.
-    
-    Enables group chat for all attendees of a matched activity.
-    Messages are displayed in chronological order.
-    """
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    activity_match = models.ForeignKey(
-        ActivityMatch,
-        on_delete=models.CASCADE,
-        related_name='messages'
-    )
-    sender = models.ForeignKey(
-        Profile,
-        on_delete=models.CASCADE,
-        related_name='sent_activity_messages'
-    )
-    content = models.TextField(max_length=500)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = 'activity_message'
-        ordering = ['created_at']
-        indexes = [
-            models.Index(fields=['activity_match', 'created_at']),
-        ]
-
-    def __str__(self):
-        return f"Message from {self.sender.user.username} in {self.activity_match.activity.title}"
 
 
 class FriendRequest(models.Model):
@@ -1155,3 +873,203 @@ class AnalyticsEvent(models.Model):
 
     def __str__(self):
         return f"{self.event_name} @ {self.created_at.isoformat()}"
+
+
+class Event(models.Model):
+    """
+    Unified event model combining Plan and Activity functionality.
+    
+    Events can be either direct-join (like Plans) or swipe-to-join (like Activities).
+    The join_mode field determines the participation mechanism:
+    - 'direct': Users can directly join the event (like Plans)
+    - 'swipe': Users swipe to express interest, match when threshold reached (like Activities)
+    """
+    JOIN_MODE_CHOICES = [
+        ('direct', 'Direct Join'),
+        ('swipe', 'Swipe to Join'),
+    ]
+    
+    EVENT_TYPE_CHOICES = [
+        # Social/casual
+        ('coffee', 'Coffee'),
+        ('potluck', 'Potluck'),
+        ('campfire', 'Campfire'),
+        ('cowork', 'Cowork Session'),
+        # Outdoor activities
+        ('hiking', 'Hiking'),
+        ('sunrise_hike', 'Sunrise Hike'),
+        ('sunset', 'Sunset Viewpoint'),
+        ('climbing', 'Climbing'),
+        ('biking', 'Biking'),
+        ('kayaking', 'Kayaking'),
+        ('surfing', 'Surfing'),
+        ('camping', 'Camping'),
+        # Winter sports
+        ('snowboarding', 'Snowboarding'),
+        ('skiing', 'Skiing'),
+        # Pet-related
+        ('dog_walk', 'Dog Walk'),
+        # Other
+        ('other', 'Other'),
+    ]
+    
+    TIME_WINDOW_CHOICES = [
+        ('morning', 'Morning (6am-12pm)'),
+        ('afternoon', 'Afternoon (12pm-5pm)'),
+        ('evening', 'Evening (5pm-9pm)'),
+        ('flexible', 'Flexible'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('open', 'Open'),
+        ('full', 'Full'),           # For direct mode when max reached
+        ('matched', 'Matched'),     # For swipe mode when threshold reached
+        ('cancelled', 'Cancelled'),
+        ('completed', 'Completed'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_by = models.ForeignKey(
+        Profile,
+        on_delete=models.CASCADE,
+        related_name='created_events'
+    )
+    
+    # Core fields
+    title = models.CharField(max_length=100)
+    event_type = models.CharField(max_length=30, choices=EVENT_TYPE_CHOICES)
+    description = models.TextField(max_length=500, blank=True)
+    image_url = models.URLField(max_length=500, blank=True, null=True)
+    
+    # Join mechanism
+    join_mode = models.CharField(max_length=20, choices=JOIN_MODE_CHOICES)
+    
+    # Capacity
+    spots = models.PositiveIntegerField()  # Total spots including creator
+    
+    # Timing
+    event_date = models.DateField()
+    time_window = models.CharField(max_length=20, choices=TIME_WINDOW_CHOICES)
+    
+    # Location
+    location = models.CharField(max_length=100)
+    
+    # Status
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='open')
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'event'
+        ordering = ['event_date', 'time_window']
+        indexes = [
+            models.Index(fields=['status', 'event_date']),
+            models.Index(fields=['join_mode', 'status']),
+            models.Index(fields=['location']),
+            models.Index(fields=['event_type']),
+        ]
+
+    def __str__(self):
+        return f"{self.title} ({self.event_date})"
+
+
+class EventAttendee(models.Model):
+    """
+    Tracks event attendance for users.
+    
+    Users can join events and later confirm their attendance. The status
+    tracks whether they've joined, confirmed, or declined.
+    
+    For direct mode events: Users join directly and can confirm attendance.
+    For swipe mode events: Attendees are added when match threshold is reached.
+    """
+    STATUS_CHOICES = [
+        ('joined', 'Joined'),
+        ('confirmed', 'Confirmed'),
+        ('declined', 'Declined'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    event = models.ForeignKey(
+        Event,
+        on_delete=models.CASCADE,
+        related_name='attendees'
+    )
+    user = models.ForeignKey(
+        Profile,
+        on_delete=models.CASCADE,
+        related_name='event_attendances'
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='joined')
+    joined_at = models.DateTimeField(auto_now_add=True)
+    confirmed_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        db_table = 'event_attendee'
+        unique_together = ['event', 'user']
+
+    def __str__(self):
+        return f"{self.user.user.username} attending {self.event.title} ({self.status})"
+
+
+class EventSwipe(models.Model):
+    """
+    User swipe on an event for swipe-based event matching.
+    
+    Only used for events with join_mode='swipe'. Tracks when a user swipes
+    right (like) or left (pass) on an event. Each user can only swipe once
+    per event. When enough users swipe right to fill all spots, attendees
+    are added to EventAttendee.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    event = models.ForeignKey(
+        Event,
+        on_delete=models.CASCADE,
+        related_name='swipes'
+    )
+    user = models.ForeignKey(
+        Profile,
+        on_delete=models.CASCADE,
+        related_name='event_swipes'
+    )
+    is_like = models.BooleanField()
+    swiped_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'event_swipe'
+        unique_together = ['event', 'user']
+
+    def __str__(self):
+        action = "liked" if self.is_like else "passed on"
+        return f"{self.user.user.username} {action} {self.event.title}"
+
+
+class EventMessage(models.Model):
+    """
+    Chat message for event group chat.
+    
+    Enables group chat for all attendees of an event. Messages are displayed
+    in chronological order. Access control: only attendees can send/view messages.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    event = models.ForeignKey(
+        Event,
+        on_delete=models.CASCADE,
+        related_name='messages'
+    )
+    sender = models.ForeignKey(
+        Profile,
+        on_delete=models.CASCADE,
+        related_name='sent_event_messages'
+    )
+    content = models.TextField(max_length=500)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'event_message'
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"Message from {self.sender.user.username} in {self.event.title}"
+
+

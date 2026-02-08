@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { activitiesAPI } from '../services/api';
-import { getActivityTypesArray } from '../utils/constants';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { eventsAPI } from '../services/api';
+import { ACTIVITY_TYPES } from '../utils/constants';
 
 /**
  * Time window options
- * Matches the TIME_WINDOW_CHOICES from the backend Activity model
+ * Matches the TIME_WINDOW_CHOICES from the backend Event model
  */
 const TIME_WINDOWS = [
   { value: 'morning', label: 'Morning', time: '6am - 12pm' },
@@ -15,29 +15,76 @@ const TIME_WINDOWS = [
 ];
 
 /**
- * CreateActivityPage - Form to create a new activity for swipe-based meetups
- * 
- * Requirements:
- * - 6.1: Require title (max 100 chars), activity_type, date, time window, location/area, spots (1-20)
- * - 6.2: Allow optional description (max 500 chars) and image URL
- * - 6.3: Activity types include climbing, snowboarding, skiing, hiking, kayaking, surfing, etc.
- * - 6.4: Creator is auto-attendee (handled by backend)
- * - 6.5: Status set to 'open' (handled by backend)
- * - 6.6: Validate date is not in past
- * - 6.7: On success, navigate to activity detail view
+ * Join mode options
+ * Matches the JOIN_MODE_CHOICES from the backend Event model
  */
-function CreateActivityPage() {
+const JOIN_MODES = [
+  { 
+    value: 'direct', 
+    label: 'Direct Join', 
+    description: 'Others can join immediately',
+    icon: '👋',
+  },
+  { 
+    value: 'swipe', 
+    label: 'Swipe to Join', 
+    description: 'Others swipe to express interest',
+    icon: '💫',
+  },
+];
+
+/**
+ * Event type categories for better organization
+ */
+const EVENT_TYPE_CATEGORIES = [
+  {
+    name: 'Social',
+    types: ['coffee', 'potluck', 'campfire', 'cowork'],
+  },
+  {
+    name: 'Outdoor',
+    types: ['hiking', 'sunrise_hike', 'sunset', 'climbing', 'biking', 'kayaking', 'surfing', 'camping'],
+  },
+  {
+    name: 'Winter',
+    types: ['snowboarding', 'skiing'],
+  },
+  {
+    name: 'Other',
+    types: ['dog_walk', 'other'],
+  },
+];
+
+/**
+ * CreateEventPage - Unified form to create events (replaces CreatePlanPage and CreateActivityPage)
+ * 
+ * Features:
+ * - Join mode selector (Direct Join vs Swipe to Join)
+ * - Event type selector with categories
+ * - Date and time window pickers
+ * - Location input
+ * - Spots slider
+ * - Optional description and image URL
+ * 
+ * **Validates: Requirements REQ-7.2**
+ */
+function CreateEventPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  
+  // Get initial join_mode from URL params (e.g., /events/create?mode=swipe)
+  const initialJoinMode = searchParams.get('mode') || 'direct';
   
   const [formData, setFormData] = useState({
+    join_mode: initialJoinMode,
+    event_type: '',
     title: '',
-    activity_type: '',
     description: '',
     image_url: '',
-    activity_date: '',
+    event_date: '',
     time_window: 'flexible',
     location: '',
-    spots: 4,
+    spots: 6,
   });
   
   const [loading, setLoading] = useState(false);
@@ -46,7 +93,6 @@ function CreateActivityPage() {
 
   /**
    * Get minimum date (today) for date picker
-   * Requirement 6.6: Validate date is not in past
    */
   const getMinDate = () => {
     const today = new Date();
@@ -66,23 +112,45 @@ function CreateActivityPage() {
   };
 
   /**
-   * Handle activity type selection
+   * Handle join mode selection
    */
-  const handleActivityTypeSelect = (type) => {
-    setFormData(prev => ({ ...prev, activity_type: type }));
-    if (errors.activity_type) {
-      setErrors(prev => ({ ...prev, activity_type: '' }));
+  const handleJoinModeSelect = (mode) => {
+    setFormData(prev => ({ ...prev, join_mode: mode }));
+    setError('');
+  };
+
+  /**
+   * Handle event type selection
+   */
+  const handleEventTypeSelect = (type) => {
+    const typeInfo = ACTIVITY_TYPES[type];
+    setFormData(prev => ({
+      ...prev,
+      event_type: type,
+      // Auto-fill title based on event type if empty
+      title: prev.title || (typeInfo?.label || type),
+    }));
+    if (errors.event_type) {
+      setErrors(prev => ({ ...prev, event_type: '' }));
     }
     setError('');
   };
 
   /**
    * Validate form before submission
-   * Requirement 6.1: Validate required fields
-   * Requirement 6.6: Validate date is not in past
    */
   const validateForm = () => {
     const newErrors = {};
+    
+    // Join mode validation
+    if (!formData.join_mode) {
+      newErrors.join_mode = 'Please select a join mode';
+    }
+    
+    // Event type validation
+    if (!formData.event_type) {
+      newErrors.event_type = 'Please select an event type';
+    }
     
     // Title validation
     if (!formData.title.trim()) {
@@ -91,20 +159,15 @@ function CreateActivityPage() {
       newErrors.title = 'Title must be 100 characters or less';
     }
     
-    // Activity type validation
-    if (!formData.activity_type) {
-      newErrors.activity_type = 'Please select an activity type';
-    }
-    
-    // Date validation (Requirement 6.1, 6.6)
-    if (!formData.activity_date) {
-      newErrors.activity_date = 'Date is required';
+    // Date validation
+    if (!formData.event_date) {
+      newErrors.event_date = 'Date is required';
     } else {
-      const selectedDate = new Date(formData.activity_date);
+      const selectedDate = new Date(formData.event_date);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       if (selectedDate < today) {
-        newErrors.activity_date = 'Date cannot be in the past';
+        newErrors.event_date = 'Date cannot be in the past';
       }
     }
     
@@ -125,12 +188,12 @@ function CreateActivityPage() {
       newErrors.spots = 'Spots must be between 1 and 20';
     }
     
-    // Description validation (Requirement 6.2 - optional but max 500 chars)
+    // Description validation (optional but max 500 chars)
     if (formData.description.length > 500) {
       newErrors.description = 'Description must be 500 characters or less';
     }
     
-    // Image URL validation (Requirement 6.2 - optional but must be valid URL if provided)
+    // Image URL validation (optional but must be valid URL if provided)
     if (formData.image_url.trim()) {
       try {
         new URL(formData.image_url);
@@ -145,7 +208,6 @@ function CreateActivityPage() {
 
   /**
    * Handle form submission
-   * Requirement 6.7: On success, navigate to activity detail view
    */
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -156,41 +218,50 @@ function CreateActivityPage() {
       setLoading(true);
       setError('');
       
-      const response = await activitiesAPI.create({
+      const response = await eventsAPI.create({
+        join_mode: formData.join_mode,
+        event_type: formData.event_type,
         title: formData.title.trim(),
-        activity_type: formData.activity_type,
         description: formData.description.trim(),
         image_url: formData.image_url.trim() || null,
-        activity_date: formData.activity_date,
+        event_date: formData.event_date,
         time_window: formData.time_window,
         location: formData.location.trim(),
         spots: formData.spots,
       });
       
-      // Navigate to activity detail view
-      const activityId = response.data.data?.id || response.data.id;
-      navigate(`/activities/${activityId}`);
+      // Navigate to event detail view
+      const eventId = response.data.data?.id || response.data.id;
+      navigate(`/events/${eventId}`);
     } catch (err) {
-      setError(err.message || 'Failed to create activity');
+      setError(err.message || 'Failed to create event');
     } finally {
       setLoading(false);
     }
   };
 
+  // Determine accent color based on join mode
+  const accentBg = formData.join_mode === 'swipe' ? 'bg-emerald-500' : 'bg-blue-500';
+  const accentBgHover = formData.join_mode === 'swipe' ? 'hover:bg-emerald-600' : 'hover:bg-blue-600';
+  const accentBorder = formData.join_mode === 'swipe' ? 'border-emerald-500' : 'border-blue-500';
+  const accentBgLight = formData.join_mode === 'swipe' ? 'bg-emerald-600/20' : 'bg-blue-600/20';
+  const accentText = formData.join_mode === 'swipe' ? 'text-emerald-400' : 'text-blue-400';
+  const accentFocus = formData.join_mode === 'swipe' ? 'focus:border-emerald-500' : 'focus:border-blue-500';
+
   return (
-    <div className="app-shell px-4 py-6 pb-24">
+    <div className="min-h-screen bg-black px-4 py-6 pb-24">
       <div className="max-w-lg mx-auto">
         {/* Page Header */}
         <div className="mb-6">
-          <Link to="/activities" className="text-zinc-400 hover:text-white text-sm transition-colors">
-            ← Back to Activities
+          <Link to="/events" className="text-zinc-400 hover:text-white text-sm transition-colors">
+            ← Back to Events
           </Link>
         </div>
 
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-white mb-2">Create an Activity</h1>
+          <h1 className="text-2xl font-bold text-white mb-2">Create an Event</h1>
           <p className="text-zinc-400 text-sm">
-            Organize a meetup and let others swipe to join!
+            Organize a meetup with fellow nomads. Choose how others can join!
           </p>
         </div>
 
@@ -203,30 +274,69 @@ function CreateActivityPage() {
             </div>
           )}
 
-          {/* Activity Type Selection (Requirement 6.1, 6.3) */}
+          {/* Join Mode Selection */}
           <div>
             <label className="block text-white text-sm font-medium mb-3">
-              What kind of activity? <span className="text-red-400">*</span>
+              How can others join? <span className="text-red-400">*</span>
             </label>
-            <div className="grid grid-cols-4 gap-2">
-              {getActivityTypesArray().map((type) => (
+            <div className="grid grid-cols-2 gap-3">
+              {JOIN_MODES.map((mode) => (
                 <button
-                  key={type.value}
+                  key={mode.value}
                   type="button"
-                  className={`p-3 rounded-xl border text-center transition-all ${
-                    formData.activity_type === type.value 
-                      ? 'bg-emerald-600/20 border-emerald-500' 
+                  className={`p-4 rounded-xl border text-left transition-all ${
+                    formData.join_mode === mode.value 
+                      ? `${accentBgLight} ${accentBorder}` 
                       : 'bg-zinc-900 border-zinc-700 hover:border-zinc-500'
                   }`}
-                  onClick={() => handleActivityTypeSelect(type.value)}
+                  onClick={() => handleJoinModeSelect(mode.value)}
                 >
-                  <span className="text-2xl block mb-1">{type.emoji}</span>
-                  <span className="text-white text-xs font-medium block truncate">{type.label}</span>
+                  <span className="text-2xl block mb-2">{mode.icon}</span>
+                  <span className="text-white text-sm font-medium block">{mode.label}</span>
+                  <span className="text-zinc-500 text-xs">{mode.description}</span>
                 </button>
               ))}
             </div>
-            {errors.activity_type && (
-              <p className="text-red-400 text-xs mt-2">{errors.activity_type}</p>
+            {errors.join_mode && (
+              <p className="text-red-400 text-xs mt-2">{errors.join_mode}</p>
+            )}
+          </div>
+
+          {/* Event Type Selection */}
+          <div>
+            <label className="block text-white text-sm font-medium mb-3">
+              What kind of event? <span className="text-red-400">*</span>
+            </label>
+            <div className="space-y-4">
+              {EVENT_TYPE_CATEGORIES.map((category) => (
+                <div key={category.name}>
+                  <span className="text-zinc-500 text-xs uppercase tracking-wide mb-2 block">{category.name}</span>
+                  <div className="grid grid-cols-4 gap-2">
+                    {category.types.map((type) => {
+                      const typeInfo = ACTIVITY_TYPES[type];
+                      if (!typeInfo) return null;
+                      return (
+                        <button
+                          key={type}
+                          type="button"
+                          className={`p-3 rounded-xl border text-center transition-all ${
+                            formData.event_type === type 
+                              ? `${accentBgLight} ${accentBorder}` 
+                              : 'bg-zinc-900 border-zinc-700 hover:border-zinc-500'
+                          }`}
+                          onClick={() => handleEventTypeSelect(type)}
+                        >
+                          <span className="text-2xl block mb-1">{typeInfo.emoji}</span>
+                          <span className="text-white text-xs font-medium block truncate">{typeInfo.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+            {errors.event_type && (
+              <p className="text-red-400 text-xs mt-2">{errors.event_type}</p>
             )}
           </div>
 
@@ -241,9 +351,9 @@ function CreateActivityPage() {
               type="text"
               value={formData.title}
               onChange={(e) => handleChange('title', e.target.value)}
-              placeholder="Give your activity a catchy title..."
+              placeholder="Give your event a catchy title..."
               maxLength={100}
-              className={`w-full px-4 py-3 bg-zinc-900 border rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500 ${
+              className={`w-full px-4 py-3 bg-zinc-900 border rounded-lg text-white placeholder-zinc-500 focus:outline-none ${accentFocus} ${
                 errors.title ? 'border-red-500' : 'border-zinc-700'
               }`}
             />
@@ -252,24 +362,24 @@ function CreateActivityPage() {
             )}
           </div>
 
-          {/* Date and Time Window (Requirement 6.1, 6.6) */}
+          {/* Date and Time Window */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="activity_date" className="block text-white text-sm font-medium mb-2">
+              <label htmlFor="event_date" className="block text-white text-sm font-medium mb-2">
                 Date <span className="text-red-400">*</span>
               </label>
               <input
-                id="activity_date"
+                id="event_date"
                 type="date"
-                value={formData.activity_date}
-                onChange={(e) => handleChange('activity_date', e.target.value)}
+                value={formData.event_date}
+                onChange={(e) => handleChange('event_date', e.target.value)}
                 min={getMinDate()}
-                className={`w-full px-4 py-3 bg-zinc-900 border rounded-lg text-white focus:outline-none focus:border-emerald-500 ${
-                  errors.activity_date ? 'border-red-500' : 'border-zinc-700'
+                className={`w-full px-4 py-3 bg-zinc-900 border rounded-lg text-white focus:outline-none ${accentFocus} ${
+                  errors.event_date ? 'border-red-500' : 'border-zinc-700'
                 }`}
               />
-              {errors.activity_date && (
-                <p className="text-red-400 text-xs mt-1">{errors.activity_date}</p>
+              {errors.event_date && (
+                <p className="text-red-400 text-xs mt-1">{errors.event_date}</p>
               )}
             </div>
 
@@ -281,7 +391,7 @@ function CreateActivityPage() {
                 id="time_window"
                 value={formData.time_window}
                 onChange={(e) => handleChange('time_window', e.target.value)}
-                className={`w-full px-4 py-3 bg-zinc-900 border rounded-lg text-white focus:outline-none focus:border-emerald-500 ${
+                className={`w-full px-4 py-3 bg-zinc-900 border rounded-lg text-white focus:outline-none ${accentFocus} ${
                   errors.time_window ? 'border-red-500' : 'border-zinc-700'
                 }`}
               >
@@ -310,7 +420,7 @@ function CreateActivityPage() {
               onChange={(e) => handleChange('location', e.target.value)}
               placeholder="e.g., Joshua Tree, CA or Downtown Austin"
               maxLength={100}
-              className={`w-full px-4 py-3 bg-zinc-900 border rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500 ${
+              className={`w-full px-4 py-3 bg-zinc-900 border rounded-lg text-white placeholder-zinc-500 focus:outline-none ${accentFocus} ${
                 errors.location ? 'border-red-500' : 'border-zinc-700'
               }`}
             />
@@ -325,7 +435,7 @@ function CreateActivityPage() {
           {/* Spots */}
           <div>
             <label htmlFor="spots" className="block text-white text-sm font-medium mb-2">
-              Available Spots: <span className="text-emerald-400">{formData.spots}</span> <span className="text-red-400">*</span>
+              Available Spots: <span className={accentText}>{formData.spots}</span> <span className="text-red-400">*</span>
             </label>
             <div className="flex items-center gap-3">
               <span className="text-zinc-500 text-sm">1</span>
@@ -336,7 +446,7 @@ function CreateActivityPage() {
                 max="20"
                 value={formData.spots}
                 onChange={(e) => handleChange('spots', parseInt(e.target.value))}
-                className="flex-1 accent-emerald-500"
+                className={`flex-1 ${formData.join_mode === 'swipe' ? 'accent-emerald-500' : 'accent-blue-500'}`}
               />
               <span className="text-zinc-500 text-sm">20</span>
             </div>
@@ -348,7 +458,7 @@ function CreateActivityPage() {
             </p>
           </div>
 
-          {/* Description (Requirement 6.2 - Optional) */}
+          {/* Description (Optional) */}
           <div>
             <label htmlFor="description" className="flex items-center justify-between text-white text-sm font-medium mb-2">
               <span>Description <span className="text-zinc-500 font-normal">(optional)</span></span>
@@ -358,10 +468,10 @@ function CreateActivityPage() {
               id="description"
               value={formData.description}
               onChange={(e) => handleChange('description', e.target.value)}
-              placeholder="Add any details about the activity..."
+              placeholder="Add any details about the event..."
               maxLength={500}
               rows={4}
-              className={`w-full px-4 py-3 bg-zinc-900 border rounded-lg text-white placeholder-zinc-500 resize-none focus:outline-none focus:border-emerald-500 ${
+              className={`w-full px-4 py-3 bg-zinc-900 border rounded-lg text-white placeholder-zinc-500 resize-none focus:outline-none ${accentFocus} ${
                 errors.description ? 'border-red-500' : 'border-zinc-700'
               }`}
             />
@@ -370,7 +480,7 @@ function CreateActivityPage() {
             )}
           </div>
 
-          {/* Image URL (Requirement 6.2 - Optional) */}
+          {/* Image URL (Optional) */}
           <div>
             <label htmlFor="image_url" className="block text-white text-sm font-medium mb-2">
               Image URL <span className="text-zinc-500 font-normal">(optional)</span>
@@ -381,7 +491,7 @@ function CreateActivityPage() {
               value={formData.image_url}
               onChange={(e) => handleChange('image_url', e.target.value)}
               placeholder="https://example.com/image.jpg"
-              className={`w-full px-4 py-3 bg-zinc-900 border rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500 ${
+              className={`w-full px-4 py-3 bg-zinc-900 border rounded-lg text-white placeholder-zinc-500 focus:outline-none ${accentFocus} ${
                 errors.image_url ? 'border-red-500' : 'border-zinc-700'
               }`}
             />
@@ -389,14 +499,33 @@ function CreateActivityPage() {
               <p className="text-red-400 text-xs mt-1">{errors.image_url}</p>
             )}
             <p className="text-zinc-500 text-xs mt-1">
-              Add a photo to make your activity stand out!
+              Add a photo to make your event stand out!
             </p>
           </div>
 
+          {/* Join Mode Info */}
+          <div className={`flex gap-3 p-4 rounded-xl ${
+            formData.join_mode === 'swipe' 
+              ? 'bg-emerald-900/20 border border-emerald-800/50' 
+              : 'bg-blue-900/20 border border-blue-800/50'
+          }`}>
+            <span className="text-xl">{formData.join_mode === 'swipe' ? '💫' : '👋'}</span>
+            <div>
+              <p className={`text-sm font-semibold ${formData.join_mode === 'swipe' ? 'text-emerald-200' : 'text-blue-200'}`}>
+                {formData.join_mode === 'swipe' ? 'Swipe to Join Mode' : 'Direct Join Mode'}
+              </p>
+              <p className={`text-sm ${formData.join_mode === 'swipe' ? 'text-emerald-200/80' : 'text-blue-200/80'}`}>
+                {formData.join_mode === 'swipe' 
+                  ? 'Others will swipe to express interest. When enough people like your event, it becomes a match!'
+                  : 'Others can join your event directly. Great for casual meetups where everyone is welcome!'}
+              </p>
+            </div>
+          </div>
+
           {/* Safety Note */}
-          <div className="flex gap-3 p-4 bg-emerald-900/20 border border-emerald-800/50 rounded-xl">
+          <div className="flex gap-3 p-4 bg-amber-900/20 border border-amber-800/50 rounded-xl">
             <span className="text-xl">💡</span>
-            <p className="text-emerald-200 text-sm">
+            <p className="text-amber-200 text-sm">
               <span className="font-semibold">Safety first:</span> We recommend meeting in public places for first meetups. 
               Share your plans with a friend and trust your instincts!
             </p>
@@ -406,18 +535,18 @@ function CreateActivityPage() {
           <div className="flex gap-3 pt-4">
             <button
               type="button"
-              onClick={() => navigate('/activities')}
-              className="app-btn-secondary flex-1 px-4 py-3"
+              onClick={() => navigate('/events')}
+              className="flex-1 px-4 py-3 border border-zinc-700 hover:border-zinc-500 text-white font-semibold rounded-lg transition-colors"
               disabled={loading}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-3 bg-emerald-500 hover:bg-emerald-600 disabled:bg-zinc-700 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"
+              className={`flex-1 px-4 py-3 ${accentBg} ${accentBgHover} disabled:bg-zinc-700 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors`}
               disabled={loading}
             >
-              {loading ? 'Creating...' : 'Create Activity'}
+              {loading ? 'Creating...' : 'Create Event'}
             </button>
           </div>
         </form>
@@ -426,4 +555,4 @@ function CreateActivityPage() {
   );
 }
 
-export default CreateActivityPage;
+export default CreateEventPage;

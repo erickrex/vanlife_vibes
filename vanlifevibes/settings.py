@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     # Third-party apps
     "rest_framework",
     "rest_framework.authtoken",
+    "channels",
     "corsheaders",
     "allauth",
     "allauth.account",
@@ -89,6 +90,13 @@ TEMPLATES = [
 
 
 WSGI_APPLICATION = "vanlifevibes.wsgi.application"
+ASGI_APPLICATION = "vanlifevibes.asgi.application"
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    }
+}
 
 
 # Database

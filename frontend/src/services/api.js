@@ -144,30 +144,34 @@ export const matchesAPI = {
   shareMiniCard: (matchId, data) => api.post(`/matches/${matchId}/messages/mini-card/`, data),
 };
 
-// Plans API
-export const plansAPI = {
-  list: (params = {}) => api.get('/plans/', { params }),
-  create: (data) => api.post('/plans/', data),
-  get: (planId) => api.get(`/plans/${planId}/`),
-  update: (planId, data) => api.patch(`/plans/${planId}/`, data),
-  cancel: (planId) => api.delete(`/plans/${planId}/`),
-  join: (planId) => api.post(`/plans/${planId}/join/`),
-  leave: (planId) => api.post(`/plans/${planId}/leave/`),
-  confirm: (planId) => api.post(`/plans/${planId}/confirm/`),
-  getMessages: (planId) => api.get(`/plans/${planId}/messages/`),
-  sendMessage: (planId, content) => api.post(`/plans/${planId}/messages/`, { content }),
-};
-
-// Activities API
-export const activitiesAPI = {
-  list: (params = {}) => api.get('/activities/', { params }),
-  create: (data) => api.post('/activities/', data),
-  get: (id) => api.get(`/activities/${id}/`),
-  swipe: (id, isLike) => api.post(`/activities/${id}/swipe/`, { is_like: isLike }),
-  getMyActivities: () => api.get('/activities/my-activities/'),
-  getMyMatches: () => api.get('/activities/my-matches/'),
-  getMessages: (id) => api.get(`/activities/${id}/messages/`),
-  sendMessage: (id, content) => api.post(`/activities/${id}/messages/`, { content }),
+// Events API (unified Plan + Activity)
+export const eventsAPI = {
+  // List events with optional filters (join_mode, event_type, location, from_date, to_date, status)
+  list: (params = {}) => api.get('/events/', { params }),
+  // Create a new event
+  create: (data) => api.post('/events/', data),
+  // Get event details
+  get: (eventId) => api.get(`/events/${eventId}/`),
+  // Update event (creator only)
+  update: (eventId, data) => api.patch(`/events/${eventId}/`, data),
+  // Cancel/delete event (creator only)
+  cancel: (eventId) => api.delete(`/events/${eventId}/`),
+  // Join event (direct mode only)
+  join: (eventId) => api.post(`/events/${eventId}/join/`),
+  // Leave event
+  leave: (eventId) => api.post(`/events/${eventId}/leave/`),
+  // Confirm attendance (direct mode)
+  confirm: (eventId) => api.post(`/events/${eventId}/confirm/`),
+  // Swipe on event (swipe mode only)
+  swipe: (eventId, isLike) => api.post(`/events/${eventId}/swipe/`, { is_like: isLike }),
+  // Get event messages
+  getMessages: (eventId) => api.get(`/events/${eventId}/messages/`),
+  // Send message to event chat
+  sendMessage: (eventId, content) => api.post(`/events/${eventId}/messages/`, { content }),
+  // Get user's created/attending events
+  getMyEvents: () => api.get('/events/my-events/'),
+  // Get user's matched swipe events
+  getMyMatches: () => api.get('/events/my-matches/'),
 };
 
 // Friends API

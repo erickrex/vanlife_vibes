@@ -1,11 +1,22 @@
 import React from 'react';
 import { DEFAULT_AVATAR } from '../utils/constants';
 
-function PersonMatchCard({ match, isSelected, onSelect }) {
+function PersonMatchCard({ match, isSelected, onSelect, currentProfileId }) {
   const otherUser = match.other_user || {};
   const lastMessage = match.last_message;
   const hasUnread = match.unread_count > 0;
   const mode = match.mode || 'friends';
+
+  const normalizeId = (value) => {
+    if (value === null || value === undefined) return '';
+    return String(value);
+  };
+
+  const isLastMessageMine = () => {
+    const mine = normalizeId(currentProfileId);
+    if (!mine || !lastMessage) return false;
+    return normalizeId(lastMessage.sender_id) === mine;
+  };
 
   const formatRelativeTime = (timestamp) => {
     if (!timestamp) return '';
@@ -84,7 +95,7 @@ function PersonMatchCard({ match, isSelected, onSelect }) {
         <div className="mt-1">
           {lastMessage ? (
             <span className={`text-sm truncate block ${hasUnread ? 'text-zinc-200' : 'text-zinc-500'}`}>
-              {lastMessage.is_mine && <span className="text-zinc-400">You: </span>}
+              {isLastMessageMine() && <span className="text-zinc-400">You: </span>}
               {truncateMessage(lastMessage.content)}
             </span>
           ) : (

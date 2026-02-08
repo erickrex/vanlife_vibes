@@ -1,19 +1,28 @@
 import React, { useRef, useEffect } from 'react';
 import PersonMessageBubble from './PersonMessageBubble';
 
-/**
- * PersonMessageList - Displays messages in a person-to-person chat
- * 
- * Features:
- * - Message bubbles with timestamps
- * - Auto-scroll to bottom on new messages
- * - Loading and empty states
- * 
- * **Validates: Requirements 10.1**
- */
-function PersonMessageList({ messages, loading, currentUserId }) {
+function PersonMessageList({ messages, loading, currentUserId, mode = 'friends' }) {
   const messagesEndRef = useRef(null);
-  const containerRef = useRef(null);
+
+  const normalizeId = (value) => {
+    if (value === null || value === undefined) return '';
+    return String(value);
+  };
+
+  const isCurrentUserMessage = (message) => {
+    const myId = normalizeId(currentUserId);
+    if (!myId) return false;
+
+    const candidates = [
+      message.sender,
+      message.sender_id,
+      message.sender?.id,
+      message.sender_profile?.id,
+      message.sender_profile_id,
+    ];
+
+    return candidates.some((candidate) => normalizeId(candidate) === myId);
+  };
 
   const scrollToBottom = (behavior = 'smooth') => {
     messagesEndRef.current?.scrollIntoView({ behavior });
@@ -24,15 +33,18 @@ function PersonMessageList({ messages, loading, currentUserId }) {
   }, [messages]);
 
   useEffect(() => {
-    // Scroll to bottom immediately on mount
     scrollToBottom('auto');
   }, []);
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-black">
+      <div className="flex-1 flex items-center justify-center bg-zinc-950/40">
         <div className="flex items-center gap-2 text-zinc-400">
-          <div className="w-5 h-5 border-2 border-zinc-600 border-t-blue-500 rounded-full animate-spin"></div>
+          <div
+            className={`w-5 h-5 border-2 border-zinc-600 border-t-transparent rounded-full animate-spin ${
+              mode === 'dating' ? 'border-t-rose-500' : 'border-t-blue-500'
+            }`}
+          ></div>
           <span>Loading messages...</span>
         </div>
       </div>
@@ -41,28 +53,27 @@ function PersonMessageList({ messages, loading, currentUserId }) {
 
   if (messages.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-black">
-        <div className="text-center">
+      <div className="flex-1 flex items-center justify-center bg-zinc-950/40">
+        <div className="text-center px-4">
           <div className="text-4xl mb-2">👋</div>
-          <p className="text-white">No messages yet</p>
-          <p className="text-zinc-500 text-sm mt-1">Say hello and start the conversation!</p>
+          <p className="text-white font-medium">No messages yet</p>
+          <p className="text-zinc-500 text-sm mt-1">Send a quick opener and break the ice.</p>
         </div>
       </div>
     );
   }
 
-  // Group messages by date
-  const groupMessagesByDate = (msgs) => {
+  const groupMessagesByDate = (messageList) => {
     const groups = [];
     let currentDate = null;
 
-    msgs.forEach((msg) => {
-      const msgDate = new Date(msg.created_at).toDateString();
-      if (msgDate !== currentDate) {
-        currentDate = msgDate;
-        groups.push({ type: 'date', date: msg.created_at });
+    messageList.forEach((message) => {
+      const messageDate = new Date(message.created_at).toDateString();
+      if (messageDate !== currentDate) {
+        currentDate = messageDate;
+        groups.push({ type: 'date', date: message.created_at });
       }
-      groups.push({ type: 'message', message: msg });
+      groups.push({ type: 'message', message });
     });
 
     return groups;
@@ -90,26 +101,25 @@ function PersonMessageList({ messages, loading, currentUserId }) {
   const groupedMessages = groupMessagesByDate(messages);
 
   return (
-    <div className="flex-1 overflow-y-auto bg-black" ref={containerRef}>
+    <div className="flex-1 overflow-y-auto bg-gradient-to-b from-zinc-950/65 via-zinc-950/35 to-zinc-900/20">
       <div className="p-4 space-y-1">
         {groupedMessages.map((item, index) => {
           if (item.type === 'date') {
             return (
               <div key={`date-${index}`} className="flex items-center justify-center py-3">
-                <span className="px-3 py-1 bg-zinc-800 rounded-full text-xs text-zinc-400">
+                <span className="px-3 py-1 rounded-full text-xs text-zinc-300 bg-zinc-900/85 border border-zinc-700">
                   {formatDateDivider(item.date)}
                 </span>
               </div>
             );
           }
+
           return (
             <PersonMessageBubble
               key={item.message.id}
               message={item.message}
-              isCurrentUser={
-                item.message.sender?.id === currentUserId ||
-                item.message.sender_id === currentUserId
-              }
+              isCurrentUser={isCurrentUserMessage(item.message)}
+              mode={mode}
             />
           );
         })}

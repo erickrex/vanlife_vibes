@@ -30,12 +30,15 @@ class PersonMatchSerializer(serializers.ModelSerializer):
     user1_profile = serializers.SerializerMethodField()
     user2_profile = serializers.SerializerMethodField()
     other_user = serializers.SerializerMethodField()
+    last_message = serializers.SerializerMethodField()
+    unread_count = serializers.SerializerMethodField()
     
     class Meta:
         model = PersonMatch
         fields = [
             'id', 'user1', 'user2', 'user1_profile', 'user2_profile',
-            'other_user', 'mode', 'matched_at', 'is_active'
+            'other_user', 'mode', 'matched_at', 'is_active',
+            'last_message', 'unread_count'
         ]
         read_only_fields = ['id', 'matched_at']
     
@@ -75,6 +78,46 @@ class PersonMatchSerializer(serializers.ModelSerializer):
             }
         except Profile.DoesNotExist:
             return None
+
+    def get_last_message(self, obj):
+        """Return summary of the most recent direct message for this match."""
+        last_message = obj.messages.order_by('-created_at').first()
+        if not last_message:
+            return None
+
+        return {
+            'id': str(last_message.id),
+            'content': last_message.content,
+            'message_type': last_message.message_type,
+            'created_at': last_message.created_at.isoformat() if last_message.created_at else None,
+            'is_read': last_message.is_read,
+            'sender_id': str(last_message.sender_id),
+            'sender_profile': {
+                'id': str(last_message.sender.id),
+                'display_name': last_message.sender.display_name,
+                'avatar_url': last_message.sender.avatar_url,
+            }
+        }
+
+    def get_unread_count(self, obj):
+        """
+        Return unread message count for the request user in this match.
+        Unread means messages sent by the other user with is_read=False.
+        """
+        request = self.context.get('request')
+        if not request or not request.user or not request.user.is_authenticated:
+            return 0
+
+        try:
+            request_user_profile = request.user.profile
+        except Profile.DoesNotExist:
+            return 0
+
+        return obj.messages.filter(
+            is_read=False
+        ).exclude(
+            sender=request_user_profile
+        ).count()
 
 
 class PersonSwipeSerializer(serializers.ModelSerializer):

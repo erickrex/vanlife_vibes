@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { activitiesAPI, analyticsAPI, discoveryAPI, plansAPI } from '../services/api';
+import { analyticsAPI, discoveryAPI, eventsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { buildCompatibilityChips } from '../utils/compatibility';
-import { normalizePlans } from '../utils/plans';
 
 function getResponseList(response) {
   const data = response?.data?.data || response?.data || [];
@@ -50,8 +49,9 @@ function WelcomePage() {
       const requests = [];
       if (profile.looking_for_dating) requests.push(discoveryAPI.getDatingProfiles());
       if (profile.looking_for_friends) requests.push(discoveryAPI.getFriendsProfiles());
-      requests.push(activitiesAPI.list({}));
-      requests.push(plansAPI.list({}));
+      // Fetch swipe-mode events (activities) and direct-mode events (plans)
+      requests.push(eventsAPI.list({ join_mode: 'swipe' }));
+      requests.push(eventsAPI.list({ join_mode: 'direct' }));
 
       const results = await Promise.allSettled(requests);
       let resultIndex = 0;
@@ -74,8 +74,8 @@ function WelcomePage() {
         }
       }
 
-      const activitiesResult = results[resultIndex++];
-      const plansResult = results[resultIndex++];
+      const swipeEventsResult = results[resultIndex++];
+      const directEventsResult = results[resultIndex++];
 
       const uniquePeople = [];
       const seenPeople = new Set();
@@ -89,16 +89,16 @@ function WelcomePage() {
 
       setPeople(uniquePeople);
 
-      if (activitiesResult.status === 'fulfilled') {
-        const activities = getResponseList(activitiesResult.value);
-        setActivity(activities[0] || null);
+      if (swipeEventsResult.status === 'fulfilled') {
+        const swipeEvents = getResponseList(swipeEventsResult.value);
+        setActivity(swipeEvents[0] || null);
       } else {
         setActivity(null);
       }
 
-      if (plansResult.status === 'fulfilled') {
-        const plans = normalizePlans(getResponseList(plansResult.value));
-        setPlan(plans[0] || null);
+      if (directEventsResult.status === 'fulfilled') {
+        const directEvents = getResponseList(directEventsResult.value);
+        setPlan(directEvents[0] || null);
       } else {
         setPlan(null);
       }
@@ -149,7 +149,7 @@ function WelcomePage() {
     trackEvent('welcome_activity_click', {
       activity_id: activity.id,
     });
-    navigate(`/activities/${activity.id}`);
+    navigate(`/events/${activity.id}`);
   };
 
   const handlePlanClick = () => {
@@ -157,7 +157,7 @@ function WelcomePage() {
     trackEvent('welcome_plan_click', {
       plan_id: plan.id,
     });
-    navigate(`/plans/${plan.id}`);
+    navigate(`/events/${plan.id}`);
   };
 
   const handleOpenPrimaryDiscovery = () => {
@@ -174,22 +174,22 @@ function WelcomePage() {
 
   const handleBrowseActivities = () => {
     trackEvent('welcome_activity_empty_browse_click');
-    navigate('/activities');
+    navigate('/events');
   };
 
   const handleCreateActivity = () => {
     trackEvent('welcome_activity_empty_create_click');
-    navigate('/activities/create');
+    navigate('/events/create');
   };
 
   const handleBrowsePlans = () => {
     trackEvent('welcome_plan_empty_browse_click');
-    navigate('/plans');
+    navigate('/events');
   };
 
   const handleCreatePlan = () => {
     trackEvent('welcome_plan_empty_create_click');
-    navigate('/plans/create');
+    navigate('/events/create');
   };
 
   const primaryDiscoveryLabel = useMemo(() => {
@@ -309,7 +309,7 @@ function WelcomePage() {
             <div className="bg-zinc-800 rounded-xl p-4 border border-zinc-700">
               <p className="text-white font-medium">{activity.title}</p>
               <p className="text-zinc-400 text-sm mt-1">
-                {activity.activity_date} | {activity.location}
+                {activity.event_date} | {activity.location}
               </p>
               <div className="mt-3">
                 <button
@@ -332,14 +332,14 @@ function WelcomePage() {
                   className="app-btn-primary-social px-4 py-2 text-sm font-medium"
                   onClick={handleBrowseActivities}
                 >
-                  Browse Activities
+                  Browse Events
                 </button>
                 <button
                   type="button"
                   className="px-4 py-2 border border-zinc-600 hover:border-zinc-400 text-white rounded-lg text-sm font-medium"
                   onClick={handleCreateActivity}
                 >
-                  Create Activity
+                  Create Event
                 </button>
               </div>
             </div>
@@ -352,7 +352,7 @@ function WelcomePage() {
             <div className="bg-zinc-800 rounded-xl p-4 border border-zinc-700">
               <p className="text-white font-medium">{plan.title}</p>
               <p className="text-zinc-400 text-sm mt-1">
-                {plan.plan_date} | {plan.meetup_area}
+                {plan.event_date} | {plan.location}
               </p>
               <div className="mt-3">
                 <button
@@ -375,14 +375,14 @@ function WelcomePage() {
                   className="app-btn-primary-social px-4 py-2 text-sm font-medium"
                   onClick={handleBrowsePlans}
                 >
-                  Browse Plans
+                  Browse Events
                 </button>
                 <button
                   type="button"
                   className="px-4 py-2 border border-zinc-600 hover:border-zinc-400 text-white rounded-lg text-sm font-medium"
                   onClick={handleCreatePlan}
                 >
-                  Create Plan
+                  Create Event
                 </button>
               </div>
             </div>

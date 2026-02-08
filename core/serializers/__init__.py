@@ -7,8 +7,7 @@ Serializers are organized into domain-specific modules:
 - auth.py: Authentication serializers
 - profiles.py: Profile, vehicle, location, and prompt serializers
 - matches.py: Person match, swipe, and direct message serializers
-- plans.py: Plan and plan message serializers
-- activities.py: Activity, swipe, match, and message serializers
+- events.py: Event, attendee, swipe, and message serializers
 - friends.py: Friend request, friendship, and friend message serializers
 - analytics.py: Analytics event serializers
 
@@ -52,24 +51,17 @@ from .matches import (
     UserReportCreateSerializer,
 )
 
-# Plan serializers
-from .plans import (
-    PlanAttendeeSerializer,
-    PlanMessageSerializer,
-    PlanSerializer,
-    PlanCreateSerializer,
-    PlanUpdateSerializer,
-    PlanMessageCreateSerializer,
-)
-
-# Activity serializers
-from .activities import (
-    ActivityCreatedBySerializer,
-    ActivitySerializer,
-    ActivityCreateSerializer,
-    ActivitySwipeSerializer,
-    ActivityMatchSerializer,
-    ActivityMessageSerializer,
+# Event serializers
+from .events import (
+    EventCreatedBySerializer,
+    EventAttendeeSerializer,
+    EventMessageSerializer,
+    EventSerializer,
+    EventCreateSerializer,
+    EventUpdateSerializer,
+    EventSwipeSerializer,
+    EventSwipeCreateSerializer,
+    EventMessageCreateSerializer,
 )
 
 # Friend serializers
@@ -114,20 +106,16 @@ __all__ = [
     'DirectMessageCreateSerializer',
     'UserReportSerializer',
     'UserReportCreateSerializer',
-    # Plan
-    'PlanAttendeeSerializer',
-    'PlanMessageSerializer',
-    'PlanSerializer',
-    'PlanCreateSerializer',
-    'PlanUpdateSerializer',
-    'PlanMessageCreateSerializer',
-    # Activity
-    'ActivityCreatedBySerializer',
-    'ActivitySerializer',
-    'ActivityCreateSerializer',
-    'ActivitySwipeSerializer',
-    'ActivityMatchSerializer',
-    'ActivityMessageSerializer',
+    # Event
+    'EventCreatedBySerializer',
+    'EventAttendeeSerializer',
+    'EventMessageSerializer',
+    'EventSerializer',
+    'EventCreateSerializer',
+    'EventUpdateSerializer',
+    'EventSwipeSerializer',
+    'EventSwipeCreateSerializer',
+    'EventMessageCreateSerializer',
     # Friend
     'FriendRequestSerializer',
     'FriendshipSerializer',

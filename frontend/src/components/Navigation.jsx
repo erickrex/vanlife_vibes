@@ -20,7 +20,7 @@ import { useAuth } from '../contexts/AuthContext';
 function Navigation() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
   
   const handleLogout = async () => {
     await logout();
@@ -44,6 +44,12 @@ function Navigation() {
         <div className="flex items-center gap-1">
           {isAuthenticated ? (
             <>
+              {/* Username display */}
+              {user?.username && (
+                <span className="text-sm text-zinc-300 mr-1">
+                  {user.username}
+                </span>
+              )}
               {/* Profile link - accessible from all tabs */}
               <NavLink to="/profile" active={isActive('/profile')}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

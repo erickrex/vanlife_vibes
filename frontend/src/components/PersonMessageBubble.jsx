@@ -1,21 +1,10 @@
 import React from 'react';
 import { formatTime } from '../utils/formatters';
 
-/**
- * PersonMessageBubble - Displays a single message in the chat
- * 
- * Features:
- * - Different styles for current user vs other user
- * - Timestamp display
- * - Support for mini-card message type
- * 
- * **Validates: Requirements 10.1, 10.3**
- */
-function PersonMessageBubble({ message, isCurrentUser }) {
+function PersonMessageBubble({ message, isCurrentUser, mode = 'friends' }) {
   const messageType = message.message_type || 'text';
   const miniCardData = message.mini_card_data;
 
-  // Format meet preference label
   const getMeetPreferenceLabel = (preference) => {
     const labels = {
       actively_looking: '🟢 Actively looking to meet',
@@ -26,7 +15,6 @@ function PersonMessageBubble({ message, isCurrentUser }) {
     return labels[preference] || preference;
   };
 
-  // Render mini-card content
   const renderMiniCard = () => {
     if (!miniCardData) return null;
 
@@ -34,19 +22,19 @@ function PersonMessageBubble({ message, isCurrentUser }) {
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <span>📍</span>
-          <span className="font-semibold text-sm">Location Card</span>
+          <span className="font-semibold text-sm text-white">Location Card</span>
         </div>
         <div className="space-y-1.5 text-sm">
           {miniCardData.current_location && (
             <div className="flex justify-between gap-2">
               <span className="text-zinc-400">Currently in:</span>
-              <span className="text-white">{miniCardData.current_location}</span>
+              <span className="text-zinc-100">{miniCardData.current_location}</span>
             </div>
           )}
           {miniCardData.in_town_until && (
             <div className="flex justify-between gap-2">
               <span className="text-zinc-400">Here until:</span>
-              <span className="text-white">
+              <span className="text-zinc-100">
                 {new Date(miniCardData.in_town_until).toLocaleDateString('en-US', {
                   month: 'short',
                   day: 'numeric',
@@ -55,10 +43,8 @@ function PersonMessageBubble({ message, isCurrentUser }) {
             </div>
           )}
           {miniCardData.meet_preference && (
-            <div className="pt-1 border-t border-zinc-600">
-              <span className="text-white">
-                {getMeetPreferenceLabel(miniCardData.meet_preference)}
-              </span>
+            <div className="pt-2 border-t border-zinc-600">
+              <span className="text-zinc-200">{getMeetPreferenceLabel(miniCardData.meet_preference)}</span>
             </div>
           )}
         </div>
@@ -66,15 +52,20 @@ function PersonMessageBubble({ message, isCurrentUser }) {
     );
   };
 
+  const currentUserBubbleClass =
+    mode === 'dating'
+      ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white'
+      : 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white';
+
   return (
     <div className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'} mb-2`}>
-      <div 
-        className={`max-w-[80%] rounded-2xl px-4 py-2 ${
-          messageType === 'mini_card' 
-            ? 'bg-zinc-700 border border-zinc-600' 
-            : isCurrentUser 
-              ? 'bg-blue-600 text-white' 
-              : 'bg-zinc-800 text-white'
+      <div
+        className={`max-w-[82%] rounded-2xl px-4 py-2.5 border ${
+          messageType === 'mini_card'
+            ? 'bg-zinc-800/95 border-zinc-600'
+            : isCurrentUser
+              ? `${currentUserBubbleClass} border-transparent`
+              : 'bg-zinc-800/85 text-zinc-100 border-zinc-700'
         }`}
       >
         {messageType === 'mini_card' ? (
@@ -82,10 +73,12 @@ function PersonMessageBubble({ message, isCurrentUser }) {
         ) : (
           <div className="text-sm whitespace-pre-wrap break-words">{message.content}</div>
         )}
-        <div className={`flex items-center gap-1 mt-1 ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
-          <span className="text-xs text-zinc-400">{formatTime(message.created_at)}</span>
+        <div className={`flex items-center gap-1 mt-1.5 ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
+          <span className="text-xs text-zinc-300/90">{formatTime(message.created_at)}</span>
           {isCurrentUser && message.is_read && (
-            <span className="text-xs text-blue-300" title="Read">✓✓</span>
+            <span className={`text-xs ${mode === 'dating' ? 'text-rose-100' : 'text-cyan-100'}`} title="Read">
+              ✓✓
+            </span>
           )}
         </div>
       </div>

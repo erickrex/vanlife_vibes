@@ -22,7 +22,7 @@ function TabNavigation({ activeTab }) {
     
     const path = location.pathname;
     if (path.startsWith('/dating')) return 'dating';
-    if (path.startsWith('/activities')) return 'activities';
+    if (path.startsWith('/activities') || path.startsWith('/events')) return 'activities';
     if (path.startsWith('/feed') || path === '/') return 'feed';
     return 'feed';
   };
@@ -44,8 +44,8 @@ function TabNavigation({ activeTab }) {
     },
     {
       id: 'activities',
-      label: 'Activities',
-      path: '/activities',
+      label: 'Events',
+      path: '/events',
       icon: CalendarIcon,
     },
   ];

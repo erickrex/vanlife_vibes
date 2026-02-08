@@ -1,7 +1,7 @@
 import React from 'react';
 import PersonMatchCard from './PersonMatchCard';
 
-function PersonMatchList({ matches, selectedMatchId, onSelectMatch, onRefresh }) {
+function PersonMatchList({ matches, selectedMatchId, onSelectMatch, onRefresh, currentProfileId }) {
   if (matches.length === 0) {
     return (
       <div className="app-card p-6">
@@ -45,6 +45,7 @@ function PersonMatchList({ matches, selectedMatchId, onSelectMatch, onRefresh })
             key={match.id}
             match={match}
             isSelected={selectedMatchId === match.id}
+            currentProfileId={currentProfileId}
             onSelect={() => onSelectMatch(match)}
           />
         ))}

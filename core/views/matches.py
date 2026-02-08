@@ -16,6 +16,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 
 from core.models import (
     Profile,
@@ -67,6 +69,9 @@ class PersonMatchViewSet(MessageMixin, viewsets.GenericViewSet):
         return PersonMatch.objects.filter(
             Q(user1=user_profile) | Q(user2=user_profile),
             is_active=True
+        ).prefetch_related(
+            'messages',
+            'messages__sender',
         ).order_by('-matched_at')
     
     def _get_user_profile(self, request):
@@ -120,6 +125,32 @@ class PersonMatchViewSet(MessageMixin, viewsets.GenericViewSet):
         Requirement 1.5: Messages ordered by created_at ascending
         """
         return DirectMessage.objects.filter(match=parent).order_by('created_at')
+
+    def _list_messages(self, parent):
+        """
+        List messages and mark incoming unread messages as read for the
+        current user so unread counters stay accurate.
+        """
+        try:
+            profile = self.request.user.profile
+        except Exception:
+            profile = None
+
+        if profile:
+            DirectMessage.objects.filter(
+                match=parent,
+                is_read=False,
+            ).exclude(
+                sender=profile
+            ).update(is_read=True)
+
+        messages = self.get_message_queryset(parent)
+        serializer = self.message_serializer_class(messages, many=True)
+
+        return Response({
+            'status': 'success',
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
     
     def check_message_access(self, parent, profile):
         """
@@ -160,12 +191,59 @@ class PersonMatchViewSet(MessageMixin, viewsets.GenericViewSet):
         Returns:
             The created DirectMessage instance
         """
-        return DirectMessage.objects.create(
+        message = DirectMessage.objects.create(
             match=parent,
             sender=profile,
             content=validated_data['content'],
             message_type=validated_data.get('message_type', 'text'),
             mini_card_data=validated_data.get('mini_card_data')
+        )
+        self._broadcast_message_created(message)
+        return message
+
+    def _broadcast_match_list_update(self, match):
+        """Notify both users to refresh match list metadata."""
+        channel_layer = get_channel_layer()
+        if not channel_layer:
+            return
+
+        for profile_id in (match.user1_id, match.user2_id):
+            async_to_sync(channel_layer.group_send)(
+                f"user_{profile_id}",
+                {'type': 'match.list.update'}
+            )
+
+    def _broadcast_message_created(self, message):
+        """
+        Push a newly created message to the chat room and notify match lists.
+        """
+        channel_layer = get_channel_layer()
+        if not channel_layer:
+            return
+
+        message_payload = DirectMessageSerializer(message).data
+        match = message.match
+        match_id = str(match.id)
+
+        async_to_sync(channel_layer.group_send)(
+            f"match_{match_id}",
+            {
+                'type': 'chat.message',
+                'match_id': match_id,
+                'message': message_payload,
+            }
+        )
+
+        self._broadcast_match_list_update(match)
+
+        recipient_id = str(match.user2_id if message.sender_id == match.user1_id else match.user1_id)
+        async_to_sync(channel_layer.group_send)(
+            f"user_{recipient_id}",
+            {
+                'type': 'notification.new.message',
+                'match_id': match_id,
+                'message_id': str(message.id),
+            }
         )
     
     # -------------------------------------------------------------------------
@@ -257,6 +335,7 @@ class PersonMatchViewSet(MessageMixin, viewsets.GenericViewSet):
         # Deactivate the match
         match.is_active = False
         match.save()
+        self._broadcast_match_list_update(match)
         
         return Response({
             'status': 'success',
@@ -349,6 +428,7 @@ class PersonMatchViewSet(MessageMixin, viewsets.GenericViewSet):
             message_type='mini_card',
             mini_card_data=validated_mini_card
         )
+        self._broadcast_message_created(message)
         
         # Return the created message
         response_serializer = DirectMessageSerializer(message)

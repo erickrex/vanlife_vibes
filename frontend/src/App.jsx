@@ -11,16 +11,13 @@ import ProfileEditPage from './pages/ProfileEditPage';
 import NearbyFeedPage from './pages/NearbyFeedPage';
 import DiscoveryPage from './pages/DiscoveryPage';
 import PersonMatchesPage from './pages/PersonMatchesPage';
-import PlansPage from './pages/PlansPage';
-import PlanDetailPage from './pages/PlanDetailPage';
-import CreatePlanPage from './pages/CreatePlanPage';
 import FriendRequestsPage from './pages/FriendRequestsPage';
 import FriendChatPage from './pages/FriendChatPage';
 import DatingPage from './pages/DatingPage';
-import ActivitiesPage from './pages/ActivitiesPage';
-import CreateActivityPage from './pages/CreateActivityPage';
-import ActivityDetailPage from './pages/ActivityDetailPage';
-import ActivityChatPage from './pages/ActivityChatPage';
+import EventsPage from './pages/EventsPage';
+import CreateEventPage from './pages/CreateEventPage';
+import EventDetailPage from './pages/EventDetailPage';
+import EventChatPage from './pages/EventChatPage';
 import OnboardingPage from './pages/OnboardingPage';
 import SignupPage from './pages/SignupPage';
 import WelcomePage from './pages/WelcomePage';
@@ -37,6 +34,7 @@ function getActiveTabFromPath(pathname) {
   if (pathname.startsWith('/discover')) return 'feed';
   if (pathname.startsWith('/dating')) return 'dating';
   if (pathname.startsWith('/activities')) return 'activities';
+  if (pathname.startsWith('/events')) return 'activities';
   return null;
 }
 
@@ -167,32 +165,6 @@ function AppContent() {
             } 
           />
           
-          {/* Plans routes */}
-          <Route 
-            path="/plans" 
-            element={
-              <ProtectedRoute>
-                <PlansPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/plans/create" 
-            element={
-              <ProtectedRoute>
-                <CreatePlanPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/plans/:planId" 
-            element={
-              <ProtectedRoute>
-                <PlanDetailPage />
-              </ProtectedRoute>
-            } 
-          />
-          
           {/* Friend Requests route */}
           <Route 
             path="/friends" 
@@ -213,54 +185,56 @@ function AppContent() {
             } 
           />
           
-          {/* Activities routes */}
+          {/* Events routes (unified Plan/Activity) */}
           <Route 
-            path="/activities" 
+            path="/events" 
             element={
               <ProtectedRoute>
-                <ActivitiesPage />
+                <EventsPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/events/create" 
+            element={
+              <ProtectedRoute>
+                <CreateEventPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/events/:id" 
+            element={
+              <ProtectedRoute>
+                <EventDetailPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/events/:id/chat" 
+            element={
+              <ProtectedRoute>
+                <EventChatPage />
               </ProtectedRoute>
             } 
           />
           
-          {/* Create Activity route */}
+          {/* Legacy URL redirects */}
           <Route 
-            path="/activities/create" 
-            element={
-              <ProtectedRoute>
-                <CreateActivityPage />
-              </ProtectedRoute>
-            } 
+            path="/plans/*" 
+            element={<Navigate to="/events" replace />} 
           />
-          
-          {/* Activity Detail route */}
           <Route 
-            path="/activities/:id" 
-            element={
-              <ProtectedRoute>
-                <ActivityDetailPage />
-              </ProtectedRoute>
-            } 
+            path="/activities/*" 
+            element={<Navigate to="/events" replace />} 
           />
-          
-          {/* Activity Chat route */}
-          <Route 
-            path="/activities/:id/chat" 
-            element={
-              <ProtectedRoute>
-                <ActivityChatPage />
-              </ProtectedRoute>
-            } 
-          />
-          
-          {/* Legacy URL redirects - redirect old group/session URLs to activities */}
           <Route 
             path="/groups/*" 
-            element={<Navigate to="/activities" replace />} 
+            element={<Navigate to="/events" replace />} 
           />
           <Route 
             path="/sessions/*" 
-            element={<Navigate to="/activities" replace />} 
+            element={<Navigate to="/events" replace />} 
           />
         </Routes>
       </main>
