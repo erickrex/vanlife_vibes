@@ -107,7 +107,7 @@ function ActivitySwipeCard({ activities, onSwipe, onMatch, onEmpty }) {
       const response = await activitiesAPI.swipe(activity.id, isLike);
       
       const data = response.data.data || response.data;
-      if (data.is_match) {
+      if (data.match) {
         setMatchedActivity(activity);
         setShowMatch(true);
         if (onMatch) onMatch(activity, data);

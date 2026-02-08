@@ -23,6 +23,7 @@ import ActivityDetailPage from './pages/ActivityDetailPage';
 import ActivityChatPage from './pages/ActivityChatPage';
 import OnboardingPage from './pages/OnboardingPage';
 import SignupPage from './pages/SignupPage';
+import WelcomePage from './pages/WelcomePage';
 
 /**
  * Determines the active tab based on the current route path.
@@ -33,6 +34,7 @@ import SignupPage from './pages/SignupPage';
  */
 function getActiveTabFromPath(pathname) {
   if (pathname.startsWith('/feed')) return 'feed';
+  if (pathname.startsWith('/discover')) return 'feed';
   if (pathname.startsWith('/dating')) return 'dating';
   if (pathname.startsWith('/activities')) return 'activities';
   return null;
@@ -42,7 +44,7 @@ function getActiveTabFromPath(pathname) {
  * Routes that should show the TabNavigation.
  * These are the main tab routes where the bottom navigation should persist.
  */
-const TAB_ROUTES = ['/feed', '/dating', '/activities'];
+const TAB_ROUTES = ['/feed', '/discover', '/dating', '/activities'];
 
 /**
  * Checks if the current path should show the TabNavigation.
@@ -105,6 +107,14 @@ function AppContent() {
                 <OnboardingPage />
               </ProtectedRoute>
             } 
+          />
+          <Route
+            path="/welcome"
+            element={
+              <ProtectedRoute>
+                <WelcomePage />
+              </ProtectedRoute>
+            }
           />
           
           {/* Profile routes */}

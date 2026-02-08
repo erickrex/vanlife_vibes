@@ -1,13 +1,17 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { discoveryAPI } from '../services/api';
 import DiscoverySwipeCard from '../components/DiscoverySwipeCard';
 import DiscoveryFilters from '../components/DiscoveryFilters';
+import { useAuth } from '../contexts/AuthContext';
 
 function DiscoveryPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { profile: currentProfile } = useAuth();
+  const initialMode = searchParams.get('mode') === 'friends' ? 'friends' : 'dating';
   
-  const [mode, setMode] = useState('dating');
+  const [mode, setMode] = useState(initialMode);
   const [viewMode, setViewMode] = useState('swipe');
   const [profiles, setProfiles] = useState([]);
   const [filters, setFilters] = useState({});
@@ -69,7 +73,7 @@ function DiscoveryPage() {
   };
 
   const handleNavigateToChat = (matchId) => {
-    navigate(`/matches/${matchId}/chat`);
+    navigate('/matches', { state: { matchId } });
   };
 
   const handleEmpty = () => {
@@ -159,20 +163,33 @@ function DiscoveryPage() {
                 : 'Connect with nomads on the road'}
             </p>
           </div>
-          
-          {profiles.length > 0 && (
-            <button 
-              className={`w-10 h-10 flex items-center justify-center rounded-lg border transition-colors ${
-                mode === 'dating' 
-                  ? 'border-rose-500/30 text-rose-400 hover:bg-rose-500/10' 
-                  : 'border-blue-500/30 text-blue-400 hover:bg-blue-500/10'
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className={`px-3 h-10 flex items-center justify-center rounded-lg border text-sm font-semibold transition-colors ${
+                mode === 'dating'
+                  ? 'border-rose-500/30 text-rose-300 hover:bg-rose-500/10'
+                  : 'border-blue-500/30 text-blue-300 hover:bg-blue-500/10'
               }`}
-              onClick={handleViewModeToggle}
-              aria-label={`Switch to ${viewMode === 'swipe' ? 'grid' : 'swipe'} view`}
+              onClick={() => navigate('/matches')}
             >
-              {viewMode === 'swipe' ? '⊞' : '🃏'}
+              Matches
             </button>
-          )}
+            {profiles.length > 0 && (
+              <button
+                className={`w-10 h-10 flex items-center justify-center rounded-lg border transition-colors ${
+                  mode === 'dating'
+                    ? 'border-rose-500/30 text-rose-400 hover:bg-rose-500/10'
+                    : 'border-blue-500/30 text-blue-400 hover:bg-blue-500/10'
+                }`}
+                onClick={handleViewModeToggle}
+                aria-label={`Switch to ${viewMode === 'swipe' ? 'grid' : 'swipe'} view`}
+              >
+                {viewMode === 'swipe' ? '⊞' : '🃏'}
+              </button>
+            )}
+          </div>
         </header>
 
         {/* Filters */}
@@ -220,6 +237,7 @@ function DiscoveryPage() {
           <DiscoverySwipeCard
             profiles={profiles}
             mode={mode}
+            currentProfile={currentProfile}
             onSwipe={handleSwipe}
             onMatch={handleMatch}
             onEmpty={handleEmpty}

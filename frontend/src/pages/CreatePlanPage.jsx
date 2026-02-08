@@ -1,16 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { plansAPI } from '../services/api';
-
-// Plan type options
-const PLAN_TYPES = [
-  { value: 'coffee_hangout', label: 'Coffee Hangout', emoji: '☕', description: 'Casual coffee meetup' },
-  { value: 'group_activity', label: 'Group Activity', emoji: '🎯', description: 'Sports, games, or group fun' },
-  { value: 'caravan_meetup', label: 'Caravan Meetup', emoji: '🚐', description: 'Van life gathering' },
-  { value: 'local_exploration', label: 'Local Exploration', emoji: '🗺️', description: 'Explore the area together' },
-  { value: 'potluck_dinner', label: 'Potluck Dinner', emoji: '🍲', description: 'Share food and stories' },
-  { value: 'campfire_social', label: 'Campfire Social', emoji: '🔥', description: 'Evening campfire hangout' },
-];
+import { PLAN_TYPE_OPTIONS } from '../utils/plans';
 
 // Time window options
 const TIME_WINDOWS = [
@@ -61,12 +52,12 @@ function CreatePlanPage() {
 
   // Handle plan type selection
   const handlePlanTypeSelect = (type) => {
-    const planType = PLAN_TYPES.find(t => t.value === type);
+    const planType = PLAN_TYPE_OPTIONS.find((item) => item.value === type);
     setFormData(prev => ({
       ...prev,
       plan_type: type,
       // Auto-fill title based on plan type if empty
-      title: prev.title || `${planType.emoji} ${planType.label}`,
+      title: prev.title || `${planType.label}`,
     }));
     setError('');
   };
@@ -163,7 +154,7 @@ function CreatePlanPage() {
           <div>
             <label className="block text-white text-sm font-medium mb-3">What kind of meetup?</label>
             <div className="grid grid-cols-2 gap-3">
-              {PLAN_TYPES.map((type) => (
+              {PLAN_TYPE_OPTIONS.map((type) => (
                 <button
                   key={type.value}
                   type="button"
@@ -174,7 +165,6 @@ function CreatePlanPage() {
                   }`}
                   onClick={() => handlePlanTypeSelect(type.value)}
                 >
-                  <span className="text-2xl block mb-1">{type.emoji}</span>
                   <span className="text-white text-sm font-medium block">{type.label}</span>
                   <span className="text-zinc-500 text-xs">{type.description}</span>
                 </button>

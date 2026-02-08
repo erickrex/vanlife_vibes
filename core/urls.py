@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from core.views import (
     AuthViewSet, ProfileViewSet, VehicleViewSet,
     LocationViewSet, FeedViewSet, DiscoveryViewSet, PersonMatchViewSet,
-    PlanViewSet, ActivityViewSet, FriendViewSet
+    PlanViewSet, ActivityViewSet, FriendViewSet, AnalyticsViewSet
 )
 
 router = DefaultRouter()
@@ -17,6 +17,7 @@ router.register(r'matches', PersonMatchViewSet, basename='matches')
 router.register(r'plans', PlanViewSet, basename='plans')
 router.register(r'activities', ActivityViewSet, basename='activity')
 router.register(r'friends', FriendViewSet, basename='friends')
+router.register(r'analytics', AnalyticsViewSet, basename='analytics')
 
 urlpatterns = [
     path('', include(router.urls)),

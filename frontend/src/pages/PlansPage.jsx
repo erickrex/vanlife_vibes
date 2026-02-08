@@ -1,15 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { plansAPI } from '../services/api';
-
-const PLAN_TYPES = {
-  coffee_hangout: { label: 'Coffee Hangout', emoji: '☕' },
-  group_activity: { label: 'Group Activity', emoji: '🎯' },
-  caravan_meetup: { label: 'Caravan Meetup', emoji: '🚐' },
-  local_exploration: { label: 'Local Exploration', emoji: '🗺️' },
-  potluck_dinner: { label: 'Potluck Dinner', emoji: '🍲' },
-  campfire_social: { label: 'Campfire Social', emoji: '🔥' },
-};
+import { PLAN_TYPES, PLAN_TYPE_OPTIONS, normalizePlans } from '../utils/plans';
 
 const TIME_WINDOWS = {
   morning: { label: 'Morning', time: '6am-12pm' },
@@ -33,13 +25,16 @@ function PlansPage() {
       
       const params = {};
       if (filters.plan_type) params.plan_type = filters.plan_type;
-      if (filters.date) params.plan_date = filters.date;
+      if (filters.date) {
+        params.from_date = filters.date;
+        params.to_date = filters.date;
+      }
       if (filters.area) params.meetup_area = filters.area;
       
       const response = await plansAPI.list(params);
       const data = response.data.data || response.data;
       const planList = Array.isArray(data) ? data : (data.results || []);
-      setPlans(planList);
+      setPlans(normalizePlans(planList));
     } catch (err) {
       setError(err.message || 'Failed to load plans');
     } finally {
@@ -70,7 +65,7 @@ function PlansPage() {
     });
   };
 
-  const getPlanTypeInfo = (type) => PLAN_TYPES[type] || { label: type, emoji: '📅' };
+  const getPlanTypeInfo = (type) => PLAN_TYPES[type] || { label: type };
   const getTimeWindowInfo = (window) => TIME_WINDOWS[window] || { label: window, time: '' };
 
   if (loading && plans.length === 0) {
@@ -132,8 +127,8 @@ function PlansPage() {
                   className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm focus:border-zinc-500"
                 >
                   <option value="">All Types</option>
-                  {Object.entries(PLAN_TYPES).map(([value, { label, emoji }]) => (
-                    <option key={value} value={value}>{emoji} {label}</option>
+                  {PLAN_TYPE_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
                   ))}
                 </select>
               </div>
@@ -216,7 +211,7 @@ function PlansPage() {
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs font-medium">
-                      {typeInfo.emoji} {typeInfo.label}
+                      {typeInfo.label}
                     </span>
                     {isFull && (
                       <span className="px-2 py-1 bg-zinc-800 text-zinc-500 rounded text-xs">

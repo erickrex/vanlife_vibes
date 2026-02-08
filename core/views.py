@@ -13,7 +13,7 @@ from core.services.relevance import RelevanceScorer
 from core.models import (
     UserAccount, Profile, Region, Country, Follow, HobbyTag, Vehicle, VehiclePhoto,
     InTownWindow, City, Prompt, ProfilePrompt, PersonSwipe, PersonMatch, DirectMessage,
-    UserReport, Plan, PlanAttendee, PlanMessage,
+    UserReport, AnalyticsEvent, Plan, PlanAttendee, PlanMessage,
     Activity, ActivitySwipe, ActivityMatch, ActivityMessage,
     FriendRequest, Friendship, FriendMessage
 )
@@ -46,6 +46,8 @@ from core.serializers import (
     ActivityMessageSerializer,
     FriendRequestSerializer,
     FriendshipSerializer,
+    AnalyticsEventCreateSerializer,
+    AnalyticsEventSerializer,
 )
 
 
@@ -175,6 +177,54 @@ class AuthViewSet(viewsets.GenericViewSet):
             'data': serializer.data
         }, status=status.HTTP_200_OK)
 
+
+
+# ============================================================================
+class AnalyticsViewSet(viewsets.GenericViewSet):
+    """
+    ViewSet for lightweight analytics event ingestion.
+
+    Provides endpoint:
+    - POST /api/v1/analytics/events/ - Track an analytics event
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    @action(detail=False, methods=['post'], url_path='events')
+    def events(self, request):
+        """
+        Track an analytics event for the authenticated user.
+
+        Request body:
+        {
+            "event_name": "welcome_viewed",
+            "metadata": { ... optional JSON object ... }
+        }
+        """
+        serializer = AnalyticsEventCreateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({
+                'status': 'error',
+                'message': 'Invalid analytics event payload',
+                'errors': serializer.errors,
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            profile = request.user.profile
+        except Profile.DoesNotExist:
+            profile = None
+
+        analytics_event = AnalyticsEvent.objects.create(
+            user=request.user,
+            profile=profile,
+            event_name=serializer.validated_data['event_name'],
+            metadata=serializer.validated_data.get('metadata', {}),
+        )
+
+        return Response({
+            'status': 'success',
+            'data': AnalyticsEventSerializer(analytics_event).data,
+        }, status=status.HTTP_201_CREATED)
 
 
 # ============================================================================

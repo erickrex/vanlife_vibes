@@ -1166,3 +1166,44 @@ class FriendMessage(models.Model):
 
     def __str__(self):
         return f"Message from {self.sender.user.username} in friendship {self.friendship.id}"
+
+
+class AnalyticsEvent(models.Model):
+    """
+    Lightweight product analytics event captured from authenticated clients.
+
+    Stores a normalized event name plus optional metadata payload so event
+    visibility and filtering can happen directly in Django admin.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        UserAccount,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='analytics_events',
+    )
+    profile = models.ForeignKey(
+        Profile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='analytics_events',
+    )
+    event_name = models.CharField(max_length=80)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'analytics_event'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['event_name', 'created_at']),
+            models.Index(fields=['created_at']),
+            models.Index(fields=['user']),
+            models.Index(fields=['profile']),
+        ]
+
+    def __str__(self):
+        return f"{self.event_name} @ {self.created_at.isoformat()}"

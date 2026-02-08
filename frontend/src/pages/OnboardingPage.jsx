@@ -302,7 +302,7 @@ function OnboardingPage() {
       }
 
       await refreshProfile();
-      navigate(payload.looking_for_dating ? '/dating' : '/feed');
+      navigate('/welcome', { replace: true });
     } catch (err) {
       setError(err.message || 'Failed to complete onboarding');
     } finally {

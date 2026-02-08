@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { discoveryAPI, matchesAPI, profilesAPI } from '../services/api';
 import DiscoverySwipeCard from '../components/DiscoverySwipeCard';
 import DiscoveryFilters from '../components/DiscoveryFilters';
+import { useAuth } from '../contexts/AuthContext';
 
 /**
  * DatingPage Component
@@ -17,6 +18,7 @@ import DiscoveryFilters from '../components/DiscoveryFilters';
  */
 function DatingPage() {
   const navigate = useNavigate();
+  const { profile: currentProfile } = useAuth();
   
   // Dating mode is always 'dating' - no toggle
   const mode = 'dating';
@@ -106,7 +108,7 @@ function DatingPage() {
   };
 
   const handleNavigateToChat = (matchId) => {
-    navigate(`/matches/${matchId}/chat`);
+    navigate('/matches', { state: { matchId } });
   };
 
   const handleEmpty = () => {
@@ -374,6 +376,7 @@ function DatingPage() {
           <DiscoverySwipeCard
             profiles={profiles}
             mode={mode}
+            currentProfile={currentProfile}
             onSwipe={handleSwipe}
             onMatch={handleMatch}
             onEmpty={handleEmpty}

@@ -188,4 +188,13 @@ export const friendsAPI = {
   deleteFriendship: (friendshipId) => api.delete(`/friends/${friendshipId}/`),
 };
 
+// Analytics API
+export const analyticsAPI = {
+  trackEvent: (eventName, metadata = {}) =>
+    api.post('/analytics/events/', {
+      event_name: eventName,
+      metadata,
+    }),
+};
+
 export default api;

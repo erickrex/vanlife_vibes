@@ -1,10 +1,19 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useSwipeable } from 'react-swipeable';
 import { discoveryAPI } from '../services/api';
+import { buildCompatibilityChips } from '../utils/compatibility';
 
 const SWIPE_ANIM_MS = 320;
 
-function DiscoverySwipeCard({ profiles, mode, onSwipe, onMatch, onEmpty, onNavigateToChat }) {
+function DiscoverySwipeCard({
+  profiles,
+  mode,
+  currentProfile,
+  onSwipe,
+  onMatch,
+  onEmpty,
+  onNavigateToChat,
+}) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [swipeDirection, setSwipeDirection] = useState(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -19,7 +28,7 @@ function DiscoverySwipeCard({ profiles, mode, onSwipe, onMatch, onEmpty, onNavig
   const dragStartRef = useRef({ x: 0, y: 0 });
   const isDraggingRef = useRef(false);
 
-  const currentProfile = profiles[currentIndex];
+  const activeProfile = profiles[currentIndex];
   const nextProfile = profiles[currentIndex + 1];
   const getSwipeThreshold = () => {
     const screenWidth = window.innerWidth;
@@ -58,21 +67,21 @@ function DiscoverySwipeCard({ profiles, mode, onSwipe, onMatch, onEmpty, onNavig
   }, [mode, onSwipe, onMatch]);
 
   const handleSwipeComplete = useCallback((direction) => {
-    if (!currentProfile || isProcessing) return;
+    if (!activeProfile || isProcessing) return;
     
     setIsDragging(false);
     setIsAdvancing(true);
     setSwipeDirection(direction);
     setDragOffset({ x: 0, y: 0 });
     const isLike = direction === 'right';
-    handleSwipeAPI(currentProfile, isLike);
+    handleSwipeAPI(activeProfile, isLike);
     
     setTimeout(() => {
       setSwipeDirection(null);
       setCurrentIndex(prev => prev + 1);
       setIsAdvancing(false);
     }, SWIPE_ANIM_MS);
-  }, [currentProfile, isProcessing, handleSwipeAPI]);
+  }, [activeProfile, isProcessing, handleSwipeAPI]);
 
   useEffect(() => {
     if (currentIndex >= profiles.length && profiles.length > 0) {
@@ -187,12 +196,12 @@ function DiscoverySwipeCard({ profiles, mode, onSwipe, onMatch, onEmpty, onNavig
   });
 
   const handlePassClick = () => {
-    if (!currentProfile || isProcessing) return;
+    if (!activeProfile || isProcessing) return;
     handleSwipeComplete('left');
   };
 
   const handleLikeClick = () => {
-    if (!currentProfile || isProcessing) return;
+    if (!activeProfile || isProcessing) return;
     handleSwipeComplete('right');
   };
 
@@ -253,6 +262,7 @@ function DiscoverySwipeCard({ profiles, mode, onSwipe, onMatch, onEmpty, onNavig
 
   const renderProfileCard = (profile, isBackground = false) => {
     if (!profile) return null;
+    const compatibilityChips = buildCompatibilityChips(currentProfile, profile);
     
     return (
       <div className={`relative w-full h-full rounded-2xl overflow-hidden ${
@@ -321,6 +331,26 @@ function DiscoverySwipeCard({ profiles, mode, onSwipe, onMatch, onEmpty, onNavig
               </span>
             )}
           </div>
+
+          {compatibilityChips.length > 0 && (
+            <div className="mb-3">
+              <p className="text-zinc-400 text-xs mb-1">Why this may click</p>
+              <div className="flex flex-wrap gap-2">
+                {compatibilityChips.map((chip) => (
+                  <span
+                    key={chip}
+                    className={`px-2 py-1 rounded-full text-xs ${
+                      mode === 'dating'
+                        ? 'bg-rose-500/20 text-rose-200'
+                        : 'bg-blue-500/20 text-blue-200'
+                    }`}
+                  >
+                    {chip}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
           
           {/* Prompts */}
             {profile.prompts && profile.prompts.length > 0 && (
@@ -349,7 +379,7 @@ function DiscoverySwipeCard({ profiles, mode, onSwipe, onMatch, onEmpty, onNavig
   };
 
   // Empty state
-  if (!currentProfile) {
+  if (!activeProfile) {
     return (
       <div className="px-4 py-12">
         <div className="flex flex-col items-center justify-center text-center">
@@ -382,7 +412,7 @@ function DiscoverySwipeCard({ profiles, mode, onSwipe, onMatch, onEmpty, onNavig
         <div
           {...handlers}
           ref={cardRef}
-          key={currentProfile?.id || currentIndex}
+          key={activeProfile?.id || currentIndex}
           className="absolute inset-0 cursor-grab active:cursor-grabbing"
           style={getCardStyle()}
           onMouseDown={handleMouseDown}
@@ -391,9 +421,9 @@ function DiscoverySwipeCard({ profiles, mode, onSwipe, onMatch, onEmpty, onNavig
           onTouchEnd={handleTouchEnd}
           role="button"
           tabIndex={0}
-          aria-label={`Profile card for ${currentProfile.display_name || 'Anonymous'}`}
+          aria-label={`Profile card for ${activeProfile.display_name || 'Anonymous'}`}
         >
-          {renderProfileCard(currentProfile)}
+          {renderProfileCard(activeProfile)}
           
           {/* Like overlay */}
           <div

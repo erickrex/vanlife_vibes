@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { plansAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { normalizePlanMessages } from '../utils/plans';
 
 // Default placeholder avatar
 const DEFAULT_AVATAR = 'https://via.placeholder.com/150/6c5ce7/ffffff?text=👤';
@@ -42,7 +43,7 @@ function PlanChat({ planId }) {
       const response = await plansAPI.getMessages(planId);
       const data = response.data.data || response.data;
       const messageList = Array.isArray(data) ? data : (data.results || []);
-      setMessages(messageList);
+      setMessages(normalizePlanMessages(messageList));
     } catch (err) {
       setError(err.message || 'Failed to load messages');
     } finally {
@@ -69,7 +70,7 @@ function PlanChat({ planId }) {
       setSending(true);
       const response = await plansAPI.sendMessage(planId, newMessage.trim());
       const sentMessage = response.data.data || response.data;
-      setMessages(prev => [...prev, sentMessage]);
+      setMessages((prev) => [...prev, normalizePlanMessages([sentMessage])[0]]);
       setNewMessage('');
       inputRef.current?.focus();
     } catch (err) {
@@ -116,14 +117,14 @@ function PlanChat({ planId }) {
     let currentGroup = null;
 
     messages.forEach((message) => {
-      const senderId = message.sender?.id || message.sender_id;
+      const senderId = message.sender?.id || message.sender_profile?.id || message.sender_id;
       
       if (currentGroup && currentGroup.senderId === senderId) {
         currentGroup.messages.push(message);
       } else {
         currentGroup = {
           senderId,
-          sender: message.sender,
+          sender: message.sender || message.sender_profile || null,
           messages: [message],
           isCurrentUser: senderId === currentUserId,
         };

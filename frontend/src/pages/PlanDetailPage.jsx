@@ -3,15 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { plansAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import PlanChat from '../components/PlanChat';
-
-const PLAN_TYPES = {
-  coffee_hangout: { label: 'Coffee Hangout', emoji: '☕' },
-  group_activity: { label: 'Group Activity', emoji: '🎯' },
-  caravan_meetup: { label: 'Caravan Meetup', emoji: '🚐' },
-  local_exploration: { label: 'Local Exploration', emoji: '🗺️' },
-  potluck_dinner: { label: 'Potluck Dinner', emoji: '🍲' },
-  campfire_social: { label: 'Campfire Social', emoji: '🔥' },
-};
+import { PLAN_TYPES, normalizePlan } from '../utils/plans';
 
 const TIME_WINDOWS = {
   morning: { label: 'Morning', time: '6am-12pm' },
@@ -43,7 +35,7 @@ function PlanDetailPage() {
       setLoading(true);
       setError('');
       const response = await plansAPI.get(planId);
-      setPlan(response.data.data || response.data);
+      setPlan(normalizePlan(response.data.data || response.data));
     } catch (err) {
       setError(err.message || 'Failed to load plan');
     } finally {
@@ -56,14 +48,17 @@ function PlanDetailPage() {
   const getUserAttendance = () => {
     if (!plan || !user) return null;
     const userProfileId = user.profile_id || user.id;
-    return plan.attendees?.find(a => a.user?.id === userProfileId || a.user_id === userProfileId);
+    return plan.attendees?.find((attendee) => {
+      const attendeeUserId = attendee?.user?.id || attendee?.user_id || attendee?.user;
+      return attendeeUserId === userProfileId;
+    });
   };
 
   const userAttendance = getUserAttendance();
   const isCreator = plan?.created_by?.id === (user?.profile_id || user?.id);
   const isAttending = !!userAttendance;
   const isConfirmed = userAttendance?.status === 'confirmed';
-  const isFull = plan?.status === 'full' || (plan?.attendees?.length >= plan?.max_attendees);
+  const isFull = plan?.status === 'full' || (plan?.attendee_count >= plan?.max_attendees);
 
   const handleJoin = async () => {
     try { setActionLoading(true); await plansAPI.join(planId); await loadPlan(); }
@@ -93,7 +88,7 @@ function PlanDetailPage() {
     weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
   });
 
-  const getPlanTypeInfo = (type) => PLAN_TYPES[type] || { label: type, emoji: '📅' };
+  const getPlanTypeInfo = (type) => PLAN_TYPES[type] || { label: type };
   const getTimeWindowInfo = (window) => TIME_WINDOWS[window] || { label: window, time: '' };
   const getAttendeeStatusInfo = (status) => ATTENDEE_STATUS[status] || { label: status, color: 'text-zinc-400' };
 
@@ -126,7 +121,7 @@ function PlanDetailPage() {
 
   const typeInfo = getPlanTypeInfo(plan.plan_type);
   const timeInfo = getTimeWindowInfo(plan.time_window);
-  const attendeeCount = plan.attendees?.length || 0;
+  const attendeeCount = plan.attendee_count || 0;
 
   return (
     <div className="min-h-screen bg-black pb-20">
@@ -154,7 +149,7 @@ function PlanDetailPage() {
         <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4 mb-4">
           <div className="flex items-center gap-2 mb-3">
             <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs font-medium">
-              {typeInfo.emoji} {typeInfo.label}
+              {typeInfo.label}
             </span>
             {plan.status === 'full' && <span className="px-2 py-1 bg-zinc-800 text-zinc-500 rounded text-xs">Full</span>}
             {plan.status === 'cancelled' && <span className="px-2 py-1 bg-red-500/20 text-red-400 rounded text-xs">Cancelled</span>}
@@ -253,7 +248,10 @@ function PlanDetailPage() {
             <div className="space-y-2">
               {plan.attendees.map((attendee) => {
                 const statusInfo = getAttendeeStatusInfo(attendee.status);
-                const attendeeUser = attendee.user || {};
+                const attendeeUser =
+                  attendee.user && typeof attendee.user === 'object'
+                    ? attendee.user
+                    : {};
                 return (
                   <Link to={`/profile/${attendeeUser.id}`} key={attendee.id}
                     className="flex items-center gap-3 p-3 bg-zinc-800 rounded-lg hover:bg-zinc-700 transition-colors">
