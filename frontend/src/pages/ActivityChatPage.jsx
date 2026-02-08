@@ -461,7 +461,7 @@ function ActivityChatPage() {
           <p className="text-red-400 mb-4 text-center">{error}</p>
           <button
             onClick={loadActivity}
-            className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg transition-colors mb-2"
+            className="app-btn-primary-activity px-4 py-2 mb-2"
           >
             Try Again
           </button>

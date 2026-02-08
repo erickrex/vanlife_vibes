@@ -41,22 +41,6 @@ function getActiveTabFromPath(pathname) {
 }
 
 /**
- * Routes that should show the TabNavigation.
- * These are the main tab routes where the bottom navigation should persist.
- */
-const TAB_ROUTES = ['/feed', '/discover', '/dating', '/activities'];
-
-/**
- * Checks if the current path should show the TabNavigation.
- * 
- * @param {string} pathname - The current route pathname
- * @returns {boolean} Whether to show the tab navigation
- */
-function shouldShowTabNavigation(pathname) {
-  return TAB_ROUTES.some(route => pathname.startsWith(route));
-}
-
-/**
  * AppContent Component
  * 
  * Inner component that handles the main app layout including conditional
@@ -67,7 +51,7 @@ function AppContent() {
   const location = useLocation();
   
   const activeTab = getActiveTabFromPath(location.pathname);
-  const showTabNav = isAuthenticated && shouldShowTabNavigation(location.pathname);
+  const showTabNav = isAuthenticated;
   const hideNavigation = location.pathname.startsWith('/onboarding');
   const needsOnboarding = isAuthenticated && profile && !profile.has_completed_onboarding;
 

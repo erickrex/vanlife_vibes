@@ -123,7 +123,7 @@ function PlanChat({ planId }) {
   }
 
   return (
-    <div className="flex flex-col bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
+    <div className="flex flex-col app-card overflow-hidden">
       {/* Error Message */}
       {error && (
         <div className="flex items-center justify-between px-4 py-2 bg-red-900/50 border-b border-red-800">

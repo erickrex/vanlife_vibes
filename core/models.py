@@ -33,25 +33,6 @@ class Country(models.Model):
         return self.name
 
 
-class Region(models.Model):
-    """Region within a country for location selection in user profiles"""
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    country = models.ForeignKey(
-        Country,
-        on_delete=models.CASCADE,
-        related_name='regions'
-    )
-    name = models.CharField(max_length=100)
-
-    class Meta:
-        db_table = 'region'
-        ordering = ['name']
-        unique_together = ['country', 'name']
-
-    def __str__(self):
-        return f"{self.name}, {self.country.name}"
-
-
 class City(models.Model):
     """City options for location selection."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -301,36 +282,8 @@ class Profile(models.Model):
         choices=LOOKING_FOR_FRIEND_TYPE_CHOICES,
         default='no_preference'
     )
-    # Location timing fields
-    now_in = models.ForeignKey(
-        Region,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='profiles_now'
-    )
-    now_in_updated_at = models.DateTimeField(blank=True, null=True)
-    next_week_in = models.ForeignKey(
-        Region,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='profiles_next_week'
-    )
-    next_week_in_updated_at = models.DateTimeField(blank=True, null=True)
-    next_month_in = models.ForeignKey(
-        Region,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='profiles_next_month'
-    )
-    next_month_in_updated_at = models.DateTimeField(blank=True, null=True)
-    # City-based location fields (simplified US-only location)
-    now_in_city = models.CharField(max_length=100, blank=True, null=True)
-    next_week_in_city = models.CharField(max_length=100, blank=True, null=True)
-    next_month_in_city = models.CharField(max_length=100, blank=True, null=True)
     # Hobbies - ManyToMany through ProfileHobby (defined later)
+    # Note: Location is now managed via InTownWindow model (see in_town_windows relation)
     hobbies = models.ManyToManyField(
         'HobbyTag',
         through='ProfileHobby',
@@ -341,11 +294,6 @@ class Profile(models.Model):
 
     class Meta:
         db_table = 'profile'
-        indexes = [
-            models.Index(fields=['now_in']),
-            models.Index(fields=['next_week_in']),
-            models.Index(fields=['next_month_in']),
-        ]
 
     def __str__(self):
         return f"Profile for {self.user.username}"

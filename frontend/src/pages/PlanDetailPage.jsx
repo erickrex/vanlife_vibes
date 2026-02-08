@@ -107,7 +107,7 @@ function PlanDetailPage() {
       <div className="app-shell pb-20">
         <div className="flex flex-col items-center justify-center py-20 px-4">
           <p className="text-red-400 mb-4">{error}</p>
-          <button onClick={loadPlan} className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg mb-2">
+          <button onClick={loadPlan} className="app-btn-primary-social px-4 py-2 mb-2">
             Try Again
           </button>
           <Link to="/plans" className="text-blue-500 hover:underline">Back to Plans</Link>
@@ -145,7 +145,7 @@ function PlanDetailPage() {
         )}
 
         {/* Plan Info */}
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4 mb-4">
+        <div className="app-card p-4 mb-4">
           <div className="flex items-center gap-2 mb-3">
             <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs font-medium">
               {typeInfo.label}
@@ -201,7 +201,7 @@ function PlanDetailPage() {
           <div className="mt-4 space-y-2">
             {!isAttending && !isFull && plan.status !== 'cancelled' && (
               <button onClick={handleJoin} disabled={actionLoading}
-                className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors disabled:opacity-50">
+                className="app-btn-primary-social w-full py-3 disabled:opacity-50">
                 {actionLoading ? 'Joining...' : '✓ Join Plan'}
               </button>
             )}
@@ -215,11 +215,11 @@ function PlanDetailPage() {
             {isAttending && !isConfirmed && (
               <>
                 <button onClick={handleConfirm} disabled={actionLoading}
-                  className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg transition-colors disabled:opacity-50">
+                  className="app-btn-primary-activity w-full py-3 disabled:opacity-50">
                   {actionLoading ? 'Confirming...' : '✓ Confirm Attendance'}
                 </button>
                 <button onClick={handleLeave} disabled={actionLoading}
-                  className="w-full py-3 border border-zinc-700 hover:border-zinc-500 text-white font-semibold rounded-lg transition-colors disabled:opacity-50">
+                  className="app-btn-secondary w-full py-3 disabled:opacity-50">
                   {actionLoading ? 'Leaving...' : 'Leave Plan'}
                 </button>
               </>
@@ -231,7 +231,7 @@ function PlanDetailPage() {
                   ✓ You're confirmed!
                 </div>
                 <button onClick={handleLeave} disabled={actionLoading}
-                  className="w-full py-3 border border-zinc-700 hover:border-zinc-500 text-white font-semibold rounded-lg transition-colors disabled:opacity-50">
+                  className="app-btn-secondary w-full py-3 disabled:opacity-50">
                   {actionLoading ? 'Leaving...' : 'Leave Plan'}
                 </button>
               </>
@@ -240,7 +240,7 @@ function PlanDetailPage() {
         </div>
 
         {/* Attendees */}
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4 mb-4">
+        <div className="app-card p-4 mb-4">
           <h2 className="text-lg font-semibold text-white mb-4">Attendees ({attendeeCount}/{plan.max_attendees})</h2>
           
           {plan.attendees?.length > 0 ? (
@@ -270,12 +270,12 @@ function PlanDetailPage() {
 
         {/* Chat */}
         {isAttending ? (
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4">
+          <div className="app-card p-4">
             <h2 className="text-lg font-semibold text-white mb-4">💬 Group Chat</h2>
             <PlanChat planId={planId} />
           </div>
         ) : (
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6 text-center">
+          <div className="app-card p-6 text-center">
             <span className="text-2xl block mb-2">🔒</span>
             <p className="text-zinc-500 text-sm">Join this plan to access the group chat</p>
           </div>

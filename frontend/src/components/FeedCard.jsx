@@ -40,7 +40,7 @@ function FeedCard({ profile, onClick }) {
 
   const cardClasses = `
     flex flex-col items-center p-3 
-    bg-zinc-900 rounded-xl border border-zinc-800 
+    app-card 
     hover:border-zinc-600 hover:-translate-y-0.5
     transition-all duration-200 cursor-pointer
   `;

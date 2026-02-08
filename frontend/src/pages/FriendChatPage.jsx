@@ -391,7 +391,7 @@ function FriendChatPage() {
           <p className="text-red-400 mb-4">{error}</p>
           <button
             onClick={loadFriendship}
-            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors mb-2"
+            className="app-btn-primary-social px-4 py-2 mb-2"
           >
             Try Again
           </button>

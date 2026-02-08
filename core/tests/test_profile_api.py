@@ -10,7 +10,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from django.utils import timezone
 from core.models import (
-    UserAccount, Profile, Country, Region, HobbyTag, Vehicle, Follow, Prompt
+    UserAccount, Profile, Country, HobbyTag, Vehicle, Follow, Prompt
 )
 
 
@@ -31,14 +31,6 @@ class ProfileMeAPITestCase(TestCase):
         self.country, _ = Country.objects.get_or_create(
             code='US',
             defaults={'name': 'United States'}
-        )
-        self.region, _ = Region.objects.get_or_create(
-            country=self.country,
-            name='California'
-        )
-        self.region2, _ = Region.objects.get_or_create(
-            country=self.country,
-            name='Oregon'
         )
         
         # Create hobby tags
@@ -166,8 +158,8 @@ class ProfileMeAPITestCase(TestCase):
         self.assertIn('Surfing', hobby_names)
 
 
-class ProfileLocationTimestampTestCase(TestCase):
-    """Test location timestamp updates when location fields change."""
+class ProfileLocationCityTestCase(TestCase):
+    """Test location city fields create/update InTownWindow records."""
 
     def setUp(self):
         self.client = APIClient()
@@ -179,110 +171,124 @@ class ProfileLocationTimestampTestCase(TestCase):
         self.client.force_authenticate(user=self.user)
         
         # Create location data (use get_or_create since data migration may have seeded them)
+        from core.models import City, InTownWindow
         self.country, _ = Country.objects.get_or_create(
             code='US',
             defaults={'name': 'United States'}
         )
-        self.region1, _ = Region.objects.get_or_create(
+        # Create cities for testing
+        self.city1, _ = City.objects.get_or_create(
+            name='Los Angeles',
+            state_code='CA',
             country=self.country,
-            name='California'
+            defaults={'display_name': 'Los Angeles, CA'}
         )
-        self.region2, _ = Region.objects.get_or_create(
+        self.city2, _ = City.objects.get_or_create(
+            name='San Francisco',
+            state_code='CA',
             country=self.country,
-            name='Oregon'
+            defaults={'display_name': 'San Francisco, CA'}
         )
 
-    def test_update_now_in_sets_timestamp(self):
-        """Test updating now_in sets now_in_updated_at timestamp"""
-        # Get initial profile state
-        profile = Profile.objects.get(user=self.user)
-        self.assertIsNone(profile.now_in_updated_at)
+    def test_update_now_in_city_creates_window(self):
+        """Test updating now_in_city creates an InTownWindow record"""
+        from core.models import InTownWindow
         
-        # Update now_in
-        data = {'now_in_region_id': str(self.region1.id)}
+        profile = Profile.objects.get(user=self.user)
+        self.assertEqual(profile.in_town_windows.count(), 0)
+        
+        # Update now_in_city
+        data = {'now_in_city': 'Los Angeles, CA'}
         response = self.client.patch('/api/v1/profiles/me/', data, format='json')
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
-        # Verify timestamp was set
+        # Verify InTownWindow was created
         profile.refresh_from_db()
-        self.assertIsNotNone(profile.now_in_updated_at)
-        self.assertEqual(profile.now_in, self.region1)
+        self.assertEqual(profile.in_town_windows.count(), 1)
         
-        # Verify response includes location data
-        now_in_data = response.data['data']['now_in']
-        self.assertIsNotNone(now_in_data)
-        self.assertEqual(now_in_data['region']['name'], 'California')
-        self.assertEqual(now_in_data['country']['name'], 'United States')
+        # Verify response includes derived location data
+        self.assertEqual(response.data['data']['now_in_city'], 'Los Angeles, CA')
 
-    def test_update_next_week_in_sets_timestamp(self):
-        """Test updating next_week_in sets next_week_in_updated_at timestamp"""
-        profile = Profile.objects.get(user=self.user)
-        self.assertIsNone(profile.next_week_in_updated_at)
+    def test_update_next_week_in_city_creates_window(self):
+        """Test updating next_week_in_city creates an InTownWindow record"""
+        from core.models import InTownWindow
         
-        data = {'next_week_in_region_id': str(self.region1.id)}
+        profile = Profile.objects.get(user=self.user)
+        
+        data = {'next_week_in_city': 'San Francisco, CA'}
         response = self.client.patch('/api/v1/profiles/me/', data, format='json')
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
+        # Verify InTownWindow was created
         profile.refresh_from_db()
-        self.assertIsNotNone(profile.next_week_in_updated_at)
-        self.assertEqual(profile.next_week_in, self.region1)
-
-    def test_update_next_month_in_sets_timestamp(self):
-        """Test updating next_month_in sets next_month_in_updated_at timestamp"""
-        profile = Profile.objects.get(user=self.user)
-        self.assertIsNone(profile.next_month_in_updated_at)
+        self.assertEqual(profile.in_town_windows.count(), 1)
         
-        data = {'next_month_in_region_id': str(self.region1.id)}
+        # Verify response includes derived location data
+        self.assertEqual(response.data['data']['next_week_in_city'], 'San Francisco, CA')
+
+    def test_update_next_month_in_city_creates_window(self):
+        """Test updating next_month_in_city creates an InTownWindow record"""
+        from core.models import InTownWindow
+        
+        profile = Profile.objects.get(user=self.user)
+        
+        data = {'next_month_in_city': 'Los Angeles, CA'}
         response = self.client.patch('/api/v1/profiles/me/', data, format='json')
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
+        # Verify InTownWindow was created
         profile.refresh_from_db()
-        self.assertIsNotNone(profile.next_month_in_updated_at)
-        self.assertEqual(profile.next_month_in, self.region1)
+        self.assertEqual(profile.in_town_windows.count(), 1)
+        
+        # Verify response includes derived location data
+        self.assertEqual(response.data['data']['next_month_in_city'], 'Los Angeles, CA')
 
-    def test_changing_location_updates_timestamp(self):
-        """Test changing location to different region updates timestamp"""
+    def test_changing_city_updates_window(self):
+        """Test changing city updates the existing InTownWindow"""
+        from core.models import InTownWindow
+        
         # Set initial location
-        data = {'now_in_region_id': str(self.region1.id)}
+        data = {'now_in_city': 'Los Angeles, CA'}
         self.client.patch('/api/v1/profiles/me/', data, format='json')
         
         profile = Profile.objects.get(user=self.user)
-        initial_timestamp = profile.now_in_updated_at
+        self.assertEqual(profile.in_town_windows.count(), 1)
         
-        # Wait a moment and change location
-        import time
-        time.sleep(0.01)  # Small delay to ensure timestamp difference
-        
-        data = {'now_in_region_id': str(self.region2.id)}
+        # Change location
+        data = {'now_in_city': 'San Francisco, CA'}
         response = self.client.patch('/api/v1/profiles/me/', data, format='json')
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
+        # Verify still only one window (updated, not created new)
         profile.refresh_from_db()
-        self.assertEqual(profile.now_in, self.region2)
-        self.assertGreater(profile.now_in_updated_at, initial_timestamp)
+        self.assertEqual(profile.in_town_windows.count(), 1)
+        self.assertEqual(response.data['data']['now_in_city'], 'San Francisco, CA')
 
-    def test_same_location_does_not_update_timestamp(self):
-        """Test setting same location does not update timestamp"""
+    def test_clearing_city_deletes_window(self):
+        """Test clearing city field deletes the InTownWindow"""
+        from core.models import InTownWindow
+        
         # Set initial location
-        data = {'now_in_region_id': str(self.region1.id)}
+        data = {'now_in_city': 'Los Angeles, CA'}
         self.client.patch('/api/v1/profiles/me/', data, format='json')
         
         profile = Profile.objects.get(user=self.user)
-        initial_timestamp = profile.now_in_updated_at
+        self.assertEqual(profile.in_town_windows.count(), 1)
         
-        # Set same location again
-        data = {'now_in_region_id': str(self.region1.id)}
+        # Clear location
+        data = {'now_in_city': ''}
         response = self.client.patch('/api/v1/profiles/me/', data, format='json')
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
+        # Verify window was deleted
         profile.refresh_from_db()
-        # Timestamp should remain the same
-        self.assertEqual(profile.now_in_updated_at, initial_timestamp)
+        self.assertEqual(profile.in_town_windows.count(), 0)
+        self.assertIsNone(response.data['data']['now_in_city'])
 
 
 class ProfileValidationTestCase(TestCase):
@@ -321,14 +327,13 @@ class ProfileValidationTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('travel_status', response.data['errors'])
 
-    def test_invalid_region_id(self):
-        """Test invalid region ID is rejected"""
-        import uuid
-        data = {'now_in_region_id': str(uuid.uuid4())}
+    def test_invalid_city_name(self):
+        """Test invalid city name is rejected"""
+        data = {'now_in_city': 'Nonexistent City, XX'}
         response = self.client.patch('/api/v1/profiles/me/', data, format='json')
         
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('now_in_region_id', response.data['errors'])
+        self.assertIn('now_in_city', response.data['errors'])
 
 
 class ProfileVehicleVisibilityTestCase(TestCase):
@@ -1208,7 +1213,7 @@ class NearbyFeedAPITestCase(TestCase):
     Test GET /feed/nearby/ endpoint.
     
     Tests the FeedViewSet which provides:
-    - GET /feed/nearby/ - Get nearby users based on current user's "Now In" location
+    - GET /feed/nearby/ - Get nearby users based on current user's InTownWindow location
     
     The feed should:
     - Return profiles grouped by timing category (here_now, here_next_week, here_next_month)
@@ -1216,13 +1221,33 @@ class NearbyFeedAPITestCase(TestCase):
     """
 
     def setUp(self):
+        from core.models import InTownWindow, City
+        from datetime import timedelta
+        
         self.client = APIClient()
         
         # Create location data (use get_or_create since data migration may have seeded them)
         self.country, _ = Country.objects.get_or_create(code='US', defaults={'name': 'United States'})
-        self.region_ca, _ = Region.objects.get_or_create(country=self.country, name='California')
-        self.region_or, _ = Region.objects.get_or_create(country=self.country, name='Oregon')
-        self.region_wa, _ = Region.objects.get_or_create(country=self.country, name='Washington')
+        
+        # Create cities for testing
+        self.city_la, _ = City.objects.get_or_create(
+            name='Los Angeles',
+            state_code='CA',
+            country=self.country,
+            defaults={'display_name': 'Los Angeles, CA'}
+        )
+        self.city_sf, _ = City.objects.get_or_create(
+            name='San Francisco',
+            state_code='CA',
+            country=self.country,
+            defaults={'display_name': 'San Francisco, CA'}
+        )
+        self.city_portland, _ = City.objects.get_or_create(
+            name='Portland',
+            state_code='OR',
+            country=self.country,
+            defaults={'display_name': 'Portland, OR'}
+        )
         
         # Create main user (profile is auto-created via signal)
         self.user = UserAccount.objects.create_user(
@@ -1232,8 +1257,16 @@ class NearbyFeedAPITestCase(TestCase):
         )
         self.profile = Profile.objects.get(user=self.user)
         self.profile.display_name = 'Main User'
-        self.profile.now_in = self.region_ca
         self.profile.save()
+        
+        # Create InTownWindow for main user (in Los Angeles now)
+        self.today = timezone.now().date()
+        InTownWindow.objects.create(
+            profile=self.profile,
+            city_area='Los Angeles, CA',
+            start_date=self.today,
+            end_date=self.today + timedelta(days=6)
+        )
         
         # Refresh user from database to ensure profile relationship is up to date
         self.user.refresh_from_db()
@@ -1247,11 +1280,12 @@ class NearbyFeedAPITestCase(TestCase):
         
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_nearby_feed_returns_empty_when_no_now_in(self):
-        """Test GET /feed/nearby/ returns empty lists when user has no now_in set"""
-        # Remove now_in from user's profile
-        self.profile.now_in = None
-        self.profile.save()
+    def test_nearby_feed_returns_empty_when_no_location(self):
+        """Test GET /feed/nearby/ returns empty lists when user has no InTownWindow"""
+        from core.models import InTownWindow
+        
+        # Remove InTownWindow from user's profile
+        InTownWindow.objects.filter(profile=self.profile).delete()
         
         response = self.client.get('/api/v1/feed/nearby/')
         
@@ -1275,7 +1309,6 @@ class NearbyFeedAPITestCase(TestCase):
 
     def test_nearby_feed_excludes_current_user(self):
         """Test GET /feed/nearby/ excludes the current user from results"""
-        # User's now_in is California, so they should not appear in their own feed
         response = self.client.get('/api/v1/feed/nearby/')
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -1289,9 +1322,12 @@ class NearbyFeedAPITestCase(TestCase):
         user_ids = [p['id'] for p in all_profiles]
         self.assertNotIn(str(self.profile.id), user_ids)
 
-    def test_nearby_feed_includes_users_with_matching_now_in(self):
-        """Test GET /feed/nearby/ includes users whose now_in matches"""
-        # Create another user in California (same as main user's now_in)
+    def test_nearby_feed_includes_users_with_matching_location_now(self):
+        """Test GET /feed/nearby/ includes users with InTownWindow in same city now"""
+        from core.models import InTownWindow
+        from datetime import timedelta
+        
+        # Create another user in Los Angeles (same as main user)
         other_user = UserAccount.objects.create_user(
             username='otheruser',
             email='other@example.com',
@@ -1299,8 +1335,15 @@ class NearbyFeedAPITestCase(TestCase):
         )
         other_profile = Profile.objects.get(user=other_user)
         other_profile.display_name = 'Other User'
-        other_profile.now_in = self.region_ca  # Same region as main user
         other_profile.save()
+        
+        # Create InTownWindow for other user in same city
+        InTownWindow.objects.create(
+            profile=other_profile,
+            city_area='Los Angeles, CA',
+            start_date=self.today,
+            end_date=self.today + timedelta(days=6)
+        )
         
         response = self.client.get('/api/v1/feed/nearby/')
         
@@ -1315,9 +1358,12 @@ class NearbyFeedAPITestCase(TestCase):
             if profile['id'] == str(other_profile.id):
                 self.assertEqual(profile['timing_label'], 'Here Now')
 
-    def test_nearby_feed_includes_users_with_matching_next_week_in(self):
-        """Test GET /feed/nearby/ includes users whose next_week_in matches"""
-        # Create user whose next_week_in is California
+    def test_nearby_feed_includes_users_with_matching_location_next_week(self):
+        """Test GET /feed/nearby/ includes users with InTownWindow starting next week"""
+        from core.models import InTownWindow
+        from datetime import timedelta
+        
+        # Create user with InTownWindow starting next week in Los Angeles
         other_user = UserAccount.objects.create_user(
             username='nextweekuser',
             email='nextweek@example.com',
@@ -1325,9 +1371,15 @@ class NearbyFeedAPITestCase(TestCase):
         )
         other_profile = Profile.objects.get(user=other_user)
         other_profile.display_name = 'Next Week User'
-        other_profile.now_in = self.region_or  # Different region
-        other_profile.next_week_in = self.region_ca  # Same as main user's now_in
         other_profile.save()
+        
+        # Create InTownWindow starting in 7 days
+        InTownWindow.objects.create(
+            profile=other_profile,
+            city_area='Los Angeles, CA',
+            start_date=self.today + timedelta(days=7),
+            end_date=self.today + timedelta(days=13)
+        )
         
         response = self.client.get('/api/v1/feed/nearby/')
         
@@ -1342,9 +1394,12 @@ class NearbyFeedAPITestCase(TestCase):
             if profile['id'] == str(other_profile.id):
                 self.assertEqual(profile['timing_label'], 'Here Next Week')
 
-    def test_nearby_feed_includes_users_with_matching_next_month_in(self):
-        """Test GET /feed/nearby/ includes users whose next_month_in matches"""
-        # Create user whose next_month_in is California
+    def test_nearby_feed_includes_users_with_matching_location_next_month(self):
+        """Test GET /feed/nearby/ includes users with InTownWindow starting next month"""
+        from core.models import InTownWindow
+        from datetime import timedelta
+        
+        # Create user with InTownWindow starting next month in Los Angeles
         other_user = UserAccount.objects.create_user(
             username='nextmonthuser',
             email='nextmonth@example.com',
@@ -1352,9 +1407,15 @@ class NearbyFeedAPITestCase(TestCase):
         )
         other_profile = Profile.objects.get(user=other_user)
         other_profile.display_name = 'Next Month User'
-        other_profile.now_in = self.region_or  # Different region
-        other_profile.next_month_in = self.region_ca  # Same as main user's now_in
         other_profile.save()
+        
+        # Create InTownWindow starting in 14 days
+        InTownWindow.objects.create(
+            profile=other_profile,
+            city_area='Los Angeles, CA',
+            start_date=self.today + timedelta(days=14),
+            end_date=self.today + timedelta(days=20)
+        )
         
         response = self.client.get('/api/v1/feed/nearby/')
         
@@ -1369,18 +1430,28 @@ class NearbyFeedAPITestCase(TestCase):
             if profile['id'] == str(other_profile.id):
                 self.assertEqual(profile['timing_label'], 'Here Next Month')
 
-    def test_nearby_feed_excludes_users_in_different_region(self):
-        """Test GET /feed/nearby/ excludes users not in the same region"""
-        # Create user in Oregon (different from main user's California)
+    def test_nearby_feed_excludes_users_in_different_city(self):
+        """Test GET /feed/nearby/ excludes users not in the same city"""
+        from core.models import InTownWindow
+        from datetime import timedelta
+        
+        # Create user in Portland (different from main user's Los Angeles)
         other_user = UserAccount.objects.create_user(
-            username='oregonuser',
-            email='oregon@example.com',
+            username='portlanduser',
+            email='portland@example.com',
             password='testpass123'
         )
         other_profile = Profile.objects.get(user=other_user)
-        other_profile.display_name = 'Oregon User'
-        other_profile.now_in = self.region_or  # Different region
+        other_profile.display_name = 'Portland User'
         other_profile.save()
+        
+        # Create InTownWindow in different city
+        InTownWindow.objects.create(
+            profile=other_profile,
+            city_area='Portland, OR',
+            start_date=self.today,
+            end_date=self.today + timedelta(days=6)
+        )
         
         response = self.client.get('/api/v1/feed/nearby/')
         
@@ -1397,7 +1468,10 @@ class NearbyFeedAPITestCase(TestCase):
 
     def test_nearby_feed_card_has_correct_fields(self):
         """Test feed cards have id, display_name, avatar_url, timing_label"""
-        # Create user in California with avatar
+        from core.models import InTownWindow
+        from datetime import timedelta
+        
+        # Create user in Los Angeles with avatar
         other_user = UserAccount.objects.create_user(
             username='otheruser',
             email='other@example.com',
@@ -1406,8 +1480,15 @@ class NearbyFeedAPITestCase(TestCase):
         other_profile = Profile.objects.get(user=other_user)
         other_profile.display_name = 'Other User'
         other_profile.avatar_url = 'https://example.com/avatar.jpg'
-        other_profile.now_in = self.region_ca
         other_profile.save()
+        
+        # Create InTownWindow in same city
+        InTownWindow.objects.create(
+            profile=other_profile,
+            city_area='Los Angeles, CA',
+            start_date=self.today,
+            end_date=self.today + timedelta(days=6)
+        )
         
         response = self.client.get('/api/v1/feed/nearby/')
         
@@ -1426,34 +1507,9 @@ class NearbyFeedAPITestCase(TestCase):
         self.assertEqual(feed_card['avatar_url'], 'https://example.com/avatar.jpg')
         self.assertEqual(feed_card['timing_label'], 'Here Now')
 
-    def test_nearby_feed_user_can_appear_in_multiple_categories(self):
-        """Test a user can appear in multiple timing categories if they match multiple"""
-        # Create user whose now_in AND next_week_in both match main user's now_in
-        other_user = UserAccount.objects.create_user(
-            username='multiuser',
-            email='multi@example.com',
-            password='testpass123'
-        )
-        other_profile = Profile.objects.get(user=other_user)
-        other_profile.display_name = 'Multi User'
-        other_profile.now_in = self.region_ca  # Matches main user's now_in
-        other_profile.next_week_in = self.region_ca  # Also matches
-        other_profile.save()
-        
-        response = self.client.get('/api/v1/feed/nearby/')
-        
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
-        # Should appear in both here_now and here_next_week
-        here_now_ids = [p['id'] for p in response.data['data']['here_now']]
-        here_next_week_ids = [p['id'] for p in response.data['data']['here_next_week']]
-        
-        self.assertIn(str(other_profile.id), here_now_ids)
-        self.assertIn(str(other_profile.id), here_next_week_ids)
-
     def test_nearby_feed_empty_when_no_matching_users(self):
         """Test GET /feed/nearby/ returns empty lists when no users match"""
-        # Main user is in California, no other users exist
+        # Main user is in Los Angeles, no other users exist
         response = self.client.get('/api/v1/feed/nearby/')
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)

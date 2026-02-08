@@ -2,11 +2,7 @@
 """
 Views package for the core app.
 
-This module re-exports all ViewSets for backwards compatibility.
-ViewSets are being progressively extracted from the original views.py
-into separate domain-specific modules.
-
-Requirements: 2.1, 2.3, 2.5 (Backend File Organization)
+Re-exports all ViewSets from their domain-specific modules.
 """
 
 # Re-export the MessageMixin from mixins

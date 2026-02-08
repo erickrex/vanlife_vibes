@@ -7,7 +7,7 @@ from django.utils import timezone
 from datetime import timedelta
 from core.models import (
     Profile, Vehicle, InTownWindow,
-    Prompt, ProfilePrompt, HobbyTag, Country, Region
+    Prompt, ProfilePrompt, HobbyTag
 )
 
 User = get_user_model()
@@ -39,14 +39,6 @@ class Command(BaseCommand):
         profile.avatar_url = 'https://i.pravatar.cc/300?img=68'
         profile.cover_url = 'https://images.unsplash.com/photo-1527004013197-933c4bb611b3?w=800&h=400&fit=crop'
         
-        # Get regions for location timing
-        usa = Country.objects.get(name='United States')
-        utah = Region.objects.get(name='Utah', country=usa)
-        colorado = Region.objects.get(name='Colorado', country=usa)
-        
-        profile.now_in = utah
-        profile.next_week_in = utah
-        profile.next_month_in = colorado
         profile.save()
         
         self.stdout.write(f'  Updated profile: {profile.display_name}')

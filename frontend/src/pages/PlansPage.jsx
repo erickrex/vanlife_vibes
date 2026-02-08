@@ -96,7 +96,7 @@ function PlansPage() {
           </p>
           <button 
             onClick={() => navigate('/plans/create')} 
-            className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors"
+            className="app-btn-primary-social w-full py-3"
           >
             + Create a Plan
           </button>
@@ -118,7 +118,7 @@ function PlansPage() {
           </button>
           
           {showFilters && (
-            <div className="mt-3 p-4 bg-zinc-900 rounded-xl border border-zinc-800 space-y-4">
+            <div className="mt-3 p-4 app-card space-y-4">
               <div>
                 <label className="text-zinc-400 text-sm block mb-2">Plan Type</label>
                 <select
@@ -189,7 +189,7 @@ function PlansPage() {
               </p>
               <button 
                 onClick={() => navigate('/plans/create')} 
-                className="px-4 py-2 border border-zinc-700 hover:border-zinc-500 text-white text-sm font-semibold rounded-lg transition-colors"
+                className="app-btn-secondary px-4 py-2 text-sm"
               >
                 Create a Plan
               </button>

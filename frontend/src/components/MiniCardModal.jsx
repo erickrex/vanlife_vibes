@@ -106,13 +106,13 @@ function MiniCardModal({ profile, onShare, onClose, sending }) {
         <div className="flex gap-3 p-4 border-t border-zinc-800">
           <button 
             onClick={onClose} 
-            className="flex-1 px-4 py-2 border border-zinc-700 hover:border-zinc-500 text-white text-sm font-semibold rounded-lg transition-colors"
+            className="flex-1 app-btn-secondary px-4 py-2 text-sm"
           >
             Cancel
           </button>
           <button 
             onClick={onShare} 
-            className="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-zinc-700 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-lg transition-colors"
+            className="flex-1 app-btn-primary-social px-4 py-2 text-sm disabled:bg-zinc-700"
             disabled={sending || !currentLocation}
           >
             {sending ? 'Sharing...' : '📍 Share Card'}

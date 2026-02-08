@@ -185,7 +185,7 @@ function CreatePlanPage() {
               onChange={(e) => handleChange('title', e.target.value)}
               placeholder="Give your plan a catchy title..."
               maxLength={100}
-              className="w-full px-4 py-3 bg-zinc-900 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-500"
+              className="app-input"
             />
           </div>
 
@@ -199,7 +199,7 @@ function CreatePlanPage() {
                 value={formData.plan_date}
                 onChange={(e) => handleChange('plan_date', e.target.value)}
                 min={getMinDate()}
-                className="w-full px-4 py-3 bg-zinc-900 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-zinc-500"
+                className="app-input"
               />
             </div>
 
@@ -209,7 +209,7 @@ function CreatePlanPage() {
                 id="time_window"
                 value={formData.time_window}
                 onChange={(e) => handleChange('time_window', e.target.value)}
-                className="w-full px-4 py-3 bg-zinc-900 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-zinc-500"
+                className="app-input"
               >
                 {TIME_WINDOWS.map((tw) => (
                   <option key={tw.value} value={tw.value}>
@@ -233,7 +233,7 @@ function CreatePlanPage() {
               onChange={(e) => handleChange('meetup_area', e.target.value)}
               placeholder="e.g., Downtown Austin, Joshua Tree area..."
               maxLength={100}
-              className="w-full px-4 py-3 bg-zinc-900 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-500"
+              className="app-input"
             />
             <p className="text-zinc-500 text-xs mt-1">
               Keep it general for safety. Exact location can be shared in the group chat.
@@ -276,7 +276,7 @@ function CreatePlanPage() {
               placeholder="Add any details about the meetup..."
               maxLength={500}
               rows={4}
-              className="w-full px-4 py-3 bg-zinc-900 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 resize-none focus:outline-none focus:border-zinc-500"
+              className="app-input resize-none"
             />
           </div>
 
@@ -294,7 +294,7 @@ function CreatePlanPage() {
             <button
               type="button"
               onClick={() => navigate('/plans')}
-              className="flex-1 px-4 py-3 border border-zinc-700 hover:border-zinc-500 text-white font-semibold rounded-lg transition-colors"
+              className="app-btn-secondary flex-1 px-4 py-3"
               disabled={loading}
             >
               Cancel

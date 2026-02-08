@@ -678,14 +678,14 @@ function ActivitiesPage() {
   // Render filter controls (Requirements 5.7, 9.1-9.6)
   const renderFilters = () => (
       <div className={`overflow-hidden transition-all duration-300 ${showFilters ? 'max-h-96' : 'max-h-0'}`}>
-      <div className="px-4 py-4 space-y-4 bg-zinc-900/50 border-b border-zinc-800">
+      <div className="px-4 py-4 space-y-4 app-panel border-b border-zinc-800">
         {/* Activity Type Filter (Requirement 5.7, 9.3) */}
         <div>
           <label className="block text-zinc-400 text-sm mb-2">Activity Type</label>
           <select
             value={filters.activity_type}
             onChange={(e) => handleFilterChange('activity_type', e.target.value)}
-            className="w-full px-4 py-3 bg-zinc-900 border border-zinc-700 rounded-lg text-white focus:border-emerald-500 focus:outline-none"
+            className="app-input"
           >
             {getActivityTypesArray(true).map(type => (
               <option key={type.value} value={type.value}>
@@ -703,7 +703,7 @@ function ActivitiesPage() {
               type="date"
               value={filters.date_from}
               onChange={(e) => handleFilterChange('date_from', e.target.value)}
-              className="w-full px-4 py-3 bg-zinc-900 border border-zinc-700 rounded-lg text-white focus:border-emerald-500 focus:outline-none"
+              className="app-input"
             />
           </div>
           <div>
@@ -712,7 +712,7 @@ function ActivitiesPage() {
               type="date"
               value={filters.date_to}
               onChange={(e) => handleFilterChange('date_to', e.target.value)}
-              className="w-full px-4 py-3 bg-zinc-900 border border-zinc-700 rounded-lg text-white focus:border-emerald-500 focus:outline-none"
+              className="app-input"
             />
           </div>
         </div>
@@ -725,7 +725,7 @@ function ActivitiesPage() {
             value={filters.location}
             onChange={(e) => handleFilterChange('location', e.target.value)}
             placeholder="e.g., Santa Cruz, CA"
-            className="w-full px-4 py-3 bg-zinc-900 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:border-emerald-500 focus:outline-none"
+            className="app-input"
           />
         </div>
         

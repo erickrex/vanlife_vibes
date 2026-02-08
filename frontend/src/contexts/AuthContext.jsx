@@ -99,7 +99,26 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true };
     } catch (err) {
-      const errorMessage = err.message || 'Signup failed';
+      // Extract detailed validation errors from backend response
+      const responseData = err.response?.data;
+      let errorMessage = 'Signup failed';
+      
+      if (responseData?.errors) {
+        // Format field-specific errors into a readable message
+        const errorMessages = [];
+        for (const [field, messages] of Object.entries(responseData.errors)) {
+          const fieldErrors = Array.isArray(messages) ? messages : [messages];
+          errorMessages.push(...fieldErrors);
+        }
+        if (errorMessages.length > 0) {
+          errorMessage = errorMessages.join(' ');
+        }
+      } else if (responseData?.message) {
+        errorMessage = responseData.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
       setError(errorMessage);
       return { success: false, error: errorMessage };
     }

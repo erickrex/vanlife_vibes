@@ -220,14 +220,14 @@ function WelcomePage() {
           <div className="mt-4 flex gap-3">
             <button
               type="button"
-              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium"
+              className="app-btn-primary-social px-4 py-2 text-sm font-medium"
               onClick={handleStartSwiping}
             >
               Start Swiping
             </button>
             <button
               type="button"
-              className="px-4 py-2 border border-zinc-700 hover:border-zinc-500 text-white rounded-lg text-sm font-medium"
+              className="app-btn-secondary px-4 py-2 text-sm font-medium"
               onClick={handleOpenFeed}
             >
               Open Feed
@@ -251,7 +251,7 @@ function WelcomePage() {
               <div className="mt-4 flex flex-wrap gap-3">
                 <button
                   type="button"
-                  className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium"
+                  className="app-btn-primary-social px-4 py-2 text-sm font-medium"
                   onClick={handleOpenPrimaryDiscovery}
                 >
                   {primaryDiscoveryLabel}
@@ -329,7 +329,7 @@ function WelcomePage() {
               <div className="mt-4 flex flex-wrap gap-3">
                 <button
                   type="button"
-                  className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium"
+                  className="app-btn-primary-social px-4 py-2 text-sm font-medium"
                   onClick={handleBrowseActivities}
                 >
                   Browse Activities
@@ -372,7 +372,7 @@ function WelcomePage() {
               <div className="mt-4 flex flex-wrap gap-3">
                 <button
                   type="button"
-                  className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium"
+                  className="app-btn-primary-social px-4 py-2 text-sm font-medium"
                   onClick={handleBrowsePlans}
                 >
                   Browse Plans

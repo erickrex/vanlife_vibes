@@ -155,7 +155,7 @@ function CityAutocomplete({
         onBlur={handleBlur}
         placeholder={placeholder}
         disabled={disabled}
-        className={inputClassName || "w-full px-4 py-3 bg-zinc-900 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:border-zinc-500 focus:outline-none disabled:opacity-50"}
+        className={inputClassName || "app-input disabled:opacity-50"}
         autoComplete="off"
       />
       

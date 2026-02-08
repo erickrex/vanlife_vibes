@@ -59,7 +59,7 @@ function ChatActionsMenu({ onUnmatch, onReport, userName }) {
           Are you sure you want to unmatch with {userName}? This will remove your conversation and you won't be able to message each other.
         </p>
         <div className="flex gap-2">
-          <button onClick={handleCancel} className="flex-1 px-3 py-2 border border-zinc-700 hover:border-zinc-500 text-white text-sm rounded-lg transition-colors">
+          <button onClick={handleCancel} className="app-btn-secondary flex-1 px-3 py-2 text-sm">
             Cancel
           </button>
           <button onClick={handleConfirmUnmatch} className="flex-1 px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors">
@@ -96,7 +96,7 @@ function ChatActionsMenu({ onUnmatch, onReport, userName }) {
           ))}
         </div>
         <div className="flex gap-2">
-          <button onClick={handleCancel} className="flex-1 px-3 py-2 border border-zinc-700 hover:border-zinc-500 text-white text-sm rounded-lg transition-colors">
+          <button onClick={handleCancel} className="app-btn-secondary flex-1 px-3 py-2 text-sm">
             Cancel
           </button>
           <button 

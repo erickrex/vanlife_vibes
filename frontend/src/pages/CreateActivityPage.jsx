@@ -407,7 +407,7 @@ function CreateActivityPage() {
             <button
               type="button"
               onClick={() => navigate('/activities')}
-              className="flex-1 px-4 py-3 border border-zinc-700 hover:border-zinc-500 text-white font-semibold rounded-lg transition-colors"
+              className="app-btn-secondary flex-1 px-4 py-3"
               disabled={loading}
             >
               Cancel

@@ -16,7 +16,7 @@ from django.db import models
 from django.utils import timezone
 
 from core.models import (
-    UserAccount, Profile, Vehicle, VehiclePhoto, Follow, HobbyTag, Country, Region,
+    UserAccount, Profile, Vehicle, VehiclePhoto, Follow, HobbyTag, Country,
     InTownWindow, City, Prompt, ProfilePrompt, FriendRequest, Friendship
 )
 
@@ -57,50 +57,6 @@ class CountrySerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
 
-class RegionSerializer(serializers.ModelSerializer):
-    """Serializer for Region model with nested country"""
-    country = CountrySerializer(read_only=True)
-    
-    class Meta:
-        model = Region
-        fields = ['id', 'name', 'country']
-        read_only_fields = ['id']
-
-
-class LocationTimingSerializer(serializers.Serializer):
-    """Serializer for location timing fields (now_in, next_week_in, next_month_in)"""
-    region = RegionSerializer(read_only=True)
-    country = CountrySerializer(read_only=True)
-    updated_at = serializers.DateTimeField(read_only=True)
-    
-    def to_representation(self, instance):
-        """
-        Custom representation for location timing.
-        Instance is expected to be a dict with 'region' and 'updated_at' keys.
-        """
-        if instance is None:
-            return None
-        
-        region = instance.get('region')
-        updated_at = instance.get('updated_at')
-        
-        if region is None:
-            return None
-        
-        return {
-            'region': {
-                'id': region.id,
-                'name': region.name,
-            },
-            'country': {
-                'id': region.country.id,
-                'name': region.country.name,
-                'code': region.country.code,
-            },
-            'updated_at': updated_at,
-        }
-
-
 class HobbyTagSerializer(serializers.ModelSerializer):
     """Serializer for HobbyTag model"""
     
@@ -138,6 +94,9 @@ class ProfileSerializer(serializers.ModelSerializer):
     
     Includes user info, profile fields, vehicle, location timing,
     in_town_windows, prompts, hobbies, and social indicators.
+    
+    Location fields (now_in_city, next_week_in_city, next_month_in_city) are
+    derived from InTownWindow records based on date ranges.
     """
     user_id = serializers.UUIDField(source='user.id', read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)
@@ -150,10 +109,10 @@ class ProfileSerializer(serializers.ModelSerializer):
     in_town_windows = serializers.SerializerMethodField()
     prompts = serializers.SerializerMethodField()
     
-    # Location timing fields
-    now_in = serializers.SerializerMethodField()
-    next_week_in = serializers.SerializerMethodField()
-    next_month_in = serializers.SerializerMethodField()
+    # Derived location fields from InTownWindow
+    now_in_city = serializers.SerializerMethodField()
+    next_week_in_city = serializers.SerializerMethodField()
+    next_month_in_city = serializers.SerializerMethodField()
     
     # Social counts
     follower_count = serializers.SerializerMethodField()
@@ -206,12 +165,9 @@ class ProfileSerializer(serializers.ModelSerializer):
             # Friend-intent-filtering fields
             'relationship_status',
             'looking_for_friend_type',
-            # End nomad-logistics fields
+            # Location fields (derived from InTownWindow)
             'in_town_windows',
             'prompts',
-            'now_in',
-            'next_week_in',
-            'next_month_in',
             'now_in_city',
             'next_week_in_city',
             'next_month_in_city',
@@ -285,38 +241,56 @@ class ProfileSerializer(serializers.ModelSerializer):
         ]
 
     
-    def get_now_in(self, obj):
-        """Return now_in location with region, country, and updated_at"""
-        if obj.now_in is None:
-            return None
+    def get_now_in_city(self, obj):
+        """
+        Derive now_in_city from InTownWindow records.
+        Returns the city_area of a window where today falls within the date range.
+        """
+        from django.utils import timezone
+        today = timezone.now().date()
         
-        location_data = {
-            'region': obj.now_in,
-            'updated_at': obj.now_in_updated_at,
-        }
-        return LocationTimingSerializer().to_representation(location_data)
+        window = obj.in_town_windows.filter(
+            start_date__lte=today,
+            end_date__gte=today
+        ).first()
+        
+        return window.city_area if window else None
     
-    def get_next_week_in(self, obj):
-        """Return next_week_in location with region, country, and updated_at"""
-        if obj.next_week_in is None:
-            return None
+    def get_next_week_in_city(self, obj):
+        """
+        Derive next_week_in_city from InTownWindow records.
+        Returns the city_area of a window starting within the next 7-13 days.
+        """
+        from django.utils import timezone
+        from datetime import timedelta
+        today = timezone.now().date()
+        next_week_start = today + timedelta(days=7)
+        next_week_end = today + timedelta(days=13)
         
-        location_data = {
-            'region': obj.next_week_in,
-            'updated_at': obj.next_week_in_updated_at,
-        }
-        return LocationTimingSerializer().to_representation(location_data)
+        window = obj.in_town_windows.filter(
+            start_date__gte=next_week_start,
+            start_date__lte=next_week_end
+        ).first()
+        
+        return window.city_area if window else None
     
-    def get_next_month_in(self, obj):
-        """Return next_month_in location with region, country, and updated_at"""
-        if obj.next_month_in is None:
-            return None
+    def get_next_month_in_city(self, obj):
+        """
+        Derive next_month_in_city from InTownWindow records.
+        Returns the city_area of a window starting within the next 14-44 days.
+        """
+        from django.utils import timezone
+        from datetime import timedelta
+        today = timezone.now().date()
+        next_month_start = today + timedelta(days=14)
+        next_month_end = today + timedelta(days=44)
         
-        location_data = {
-            'region': obj.next_month_in,
-            'updated_at': obj.next_month_in_updated_at,
-        }
-        return LocationTimingSerializer().to_representation(location_data)
+        window = obj.in_town_windows.filter(
+            start_date__gte=next_month_start,
+            start_date__lte=next_month_end
+        ).first()
+        
+        return window.city_area if window else None
     
     def get_follower_count(self, obj):
         """Return count of users following this profile"""
@@ -434,15 +408,12 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
     """
     Serializer for updating user profiles with comprehensive validation.
     
-    Validates character limits, enum fields, region IDs, and camping preferences.
+    Validates character limits, enum fields, and camping preferences.
+    Location fields (now_in_city, next_week_in_city, next_month_in_city) are
+    converted to InTownWindow records on save.
     """
     
-    # Region ID fields for location timing updates (legacy)
-    now_in_region_id = serializers.UUIDField(required=False, allow_null=True)
-    next_week_in_region_id = serializers.UUIDField(required=False, allow_null=True)
-    next_month_in_region_id = serializers.UUIDField(required=False, allow_null=True)
-    
-    # City name fields for simplified US-only location
+    # City name fields - these create/update InTownWindow records
     now_in_city = serializers.CharField(max_length=100, required=False, allow_null=True, allow_blank=True)
     next_week_in_city = serializers.CharField(max_length=100, required=False, allow_null=True, allow_blank=True)
     next_month_in_city = serializers.CharField(max_length=100, required=False, allow_null=True, allow_blank=True)
@@ -498,10 +469,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
             # Friend-intent-filtering fields
             'relationship_status',
             'looking_for_friend_type',
-            # End nomad-logistics fields
-            'now_in_region_id',
-            'next_week_in_region_id',
-            'next_month_in_region_id',
+            # Location fields (converted to InTownWindow)
             'now_in_city',
             'next_week_in_city',
             'next_month_in_city',
@@ -751,40 +719,6 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         
         return value
     
-    def validate_now_in_region_id(self, value):
-        """Validate now_in_region_id exists in the database"""
-        if value is None:
-            return value
-        
-        if not Region.objects.filter(id=value).exists():
-            raise serializers.ValidationError(
-                "Region not found. Please provide a valid region ID."
-            )
-        return value
-    
-    def validate_next_week_in_region_id(self, value):
-        """Validate next_week_in_region_id exists in the database"""
-        if value is None:
-            return value
-        
-        if not Region.objects.filter(id=value).exists():
-            raise serializers.ValidationError(
-                "Region not found. Please provide a valid region ID."
-            )
-        return value
-    
-    def validate_next_month_in_region_id(self, value):
-        """Validate next_month_in_region_id exists in the database"""
-        if value is None:
-            return value
-        
-        if not Region.objects.filter(id=value).exists():
-            raise serializers.ValidationError(
-                "Region not found. Please provide a valid region ID."
-            )
-        return value
-
-    
     def validate_hobby_ids(self, value):
         """Validate all hobby_ids exist in the database"""
         if value is None:
@@ -898,60 +832,74 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         Update profile with validated data.
         
         Handles special fields:
-        - Region ID fields are converted to Region FK references (legacy)
-        - City name fields are stored directly
-        - Location timestamps are updated when location fields change
+        - City name fields create/update InTownWindow records
         - Hobby IDs are used to update the many-to-many relationship
         """
-        # Extract special fields that need custom handling
-        now_in_region_id = validated_data.pop('now_in_region_id', None)
-        next_week_in_region_id = validated_data.pop('next_week_in_region_id', None)
-        next_month_in_region_id = validated_data.pop('next_month_in_region_id', None)
+        from datetime import timedelta
+        
         hobby_ids = validated_data.pop('hobby_ids', None)
         
-        # Handle city fields (new simplified location)
+        # Handle city fields by creating/updating InTownWindow records
         now_in_city = validated_data.pop('now_in_city', None)
         next_week_in_city = validated_data.pop('next_week_in_city', None)
         next_month_in_city = validated_data.pop('next_month_in_city', None)
         
-        # Update city fields if provided
+        today = timezone.now().date()
+        
+        # Helper function to update or create a window for a time period
+        def update_location_window(city_value, start_date, end_date, field_name):
+            """Update or create an InTownWindow for the given time period."""
+            # Find existing window in this time range
+            existing_window = instance.in_town_windows.filter(
+                start_date__lte=end_date,
+                end_date__gte=start_date
+            ).first()
+            
+            if city_value:
+                if existing_window:
+                    # Update existing window
+                    existing_window.city_area = city_value
+                    existing_window.start_date = start_date
+                    existing_window.end_date = end_date
+                    existing_window.save()
+                else:
+                    # Create new window
+                    InTownWindow.objects.create(
+                        profile=instance,
+                        city_area=city_value,
+                        start_date=start_date,
+                        end_date=end_date
+                    )
+            elif existing_window and field_name in self.initial_data:
+                # City was explicitly cleared - delete the window
+                existing_window.delete()
+        
+        # Update now_in_city (today to +6 days)
         if 'now_in_city' in self.initial_data:
-            instance.now_in_city = now_in_city if now_in_city else None
+            update_location_window(
+                now_in_city,
+                today,
+                today + timedelta(days=6),
+                'now_in_city'
+            )
+        
+        # Update next_week_in_city (+7 to +13 days)
         if 'next_week_in_city' in self.initial_data:
-            instance.next_week_in_city = next_week_in_city if next_week_in_city else None
+            update_location_window(
+                next_week_in_city,
+                today + timedelta(days=7),
+                today + timedelta(days=13),
+                'next_week_in_city'
+            )
+        
+        # Update next_month_in_city (+14 to +44 days)
         if 'next_month_in_city' in self.initial_data:
-            instance.next_month_in_city = next_month_in_city if next_month_in_city else None
-        
-        # Handle now_in region update (legacy)
-        if now_in_region_id is not None:
-            if now_in_region_id != (instance.now_in_id if instance.now_in else None):
-                instance.now_in = Region.objects.get(id=now_in_region_id)
-                instance.now_in_updated_at = timezone.now()
-        elif 'now_in_region_id' in self.initial_data and self.initial_data['now_in_region_id'] is None:
-            # Explicitly setting to null
-            instance.now_in = None
-            instance.now_in_updated_at = timezone.now()
-        
-        # Handle next_week_in region update
-        if next_week_in_region_id is not None:
-            if next_week_in_region_id != (instance.next_week_in_id if instance.next_week_in else None):
-                instance.next_week_in = Region.objects.get(id=next_week_in_region_id)
-                instance.next_week_in_updated_at = timezone.now()
-        elif 'next_week_in_region_id' in self.initial_data and self.initial_data['next_week_in_region_id'] is None:
-            # Explicitly setting to null
-            instance.next_week_in = None
-            instance.next_week_in_updated_at = timezone.now()
-
-        
-        # Handle next_month_in region update
-        if next_month_in_region_id is not None:
-            if next_month_in_region_id != (instance.next_month_in_id if instance.next_month_in else None):
-                instance.next_month_in = Region.objects.get(id=next_month_in_region_id)
-                instance.next_month_in_updated_at = timezone.now()
-        elif 'next_month_in_region_id' in self.initial_data and self.initial_data['next_month_in_region_id'] is None:
-            # Explicitly setting to null
-            instance.next_month_in = None
-            instance.next_month_in_updated_at = timezone.now()
+            update_location_window(
+                next_month_in_city,
+                today + timedelta(days=14),
+                today + timedelta(days=44),
+                'next_month_in_city'
+            )
         
         # Update standard fields
         for attr, value in validated_data.items():

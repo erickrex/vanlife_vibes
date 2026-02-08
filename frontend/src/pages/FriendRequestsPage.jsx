@@ -53,7 +53,7 @@ function FriendRequestCard({ request, user, type, onAccept, onDecline, loading }
   };
   
   return (
-    <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4">
+    <div className="app-card p-4">
       <div className="flex items-center gap-3">
         {/* Avatar */}
         <button 
@@ -247,7 +247,7 @@ function FriendRequestsPage() {
           <p className="text-red-400 mb-4">{error}</p>
           <button 
             onClick={loadRequests} 
-            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors"
+            className="app-btn-primary-social px-4 py-2"
           >
             Try Again
           </button>

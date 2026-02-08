@@ -18,9 +18,10 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db import transaction, IntegrityError
 from django.db.models import Q
+from django.utils import timezone
 
 from core.models import (
-    Profile, Region, Country, Follow, HobbyTag, Vehicle, VehiclePhoto,
+    Profile, Country, Follow, HobbyTag, Vehicle, VehiclePhoto,
     InTownWindow, City, Prompt, ProfilePrompt, PersonSwipe, PersonMatch, DirectMessage,
     AnalyticsEvent, FriendRequest, Friendship
 )
@@ -35,7 +36,6 @@ from core.serializers import (
     VehiclePhotoCreateSerializer,
     CountrySerializer,
     FeedCardSerializer,
-    RegionSerializer,
     InTownWindowSerializer,
     CitySerializer,
     ProfilePromptSerializer,
@@ -127,13 +127,11 @@ class ProfileViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
         """Return profiles queryset"""
         return Profile.objects.select_related(
             'user',
-            'now_in__country',
-            'next_week_in__country',
-            'next_month_in__country',
         ).prefetch_related(
             'hobbies',
             'follower_set',
             'following_set',
+            'in_town_windows',
         )
     
     @action(detail=False, methods=['get', 'patch'], url_path='me')
@@ -981,11 +979,10 @@ class VehicleViewSet(viewsets.GenericViewSet):
 
 class LocationViewSet(viewsets.GenericViewSet):
     """
-    ViewSet for location data (countries and regions).
+    ViewSet for location data.
     
     Provides endpoints for:
     - GET /locations/countries/ - List all countries
-    - GET /locations/regions/ - List regions (optionally filtered by country)
     - GET /locations/cities/ - List cities for autocomplete
     """
     permission_classes = [IsAuthenticated]
@@ -1001,39 +998,6 @@ class LocationViewSet(viewsets.GenericViewSet):
         """
         countries = Country.objects.all().order_by('name')
         serializer = CountrySerializer(countries, many=True)
-        
-        return Response({
-            'status': 'success',
-            'data': serializer.data
-        }, status=status.HTTP_200_OK)
-    
-    @action(detail=False, methods=['get'], url_path='regions')
-    def regions(self, request):
-        """
-        List regions, optionally filtered by country.
-        
-        GET /api/v1/locations/regions/
-        GET /api/v1/locations/regions/?country={country_id}
-        
-        Returns Region records ordered alphabetically by name.
-        """
-        queryset = Region.objects.select_related('country').order_by('name')
-        
-        # Filter by country if provided
-        country_id = request.query_params.get('country')
-        if country_id:
-            try:
-                # Validate UUID format
-                import uuid
-                uuid.UUID(country_id)
-                queryset = queryset.filter(country_id=country_id)
-            except (ValueError, TypeError):
-                return Response({
-                    'status': 'error',
-                    'message': 'Invalid country ID format'
-                }, status=status.HTTP_400_BAD_REQUEST)
-        
-        serializer = RegionSerializer(queryset, many=True)
         
         return Response({
             'status': 'success',
@@ -1170,11 +1134,13 @@ class FeedViewSet(viewsets.GenericViewSet):
         
         GET /api/v1/feed/nearby/
         
-        Returns profiles grouped by timing category:
-        - here_now: Users whose "Now In" matches the current user's "Now In" region
-        - here_next_week: Users whose "Next Week In" matches the current user's "Now In" region
-        - here_next_month: Users whose "Next Month In" matches the current user's "Now In" region
+        Returns profiles grouped by timing category based on InTownWindow overlap:
+        - here_now: Users with an InTownWindow overlapping today in the same city
+        - here_next_week: Users with an InTownWindow starting in the next 7-13 days in the same city
+        - here_next_month: Users with an InTownWindow starting in the next 14-44 days in the same city
         """
+        from datetime import timedelta
+        
         # Get the current user's profile
         try:
             user_profile = request.user.profile
@@ -1184,11 +1150,14 @@ class FeedViewSet(viewsets.GenericViewSet):
                 'message': 'Profile not found. Please contact support.'
             }, status=status.HTTP_404_NOT_FOUND)
         
-        # Check if user has a "Now In" location set (either region-based or city-based)
-        user_region = user_profile.now_in
-        user_city = user_profile.now_in_city
+        # Get user's current location from InTownWindow (window containing today)
+        today = timezone.now().date()
+        user_current_window = user_profile.in_town_windows.filter(
+            start_date__lte=today,
+            end_date__gte=today
+        ).first()
         
-        if not user_region and not user_city:
+        if not user_current_window:
             return Response({
                 'status': 'success',
                 'data': {
@@ -1198,6 +1167,8 @@ class FeedViewSet(viewsets.GenericViewSet):
                 },
                 'message': 'Set your "Now In" location to see nearby travelers.'
             }, status=status.HTTP_200_OK)
+        
+        user_city = user_current_window.city_area
         
         # Query profiles for each timing category
         # Exclude current user from all queries
@@ -1229,31 +1200,41 @@ class FeedViewSet(viewsets.GenericViewSet):
         # Apply all query parameter filters to base queryset
         base_queryset = feed_filter_service.apply_filters(base_queryset, request, user_profile)
 
+        # Define time ranges
+        next_week_start = today + timedelta(days=7)
+        next_week_end = today + timedelta(days=13)
+        next_month_start = today + timedelta(days=14)
+        next_month_end = today + timedelta(days=44)
         
-        # Build location filters - support both region-based and city-based matching
-        # Here Now: profiles whose now_in region OR now_in_city matches user's location
-        here_now_q = Q()
-        if user_region:
-            here_now_q |= Q(now_in=user_region)
-        if user_city:
-            here_now_q |= Q(now_in_city__iexact=user_city)
-        here_now_profiles = base_queryset.filter(here_now_q) if here_now_q else base_queryset.none()
+        # Here Now: profiles with an InTownWindow containing today in the same city
+        here_now_profile_ids = InTownWindow.objects.filter(
+            start_date__lte=today,
+            end_date__gte=today,
+            city_area__iexact=user_city
+        ).exclude(
+            profile=user_profile
+        ).values_list('profile_id', flat=True)
+        here_now_profiles = base_queryset.filter(id__in=here_now_profile_ids)
         
-        # Here Next Week: profiles whose next_week_in region OR next_week_in_city matches user's location
-        here_next_week_q = Q()
-        if user_region:
-            here_next_week_q |= Q(next_week_in=user_region)
-        if user_city:
-            here_next_week_q |= Q(next_week_in_city__iexact=user_city)
-        here_next_week_profiles = base_queryset.filter(here_next_week_q) if here_next_week_q else base_queryset.none()
+        # Here Next Week: profiles with an InTownWindow starting in next 7-13 days in the same city
+        here_next_week_profile_ids = InTownWindow.objects.filter(
+            start_date__gte=next_week_start,
+            start_date__lte=next_week_end,
+            city_area__iexact=user_city
+        ).exclude(
+            profile=user_profile
+        ).values_list('profile_id', flat=True)
+        here_next_week_profiles = base_queryset.filter(id__in=here_next_week_profile_ids)
         
-        # Here Next Month: profiles whose next_month_in region OR next_month_in_city matches user's location
-        here_next_month_q = Q()
-        if user_region:
-            here_next_month_q |= Q(next_month_in=user_region)
-        if user_city:
-            here_next_month_q |= Q(next_month_in_city__iexact=user_city)
-        here_next_month_profiles = base_queryset.filter(here_next_month_q) if here_next_month_q else base_queryset.none()
+        # Here Next Month: profiles with an InTownWindow starting in next 14-44 days in the same city
+        here_next_month_profile_ids = InTownWindow.objects.filter(
+            start_date__gte=next_month_start,
+            start_date__lte=next_month_end,
+            city_area__iexact=user_city
+        ).exclude(
+            profile=user_profile
+        ).values_list('profile_id', flat=True)
+        here_next_month_profiles = base_queryset.filter(id__in=here_next_month_profile_ids)
         
         # Create RelevanceScorer instance for sorting profiles
         relevance_scorer = RelevanceScorer()

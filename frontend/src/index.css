@@ -18,27 +18,29 @@ html {
 }
 
 :root {
-  --app-bg: #09090b;
-  --app-bg-elevated: #111114;
-  --app-surface: #18181b;
-  --app-surface-muted: #27272a;
-  --app-border: #3f3f46;
-  --app-text: #ffffff;
-  --app-text-muted: #a1a1aa;
-  --app-accent-social: #3b82f6;
-  --app-accent-social-hover: #2563eb;
-  --app-accent-dating: #f43f5e;
-  --app-accent-dating-hover: #e11d48;
-  --app-accent-activity: #10b981;
-  --app-accent-activity-hover: #059669;
+  --app-bg: #0b0e0c;
+  --app-bg-elevated: #131914;
+  --app-surface: #1d2420;
+  --app-surface-muted: #273029;
+  --app-border: #3a463d;
+  --app-text: #f5f3ee;
+  --app-text-muted: #c9c7be;
+  --app-accent-primary: #1f4d3a;
+  --app-accent-primary-hover: #285f49;
+  --app-accent-social: #2a6f97;
+  --app-accent-social-hover: #2d7aa7;
+  --app-accent-dating: #f4a261;
+  --app-accent-dating-hover: #e58c4a;
+  --app-accent-activity: #5b8c5a;
+  --app-accent-activity-hover: #4a7a49;
 }
 
 body {
   background:
-    radial-gradient(circle at 10% 12%, rgba(16, 185, 129, 0.09), transparent 35%),
-    radial-gradient(circle at 88% 8%, rgba(244, 63, 94, 0.09), transparent 30%),
-    radial-gradient(circle at 50% 100%, rgba(59, 130, 246, 0.08), transparent 42%),
-    linear-gradient(180deg, var(--app-bg) 0%, #050507 100%);
+    radial-gradient(circle at 12% 14%, rgba(91, 140, 90, 0.14), transparent 38%),
+    radial-gradient(circle at 88% 10%, rgba(244, 162, 97, 0.12), transparent 33%),
+    radial-gradient(circle at 50% 100%, rgba(42, 111, 151, 0.12), transparent 44%),
+    linear-gradient(180deg, var(--app-bg) 0%, #070906 100%);
   color: var(--app-text);
   @apply min-h-screen;
 }
@@ -49,10 +51,10 @@ body::before {
   inset: 0;
   pointer-events: none;
   background-image:
-    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.04) 1px, transparent 0),
+    radial-gradient(circle at 1px 1px, rgba(201, 199, 190, 0.06) 1px, transparent 0),
     linear-gradient(120deg, rgba(255, 255, 255, 0.015), rgba(255, 255, 255, 0));
   background-size: 24px 24px, 100% 100%;
-  opacity: 0.45;
+  opacity: 0.4;
   z-index: -1;
 }
 
@@ -65,31 +67,67 @@ body::before {
 }
 
 .app-panel {
-  @apply rounded-2xl border border-zinc-800/90 bg-zinc-900/85 shadow-xl shadow-black/25 backdrop-blur-sm;
+  border: 1px solid rgba(58, 70, 61, 0.9);
+  background: rgba(19, 25, 20, 0.88);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(8px);
+  @apply rounded-2xl;
 }
 
 .app-card {
-  @apply rounded-xl border border-zinc-800/85 bg-zinc-900/75 shadow-lg shadow-black/20;
+  border: 1px solid rgba(58, 70, 61, 0.85);
+  background: rgba(29, 36, 32, 0.76);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+  @apply rounded-xl;
 }
 
 .app-input {
-  @apply w-full rounded-xl border border-zinc-700 bg-zinc-900/80 px-4 py-3 text-white placeholder-zinc-500 transition-colors focus:border-zinc-500 focus:outline-none;
+  border: 1px solid rgba(58, 70, 61, 0.95);
+  background: rgba(19, 25, 20, 0.8);
+  color: var(--app-text);
+  @apply w-full rounded-xl px-4 py-3 placeholder-zinc-500 transition-colors focus:outline-none;
+}
+
+.app-input:focus {
+  border-color: rgba(42, 111, 151, 0.95);
 }
 
 .app-btn-primary-social {
-  @apply rounded-xl bg-blue-500 px-4 py-2.5 font-semibold text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50;
+  background: var(--app-accent-social);
+  @apply rounded-xl px-4 py-2.5 font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.app-btn-primary-social:hover {
+  background: var(--app-accent-social-hover);
 }
 
 .app-btn-primary-dating {
-  @apply rounded-xl bg-rose-500 px-4 py-2.5 font-semibold text-white transition-colors hover:bg-rose-600 disabled:cursor-not-allowed disabled:opacity-50;
+  background: var(--app-accent-dating);
+  color: #1f160f;
+  @apply rounded-xl px-4 py-2.5 font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.app-btn-primary-dating:hover {
+  background: var(--app-accent-dating-hover);
 }
 
 .app-btn-primary-activity {
-  @apply rounded-xl bg-emerald-500 px-4 py-2.5 font-semibold text-white transition-colors hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-50;
+  background: var(--app-accent-activity);
+  @apply rounded-xl px-4 py-2.5 font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.app-btn-primary-activity:hover {
+  background: var(--app-accent-activity-hover);
 }
 
 .app-btn-secondary {
-  @apply rounded-xl border border-zinc-700 px-4 py-2.5 font-semibold text-white transition-colors hover:border-zinc-500 disabled:cursor-not-allowed disabled:opacity-50;
+  border: 1px solid rgba(58, 70, 61, 0.95);
+  background: rgba(19, 25, 20, 0.6);
+  @apply rounded-xl px-4 py-2.5 font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.app-btn-secondary:hover {
+  border-color: rgba(91, 140, 90, 0.95);
 }
 
 .app-tab {
@@ -97,31 +135,42 @@ body::before {
 }
 
 .app-tab-inactive {
-  @apply text-zinc-500 hover:text-zinc-300;
+  color: #a9ac9f;
+}
+
+.app-tab-inactive:hover {
+  color: #d7d4ca;
 }
 
 .app-tab-active-social {
-  @apply border-b-2 border-blue-500 text-blue-400;
+  color: var(--app-accent-social);
+  border-bottom: 2px solid var(--app-accent-social);
 }
 
 .app-tab-active-dating {
-  @apply border-b-2 border-rose-500 text-rose-400;
+  color: var(--app-accent-dating);
+  border-bottom: 2px solid var(--app-accent-dating);
 }
 
 .app-tab-active-activity {
-  @apply border-b-2 border-emerald-500 text-emerald-400;
+  color: var(--app-accent-activity);
+  border-bottom: 2px solid var(--app-accent-activity);
 }
 
 .app-topbar {
-  @apply sticky top-0 z-50 border-b border-zinc-800/90 bg-zinc-950/85 backdrop-blur;
+  border-bottom: 1px solid rgba(58, 70, 61, 0.9);
+  background: rgba(11, 14, 12, 0.88);
+  @apply sticky top-0 z-50 backdrop-blur;
 }
 
 .app-bottom-nav {
-  @apply border-t border-zinc-800/90 bg-zinc-950/90 backdrop-blur;
+  border-top: 1px solid rgba(58, 70, 61, 0.9);
+  background: rgba(11, 14, 12, 0.92);
+  @apply backdrop-blur;
 }
 
 .app-brand-gradient {
-  @apply bg-gradient-to-r from-emerald-400 via-cyan-400 to-rose-400 bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-[#5B8C5A] via-[#2A6F97] to-[#F4A261] bg-clip-text text-transparent;
 }
 
 /* Safe area padding for mobile devices with notches */
@@ -153,7 +202,7 @@ body::before {
 
 /* Focus visible for keyboard navigation */
 :focus-visible {
-  @apply outline-none ring-2 ring-cyan-500 ring-offset-2 ring-offset-black;
+  @apply outline-none ring-2 ring-[#2A6F97] ring-offset-2 ring-offset-black;
 }
 
 /* Remove default focus outline, rely on focus-visible */
@@ -163,7 +212,12 @@ body::before {
 
 /* Link defaults - only for unstyled links */
 a:not([class*="text-"]):not([class*="bg-"]) {
-  @apply text-cyan-400 hover:text-cyan-300 transition-colors;
+  color: #70aac9;
+  @apply transition-colors;
+}
+
+a:not([class*="text-"]):not([class*="bg-"]):hover {
+  color: #8dbcd4;
 }
 
 /* Button reset */
@@ -208,15 +262,63 @@ select {
 
 /* Gradient text (brand accent) */
 .text-gradient {
-  @apply bg-gradient-to-r from-emerald-400 via-cyan-400 to-rose-400 bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-[#5B8C5A] via-[#2A6F97] to-[#F4A261] bg-clip-text text-transparent;
 }
 
 /* Gradient border ring (stories-style) */
 .ring-gradient {
-  background: linear-gradient(135deg, #f59e0b, #ec4899, #8b5cf6);
+  background: linear-gradient(135deg, #5b8c5a, #2a6f97, #f4a261);
   padding: 2px;
   border-radius: 9999px;
 }
+
+/* CampSiteModern remap for legacy Tailwind utility usage */
+.bg-blue-500 { background-color: #2a6f97 !important; }
+.hover\:bg-blue-600:hover { background-color: #2d7aa7 !important; }
+.text-blue-500 { color: #2a6f97 !important; }
+.text-blue-400 { color: #6da7c5 !important; }
+.text-blue-300 { color: #93bdd2 !important; }
+.text-blue-200 { color: #bed7e4 !important; }
+.border-blue-500 { border-color: #2a6f97 !important; }
+.border-blue-500\/30 { border-color: rgba(42, 111, 151, 0.3) !important; }
+.border-blue-500\/40 { border-color: rgba(42, 111, 151, 0.4) !important; }
+.border-blue-500\/50 { border-color: rgba(42, 111, 151, 0.5) !important; }
+.bg-blue-500\/10 { background-color: rgba(42, 111, 151, 0.1) !important; }
+.bg-blue-500\/20 { background-color: rgba(42, 111, 151, 0.2) !important; }
+.bg-blue-500\/30 { background-color: rgba(42, 111, 151, 0.3) !important; }
+.ring-blue-500 { --tw-ring-color: #2a6f97 !important; }
+.focus\:border-blue-500:focus { border-color: #2a6f97 !important; }
+.focus\:ring-blue-500:focus { --tw-ring-color: #2a6f97 !important; }
+
+.bg-rose-500 { background-color: #f4a261 !important; }
+.hover\:bg-rose-600:hover { background-color: #e58c4a !important; }
+.text-rose-500 { color: #f4a261 !important; }
+.text-rose-400 { color: #f6b988 !important; }
+.text-rose-300 { color: #f8caa4 !important; }
+.text-rose-200 { color: #f9d9bc !important; }
+.border-rose-500 { border-color: #f4a261 !important; }
+.border-rose-500\/20 { border-color: rgba(244, 162, 97, 0.2) !important; }
+.border-rose-500\/30 { border-color: rgba(244, 162, 97, 0.3) !important; }
+.border-rose-500\/40 { border-color: rgba(244, 162, 97, 0.4) !important; }
+.border-rose-500\/50 { border-color: rgba(244, 162, 97, 0.5) !important; }
+.bg-rose-500\/10 { background-color: rgba(244, 162, 97, 0.1) !important; }
+.bg-rose-500\/20 { background-color: rgba(244, 162, 97, 0.2) !important; }
+.bg-rose-500\/30 { background-color: rgba(244, 162, 97, 0.3) !important; }
+.focus\:border-rose-500:focus { border-color: #f4a261 !important; }
+
+.bg-emerald-500 { background-color: #5b8c5a !important; }
+.hover\:bg-emerald-600:hover { background-color: #4a7a49 !important; }
+.text-emerald-500 { color: #5b8c5a !important; }
+.text-emerald-400 { color: #7ca57b !important; }
+.text-emerald-300 { color: #98ba97 !important; }
+.border-emerald-500 { border-color: #5b8c5a !important; }
+.border-emerald-500\/20 { border-color: rgba(91, 140, 90, 0.2) !important; }
+.border-emerald-500\/30 { border-color: rgba(91, 140, 90, 0.3) !important; }
+.border-emerald-500\/50 { border-color: rgba(91, 140, 90, 0.5) !important; }
+.bg-emerald-500\/10 { background-color: rgba(91, 140, 90, 0.1) !important; }
+.bg-emerald-500\/20 { background-color: rgba(91, 140, 90, 0.2) !important; }
+.bg-emerald-500\/30 { background-color: rgba(91, 140, 90, 0.3) !important; }
+.focus\:border-emerald-500:focus { border-color: #5b8c5a !important; }
 
 /* Truncate text with ellipsis */
 .truncate-2 {

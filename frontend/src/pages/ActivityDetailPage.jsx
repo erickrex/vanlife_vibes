@@ -122,7 +122,7 @@ function ActivityDetailPage() {
           <p className="text-red-400 mb-4">{error}</p>
           <button 
             onClick={loadActivity} 
-            className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg mb-2 transition-colors"
+            className="app-btn-primary-activity px-4 py-2 mb-2"
           >
             Try Again
           </button>
@@ -187,7 +187,7 @@ function ActivityDetailPage() {
         </div>
 
         {/* Activity Info Card */}
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4 mb-4">
+        <div className="app-card p-4 mb-4">
           {/* Type badge and spots */}
           <div className="flex items-center gap-2 mb-3">
             <span className="px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded text-xs font-semibold">
@@ -256,7 +256,7 @@ function ActivityDetailPage() {
 
         {/* Matched Activity - Attendees Section */}
         {hasMatch && (
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4 mb-4">
+          <div className="app-card p-4 mb-4">
             <div className="flex items-center gap-2 mb-4">
               <span className="text-xl">🎉</span>
               <h2 className="text-lg font-semibold text-white">Attendees</h2>
@@ -297,7 +297,7 @@ function ActivityDetailPage() {
             <div className="mt-4 pt-4 border-t border-zinc-700">
               <Link
                 to={`/activities/${activity.id}/chat`}
-                className="flex items-center justify-center gap-2 w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg transition-colors"
+                className="flex items-center justify-center gap-2 app-btn-primary-activity w-full py-3"
               >
                 <span>💬</span>
                 <span>Open Group Chat</span>
@@ -308,7 +308,7 @@ function ActivityDetailPage() {
 
         {/* Not Matched - Swipe Status Section */}
         {!hasMatch && activity.status === 'open' && (
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4 mb-4">
+          <div className="app-card p-4 mb-4">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-xl">🎯</span>
               <h2 className="text-lg font-semibold text-white">Activity Status</h2>
@@ -344,7 +344,7 @@ function ActivityDetailPage() {
 
         {/* Cancelled/Completed Status */}
         {(activity.status === 'cancelled' || activity.status === 'completed') && (
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6 text-center mb-4">
+          <div className="app-card p-6 text-center mb-4">
             <div className="text-4xl mb-3">
               {activity.status === 'cancelled' ? '❌' : '✅'}
             </div>

@@ -26,8 +26,6 @@ from .auth import (
 from .profiles import (
     ProfileCardDataSerializer,
     CountrySerializer,
-    RegionSerializer,
-    LocationTimingSerializer,
     HobbyTagSerializer,
     VehiclePhotoSerializer,
     VehicleSerializer,
@@ -95,8 +93,6 @@ __all__ = [
     # Profile
     'ProfileCardDataSerializer',
     'CountrySerializer',
-    'RegionSerializer',
-    'LocationTimingSerializer',
     'HobbyTagSerializer',
     'VehiclePhotoSerializer',
     'VehicleSerializer',

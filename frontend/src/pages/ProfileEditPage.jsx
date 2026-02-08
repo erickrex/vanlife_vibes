@@ -149,15 +149,6 @@ function ProfileEditPage() {
       setPrompts(promptsRes.data.data || promptsRes.data || []);
       setAvailablePrompts(availablePromptsRes.data.data || availablePromptsRes.data || []);
       
-      // Helper to format location from region data
-      const formatLocation = (locationData) => {
-        if (!locationData) return '';
-        if (locationData.region?.name) {
-          return `${locationData.region.name}, ${locationData.country?.code || 'US'}`;
-        }
-        return '';
-      };
-      
       setFormData({
         display_name: profile.display_name || '', bio: profile.bio || '',
         avatar_url: profile.avatar_url || '', cover_url: profile.cover_url || '',
@@ -168,9 +159,9 @@ function ProfileEditPage() {
         travel_status: profile.travel_status || '', travel_companions: profile.travel_companions || '',
         work_status: profile.work_status || '', camping_preferences: profile.camping_preferences || [],
         travel_pace: profile.travel_pace || '',
-        now_in_city: profile.now_in_city || formatLocation(profile.now_in),
-        next_week_in_city: profile.next_week_in_city || formatLocation(profile.next_week_in),
-        next_month_in_city: profile.next_month_in_city || formatLocation(profile.next_month_in),
+        now_in_city: profile.now_in_city || '',
+        next_week_in_city: profile.next_week_in_city || '',
+        next_month_in_city: profile.next_month_in_city || '',
         hobby_ids: profile.hobbies?.map(h => h.id) || [], profile_type: profile.profile_type || 'solo',
         group_description: profile.group_description || '', rig_status: profile.rig_status || '',
         social_vibe: profile.social_vibe || '', lifestyle_schedule: profile.lifestyle_schedule || '',
@@ -415,10 +406,10 @@ function ProfileEditPage() {
     );
   }
 
-  const inputClass = "w-full px-4 py-3 bg-zinc-900 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:border-zinc-500 focus:outline-none disabled:opacity-50";
-  const selectClass = "w-full px-4 py-3 bg-zinc-900 border border-zinc-700 rounded-lg text-white focus:border-zinc-500 focus:outline-none disabled:opacity-50";
+  const inputClass = "app-input disabled:opacity-50";
+  const selectClass = "app-input disabled:opacity-50";
   const labelClass = "block text-white text-sm font-medium mb-2";
-  const sectionClass = "bg-zinc-900 rounded-xl border border-zinc-800 p-4 mb-4";
+  const sectionClass = "app-card p-4 mb-4";
   const errorClass = "text-red-400 text-xs mt-1";
 
   return (
@@ -617,7 +608,7 @@ function ProfileEditPage() {
                 </div>
                 {windowError && <span className={errorClass}>{windowError}</span>}
                 <button type="button" onClick={handleAddWindow} disabled={addingWindow || saving}
-                  className="w-full py-2 border border-zinc-700 hover:border-zinc-500 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50">
+                  className="app-btn-secondary w-full py-2 text-sm disabled:opacity-50">
                   {addingWindow ? 'Adding...' : '+ Add Window'}
                 </button>
               </div>
@@ -672,7 +663,7 @@ function ProfileEditPage() {
                 )}
                 {promptError && <span className={errorClass}>{promptError}</span>}
                 <button type="button" onClick={handleAddPrompt} disabled={addingPrompt || saving || !newPrompt.prompt_name || !newPrompt.prompt_answer.trim()}
-                  className="w-full py-2 border border-zinc-700 hover:border-zinc-500 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50">
+                  className="app-btn-secondary w-full py-2 text-sm disabled:opacity-50">
                   {addingPrompt ? 'Adding...' : '+ Add Prompt'}
                 </button>
               </div>
@@ -912,7 +903,7 @@ function ProfileEditPage() {
           {/* Form Actions */}
           <div className="flex gap-3 mt-6">
             <button type="button" onClick={handleCancel} disabled={saving}
-              className="flex-1 py-3 border border-zinc-700 hover:border-zinc-500 text-white font-semibold rounded-lg transition-colors disabled:opacity-50">
+              className="app-btn-secondary flex-1 py-3 disabled:opacity-50">
               Cancel
             </button>
             <button type="submit" disabled={saving}

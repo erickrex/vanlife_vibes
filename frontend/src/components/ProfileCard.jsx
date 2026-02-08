@@ -48,7 +48,7 @@ function ProfileCard({ profile }) {
   return (
     <Link 
       to={`/profile/${id}`} 
-      className="flex items-center gap-3 p-3 bg-zinc-900 rounded-xl border border-zinc-800 hover:border-zinc-700 transition-colors"
+      className="flex items-center gap-3 p-3 app-card hover:border-zinc-700 transition-colors"
     >
       {/* Avatar */}
       <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-zinc-700 flex-shrink-0">

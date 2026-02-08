@@ -13,7 +13,7 @@ const STEPS = [
   {
     id: 'basics',
     title: 'Your basics',
-    subtitle: 'I am',
+    subtitle: 'I am, and who I am interested in',
   },
   {
     id: 'photo',
@@ -273,9 +273,9 @@ function OnboardingPage() {
         gender: formData.gender || null,
         looking_for_dating: !!formData.looking_for_dating,
         looking_for_friends: !!formData.looking_for_friends,
-        interested_in_men: !!formData.interested_in_men,
-        interested_in_women: !!formData.interested_in_women,
-        interested_in_nonbinary: !!formData.interested_in_nonbinary,
+        interested_in_men: !!formData.looking_for_dating && !!formData.interested_in_men,
+        interested_in_women: !!formData.looking_for_dating && !!formData.interested_in_women,
+        interested_in_nonbinary: !!formData.looking_for_dating && !!formData.interested_in_nonbinary,
         now_in_city: formData.now_in_city.trim(),
         next_week_in_city: formData.next_week_in_city.trim() || null,
         next_month_in_city: formData.next_month_in_city.trim() || null,
@@ -326,7 +326,7 @@ function OnboardingPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="app-shell flex items-center justify-center">
         <div className="text-zinc-500">Loading onboarding...</div>
       </div>
     );
@@ -343,14 +343,14 @@ function OnboardingPage() {
 
   return (
     <div
-      className="min-h-screen relative overflow-hidden text-[var(--onboard-ink)]"
+      className="app-shell relative overflow-hidden text-[var(--onboard-ink)]"
       style={{
         '--onboard-ink': '#f6f2ea',
-        '--onboard-muted': '#bfb6a7',
+        '--onboard-muted': '#d1c9bb',
         '--onboard-accent': '#f4a261',
-        '--onboard-accent-2': '#e76f51',
-        '--onboard-card': '#141210',
-        '--onboard-border': '#2a2622',
+        '--onboard-accent-2': '#2a6f97',
+        '--onboard-card': '#131914',
+        '--onboard-border': '#3a463d',
       }}
     >
       <div className="absolute -top-32 -left-24 h-96 w-96 rounded-full bg-[radial-gradient(circle_at_center,_rgba(244,162,97,0.35),_transparent_65%)] blur-2xl" />
@@ -399,7 +399,13 @@ function OnboardingPage() {
               <button
                 type="button"
                 className={intentButton(formData.looking_for_dating)}
-                onClick={() => setFormData(prev => ({ ...prev, looking_for_dating: !prev.looking_for_dating }))}
+                onClick={() => setFormData(prev => ({
+                  ...prev,
+                  looking_for_dating: !prev.looking_for_dating,
+                  interested_in_men: prev.looking_for_dating ? false : prev.interested_in_men,
+                  interested_in_women: prev.looking_for_dating ? false : prev.interested_in_women,
+                  interested_in_nonbinary: prev.looking_for_dating ? false : prev.interested_in_nonbinary,
+                }))}
               >
                 <div className="flex items-center justify-between">
                   <div>
@@ -409,56 +415,13 @@ function OnboardingPage() {
                   <span className={`h-5 w-5 rounded-full border ${formData.looking_for_dating ? 'bg-[var(--onboard-accent)] border-[var(--onboard-accent)]' : 'border-[var(--onboard-border)]'}`} />
                 </div>
               </button>
-
-              {/* Gender preference selection - only shown when Dating is selected */}
-              {formData.looking_for_dating && (
-                <div className="mt-6 pt-6 border-t border-[var(--onboard-border)]">
-                  <p className="text-sm text-[var(--onboard-muted)] mb-3">Interested in</p>
-                  <div className="flex flex-wrap gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, interested_in_men: !prev.interested_in_men }))}
-                      className={`px-4 py-2 rounded-full border transition-colors ${
-                        formData.interested_in_men
-                          ? 'border-[var(--onboard-accent)] bg-[rgba(244,162,97,0.12)] text-[var(--onboard-ink)]'
-                          : 'border-[var(--onboard-border)] text-[var(--onboard-muted)] hover:border-[var(--onboard-accent)]'
-                      }`}
-                    >
-                      Men
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, interested_in_women: !prev.interested_in_women }))}
-                      className={`px-4 py-2 rounded-full border transition-colors ${
-                        formData.interested_in_women
-                          ? 'border-[var(--onboard-accent)] bg-[rgba(244,162,97,0.12)] text-[var(--onboard-ink)]'
-                          : 'border-[var(--onboard-border)] text-[var(--onboard-muted)] hover:border-[var(--onboard-accent)]'
-                      }`}
-                    >
-                      Women
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, interested_in_nonbinary: !prev.interested_in_nonbinary }))}
-                      className={`px-4 py-2 rounded-full border transition-colors ${
-                        formData.interested_in_nonbinary
-                          ? 'border-[var(--onboard-accent)] bg-[rgba(244,162,97,0.12)] text-[var(--onboard-ink)]'
-                          : 'border-[var(--onboard-border)] text-[var(--onboard-muted)] hover:border-[var(--onboard-accent)]'
-                      }`}
-                    >
-                      Non-binary
-                    </button>
-                  </div>
-                  <p className="text-xs text-[var(--onboard-muted)] mt-2">Select one or more</p>
-                </div>
-              )}
             </div>
           )}
 
           {stepData?.id === 'basics' && (
             <div className="space-y-5">
               <div>
-                <label className="text-sm text-[var(--onboard-muted)]">Gender</label>
+                <label className="text-sm text-[var(--onboard-muted)]">I am</label>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {GENDER_OPTIONS.map(option => (
                     <button
@@ -476,6 +439,47 @@ function OnboardingPage() {
                   ))}
                 </div>
               </div>
+              {formData.looking_for_dating && (
+                <div>
+                  <label className="text-sm text-[var(--onboard-muted)]">I am interested in</label>
+                  <p className="text-xs text-[var(--onboard-muted)] mt-1">(because you selected dating)</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, interested_in_men: !prev.interested_in_men }))}
+                      className={`px-4 py-2 rounded-full border transition-colors ${
+                        formData.interested_in_men
+                          ? 'border-[var(--onboard-accent)] bg-[rgba(244,162,97,0.12)] text-[var(--onboard-ink)]'
+                          : 'border-[var(--onboard-border)] text-[var(--onboard-muted)] hover:border-[var(--onboard-accent)]'
+                      }`}
+                    >
+                      Man
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, interested_in_women: !prev.interested_in_women }))}
+                      className={`px-4 py-2 rounded-full border transition-colors ${
+                        formData.interested_in_women
+                          ? 'border-[var(--onboard-accent)] bg-[rgba(244,162,97,0.12)] text-[var(--onboard-ink)]'
+                          : 'border-[var(--onboard-border)] text-[var(--onboard-muted)] hover:border-[var(--onboard-accent)]'
+                      }`}
+                    >
+                      Woman
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, interested_in_nonbinary: !prev.interested_in_nonbinary }))}
+                      className={`px-4 py-2 rounded-full border transition-colors ${
+                        formData.interested_in_nonbinary
+                          ? 'border-[var(--onboard-accent)] bg-[rgba(244,162,97,0.12)] text-[var(--onboard-ink)]'
+                          : 'border-[var(--onboard-border)] text-[var(--onboard-muted)] hover:border-[var(--onboard-accent)]'
+                      }`}
+                    >
+                      Non-binary
+                    </button>
+                  </div>
+                </div>
+              )}
               <div>
                 <label className="text-sm text-[var(--onboard-muted)]">Display name</label>
                 <input
@@ -648,7 +652,7 @@ function OnboardingPage() {
               <div>
                 <label className="text-sm text-[var(--onboard-muted)]">Your answer</label>
                 <textarea
-                  className="mt-2 w-full rounded-2xl border border-[var(--onboard-border)] bg-black/30 px-4 py-3 text-[var(--onboard-ink)] focus:border-[var(--onboard-accent)] focus:outline-none min-h-[120px]"
+                  className="mt-2 w-full rounded-2xl border border-[var(--onboard-border)] bg-black/30 px-4 py-3 text-[var(--onboard-ink)] focus:border-[var(--onboard-accent)] focus:outline-none min-h-[72px]"
                   value={formData.prompt_answer}
                   onChange={(e) => setFormData(prev => ({ ...prev, prompt_answer: e.target.value }))}
                   placeholder={promptOnePlaceholder}
@@ -677,7 +681,7 @@ function OnboardingPage() {
               <div>
                 <label className="text-sm text-[var(--onboard-muted)]">Your answer</label>
                 <textarea
-                  className="mt-2 w-full rounded-2xl border border-[var(--onboard-border)] bg-black/30 px-4 py-3 text-[var(--onboard-ink)] focus:border-[var(--onboard-accent)] focus:outline-none min-h-[120px]"
+                  className="mt-2 w-full rounded-2xl border border-[var(--onboard-border)] bg-black/30 px-4 py-3 text-[var(--onboard-ink)] focus:border-[var(--onboard-accent)] focus:outline-none min-h-[72px]"
                   value={formData.prompt_answer_2}
                   onChange={(e) => setFormData(prev => ({ ...prev, prompt_answer_2: e.target.value }))}
                   placeholder={promptTwoPlaceholder}

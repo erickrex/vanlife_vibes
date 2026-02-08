@@ -213,19 +213,9 @@ function ProfilePage() {
     navigate(`/friends/${profile.friendship_id}/chat`);
   };
 
-  const formatLocation = (location, cityField) => {
-    // Prefer city field (new simplified format)
-    if (cityField) {
-      return cityField;
-    }
-    // Fall back to region-based location (legacy)
-    if (!location) return null;
-    const regionName = location.region?.name || '';
-    const countryName = location.country?.name || '';
-    if (regionName && countryName) {
-      return `${regionName}, ${countryName}`;
-    }
-    return regionName || countryName || null;
+  const formatLocation = (cityField) => {
+    // Return city field directly (e.g., "Los Angeles, CA")
+    return cityField || null;
   };
 
   if (loading) {
@@ -278,7 +268,7 @@ function ProfilePage() {
             {isOwnProfile ? (
               <Link
                 to="/profile/edit"
-                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold text-sm transition-colors"
+                className="app-btn-primary-social px-4 py-2 text-sm"
               >
                 Edit Profile
               </Link>
@@ -289,7 +279,7 @@ function ProfilePage() {
                   <button
                     onClick={handleSendFriendRequest}
                     disabled={friendActionLoading}
-                    className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold text-sm transition-all disabled:opacity-50"
+                    className="app-btn-primary-social px-4 py-2 text-sm transition-all"
                   >
                     {friendActionLoading ? 'Sending...' : 'Add Friend'}
                   </button>
@@ -306,7 +296,7 @@ function ProfilePage() {
                     <button
                       onClick={handleAcceptFriendRequest}
                       disabled={friendActionLoading}
-                      className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-semibold text-sm transition-all disabled:opacity-50"
+                      className="app-btn-primary-activity px-4 py-2 text-sm transition-all"
                     >
                       {friendActionLoading ? '...' : 'Accept'}
                     </button>
@@ -327,7 +317,7 @@ function ProfilePage() {
                     </span>
                     <button
                       onClick={handleMessageFriend}
-                      className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold text-sm transition-all"
+                      className="app-btn-primary-social px-4 py-2 text-sm transition-all"
                     >
                       Message
                     </button>
@@ -341,7 +331,7 @@ function ProfilePage() {
                   className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all disabled:opacity-50 ${
                     profile?.is_following
                       ? 'bg-zinc-800 text-white border border-zinc-700 hover:bg-red-500 hover:border-red-500'
-                      : 'bg-zinc-800 text-white border border-zinc-700 hover:border-zinc-500'
+                      : 'app-btn-secondary'
                   }`}
                 >
                   {followLoading ? '...' : profile?.is_following ? 'Following' : 'Follow'}
@@ -413,35 +403,35 @@ function ProfilePage() {
               📍 Location
             </h2>
             <div className="space-y-2">
-              {(profile?.now_in_city || profile?.now_in) && (
+              {profile?.now_in_city && (
                 <div className="flex items-center gap-2 p-3 bg-zinc-900 rounded-lg">
                   <span className="text-emerald-400 font-medium text-sm">Now:</span>
                   <span className="text-zinc-300">
-                    {formatLocation(profile.now_in, profile.now_in_city)}
+                    {formatLocation(profile.now_in_city)}
                   </span>
                 </div>
               )}
-              {(profile?.next_week_in_city || profile?.next_week_in) && (
+              {profile?.next_week_in_city && (
                 <div className="flex items-center gap-2 p-3 bg-zinc-900 rounded-lg">
                   <span className="text-yellow-400 font-medium text-sm">Next Week:</span>
                   <span className="text-zinc-300">
                     {profile.next_week_in_city === 'Open plans' 
                       ? '🗺️ Open plans (flexible)' 
-                      : formatLocation(profile.next_week_in, profile.next_week_in_city)}
+                      : formatLocation(profile.next_week_in_city)}
                   </span>
                 </div>
               )}
-              {(profile?.next_month_in_city || profile?.next_month_in) && (
+              {profile?.next_month_in_city && (
                 <div className="flex items-center gap-2 p-3 bg-zinc-900 rounded-lg">
                   <span className="text-orange-400 font-medium text-sm">Next Month:</span>
                   <span className="text-zinc-300">
                     {profile.next_month_in_city === 'Open plans' 
                       ? '🗺️ Open plans (flexible)' 
-                      : formatLocation(profile.next_month_in, profile.next_month_in_city)}
+                      : formatLocation(profile.next_month_in_city)}
                   </span>
                 </div>
               )}
-              {!profile?.now_in_city && !profile?.now_in && !profile?.next_week_in_city && !profile?.next_week_in && !profile?.next_month_in_city && !profile?.next_month_in && (
+              {!profile?.now_in_city && !profile?.next_week_in_city && !profile?.next_month_in_city && (
                 <p className="text-zinc-500 text-sm italic">No location set</p>
               )}
             </div>

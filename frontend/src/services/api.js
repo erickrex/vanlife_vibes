@@ -118,12 +118,6 @@ export const profilesAPI = {
 // Locations API
 export const locationsAPI = {
   getCountries: () => api.get('/locations/countries/'),
-  getRegions: (countryId) => {
-    if (countryId) {
-      return api.get('/locations/regions/', { params: { country: countryId } });
-    }
-    return api.get('/locations/regions/');
-  },
   getCities: (query = '') => api.get('/locations/cities/', { params: query ? { q: query } : {} }),
 };
 
