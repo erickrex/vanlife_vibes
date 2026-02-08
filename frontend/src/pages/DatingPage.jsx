@@ -118,7 +118,7 @@ function DatingPage() {
   // Loading state
   if (loading && datingEnabled === null) {
     return (
-      <div className="min-h-screen bg-black pb-20">
+      <div className="app-shell pb-20">
         <div className="max-w-lg mx-auto">
           {/* Header */}
           <header className="px-4 py-4 flex items-center justify-between border-b border-zinc-800">
@@ -154,7 +154,7 @@ function DatingPage() {
   // THEN THE Dating_Tab SHALL prompt them to enable dating in their profile settings
   if (datingEnabled === false) {
     return (
-      <div className="min-h-screen bg-black pb-20">
+      <div className="app-shell pb-20">
         <div className="max-w-lg mx-auto">
           {/* Header */}
           <header className="px-4 py-4 flex items-center justify-between border-b border-zinc-800">
@@ -224,7 +224,7 @@ function DatingPage() {
   // Loading state (dating is enabled, loading profiles)
   if (loading) {
     return (
-      <div className="min-h-screen bg-black pb-20">
+      <div className="app-shell pb-20">
         <div className="max-w-lg mx-auto">
           {/* Header */}
           <header className="px-4 py-4 flex items-center justify-between border-b border-zinc-800">
@@ -258,7 +258,7 @@ function DatingPage() {
   // Error state
   if (error && profiles.length === 0) {
     return (
-      <div className="min-h-screen bg-black pb-20">
+      <div className="app-shell pb-20">
         <div className="max-w-lg mx-auto">
           {/* Header */}
           <header className="px-4 py-4 flex items-center justify-between border-b border-zinc-800">
@@ -295,7 +295,7 @@ function DatingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black pb-20">
+    <div className="app-shell pb-20">
       <div className="max-w-lg mx-auto">
         {/* Header - Rose/Pink themed */}
         <header className="px-4 py-4 flex items-center justify-between border-b border-zinc-800">

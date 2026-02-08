@@ -60,10 +60,10 @@ function NearbyFeedPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-black">
+      <div className="app-shell">
         <div className="max-w-lg mx-auto px-4 py-8">
           <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-            <div className="w-8 h-8 border-2 border-zinc-700 border-t-blue-500 rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-zinc-700 border-t-cyan-400 rounded-full animate-spin" />
             <p className="text-zinc-500">Finding travelers nearby...</p>
           </div>
         </div>
@@ -74,13 +74,13 @@ function NearbyFeedPage() {
   // Error state
   if (error && isEmpty) {
     return (
-      <div className="min-h-screen bg-black">
+      <div className="app-shell">
         <div className="max-w-lg mx-auto px-4 py-8">
           <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center">
             <p className="text-red-400">{error}</p>
             <button 
               onClick={() => loadFeed()}
-              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold rounded-lg transition-colors"
+              className="app-btn-primary-social text-sm"
             >
               Try Again
             </button>
@@ -91,7 +91,7 @@ function NearbyFeedPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="app-shell">
       <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
         {/* Header */}
         <header className="text-center space-y-1">
@@ -99,7 +99,7 @@ function NearbyFeedPage() {
           <p className="text-sm text-zinc-500">People in your area</p>
           {refreshing && (
             <div className="flex items-center justify-center gap-2 text-zinc-500 text-sm">
-              <div className="w-4 h-4 border-2 border-zinc-700 border-t-blue-500 rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-zinc-700 border-t-cyan-400 rounded-full animate-spin" />
               Refreshing...
             </div>
           )}
@@ -122,7 +122,7 @@ function NearbyFeedPage() {
             </p>
             <button 
               onClick={() => navigate('/profile/edit')}
-              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold rounded-lg transition-colors"
+              className="app-btn-primary-social text-sm"
             >
               Update Location
             </button>

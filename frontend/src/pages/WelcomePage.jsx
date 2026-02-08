@@ -200,7 +200,7 @@ function WelcomePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black">
+      <div className="app-shell">
         <div className="max-w-4xl mx-auto px-4 py-16 flex items-center justify-center">
           <div className="text-zinc-500">Preparing your first matches...</div>
         </div>
@@ -209,7 +209,7 @@ function WelcomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-black pb-12">
+    <div className="app-shell pb-12">
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         <header className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
           <p className="text-zinc-400 text-sm mb-2">Your first roadmap</p>

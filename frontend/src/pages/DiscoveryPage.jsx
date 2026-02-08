@@ -83,10 +83,10 @@ function DiscoveryPage() {
   const renderTabs = () => (
     <div className="flex border-b border-zinc-800">
       <button
-        className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold transition-colors ${
+        className={`app-tab flex items-center justify-center gap-2 ${
           mode === 'dating' 
-            ? 'text-rose-500 border-b-2 border-rose-500' 
-            : 'text-zinc-500 hover:text-zinc-300'
+            ? 'app-tab-active-dating' 
+            : 'app-tab-inactive'
         }`}
         onClick={() => handleModeChange('dating')}
       >
@@ -94,10 +94,10 @@ function DiscoveryPage() {
         <span>Dating</span>
       </button>
       <button
-        className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold transition-colors ${
+        className={`app-tab flex items-center justify-center gap-2 ${
           mode === 'friends' 
-            ? 'text-blue-500 border-b-2 border-blue-500' 
-            : 'text-zinc-500 hover:text-zinc-300'
+            ? 'app-tab-active-social' 
+            : 'app-tab-inactive'
         }`}
         onClick={() => handleModeChange('friends')}
       >
@@ -109,7 +109,7 @@ function DiscoveryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black pb-20">
+      <div className="app-shell pb-20">
         <div className="max-w-lg mx-auto">
           {renderTabs()}
           <div className="flex flex-col items-center justify-center py-20">
@@ -127,14 +127,14 @@ function DiscoveryPage() {
 
   if (error && profiles.length === 0) {
     return (
-      <div className="min-h-screen bg-black pb-20">
+      <div className="app-shell pb-20">
         <div className="max-w-lg mx-auto">
           {renderTabs()}
           <div className="flex flex-col items-center justify-center py-20 px-4">
             <p className="text-red-400 mb-4">{error}</p>
             <button 
-              className={`px-4 py-2 rounded-lg font-semibold text-sm text-white ${
-                mode === 'dating' ? 'bg-rose-500 hover:bg-rose-600' : 'bg-blue-500 hover:bg-blue-600'
+              className={`px-4 py-2 text-sm ${
+                mode === 'dating' ? 'app-btn-primary-dating' : 'app-btn-primary-social'
               }`}
               onClick={() => loadProfiles()}
             >
@@ -147,7 +147,7 @@ function DiscoveryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black pb-20">
+    <div className="app-shell pb-20">
       <div className="max-w-lg mx-auto">
         {renderTabs()}
 
@@ -222,8 +222,8 @@ function DiscoveryPage() {
                 : 'No one nearby is looking for friends right now. Check back later!'}
             </p>
             <button 
-              className={`px-4 py-2 rounded-lg font-semibold text-sm text-white ${
-                mode === 'dating' ? 'bg-rose-500 hover:bg-rose-600' : 'bg-blue-500 hover:bg-blue-600'
+              className={`px-4 py-2 text-sm ${
+                mode === 'dating' ? 'app-btn-primary-dating' : 'app-btn-primary-social'
               }`}
               onClick={() => loadProfiles()}
             >
@@ -263,7 +263,7 @@ function DiscoveryPage() {
               {profiles.map((profile) => (
                 <div 
                   key={profile.id}
-                  className={`bg-zinc-900 rounded-xl border overflow-hidden cursor-pointer transition-all hover:scale-[1.02] ${
+                  className={`app-card overflow-hidden cursor-pointer transition-all hover:scale-[1.02] ${
                     mode === 'dating' ? 'border-rose-500/20 hover:border-rose-500/40' : 'border-blue-500/20 hover:border-blue-500/40'
                   }`}
                   onClick={() => handleProfileClick(profile.id)}

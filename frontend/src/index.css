@@ -17,8 +17,111 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
+:root {
+  --app-bg: #09090b;
+  --app-bg-elevated: #111114;
+  --app-surface: #18181b;
+  --app-surface-muted: #27272a;
+  --app-border: #3f3f46;
+  --app-text: #ffffff;
+  --app-text-muted: #a1a1aa;
+  --app-accent-social: #3b82f6;
+  --app-accent-social-hover: #2563eb;
+  --app-accent-dating: #f43f5e;
+  --app-accent-dating-hover: #e11d48;
+  --app-accent-activity: #10b981;
+  --app-accent-activity-hover: #059669;
+}
+
 body {
-  @apply bg-black text-white min-h-screen;
+  background:
+    radial-gradient(circle at 10% 12%, rgba(16, 185, 129, 0.09), transparent 35%),
+    radial-gradient(circle at 88% 8%, rgba(244, 63, 94, 0.09), transparent 30%),
+    radial-gradient(circle at 50% 100%, rgba(59, 130, 246, 0.08), transparent 42%),
+    linear-gradient(180deg, var(--app-bg) 0%, #050507 100%);
+  color: var(--app-text);
+  @apply min-h-screen;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.04) 1px, transparent 0),
+    linear-gradient(120deg, rgba(255, 255, 255, 0.015), rgba(255, 255, 255, 0));
+  background-size: 24px 24px, 100% 100%;
+  opacity: 0.45;
+  z-index: -1;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.app-shell {
+  @apply min-h-screen;
+}
+
+.app-panel {
+  @apply rounded-2xl border border-zinc-800/90 bg-zinc-900/85 shadow-xl shadow-black/25 backdrop-blur-sm;
+}
+
+.app-card {
+  @apply rounded-xl border border-zinc-800/85 bg-zinc-900/75 shadow-lg shadow-black/20;
+}
+
+.app-input {
+  @apply w-full rounded-xl border border-zinc-700 bg-zinc-900/80 px-4 py-3 text-white placeholder-zinc-500 transition-colors focus:border-zinc-500 focus:outline-none;
+}
+
+.app-btn-primary-social {
+  @apply rounded-xl bg-blue-500 px-4 py-2.5 font-semibold text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.app-btn-primary-dating {
+  @apply rounded-xl bg-rose-500 px-4 py-2.5 font-semibold text-white transition-colors hover:bg-rose-600 disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.app-btn-primary-activity {
+  @apply rounded-xl bg-emerald-500 px-4 py-2.5 font-semibold text-white transition-colors hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.app-btn-secondary {
+  @apply rounded-xl border border-zinc-700 px-4 py-2.5 font-semibold text-white transition-colors hover:border-zinc-500 disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.app-tab {
+  @apply flex-1 py-3 text-sm font-semibold transition-colors;
+}
+
+.app-tab-inactive {
+  @apply text-zinc-500 hover:text-zinc-300;
+}
+
+.app-tab-active-social {
+  @apply border-b-2 border-blue-500 text-blue-400;
+}
+
+.app-tab-active-dating {
+  @apply border-b-2 border-rose-500 text-rose-400;
+}
+
+.app-tab-active-activity {
+  @apply border-b-2 border-emerald-500 text-emerald-400;
+}
+
+.app-topbar {
+  @apply sticky top-0 z-50 border-b border-zinc-800/90 bg-zinc-950/85 backdrop-blur;
+}
+
+.app-bottom-nav {
+  @apply border-t border-zinc-800/90 bg-zinc-950/90 backdrop-blur;
+}
+
+.app-brand-gradient {
+  @apply bg-gradient-to-r from-emerald-400 via-cyan-400 to-rose-400 bg-clip-text text-transparent;
 }
 
 /* Safe area padding for mobile devices with notches */
@@ -50,7 +153,7 @@ body {
 
 /* Focus visible for keyboard navigation */
 :focus-visible {
-  @apply outline-none ring-2 ring-blue-500 ring-offset-2 ring-offset-black;
+  @apply outline-none ring-2 ring-cyan-500 ring-offset-2 ring-offset-black;
 }
 
 /* Remove default focus outline, rely on focus-visible */
@@ -60,7 +163,7 @@ body {
 
 /* Link defaults - only for unstyled links */
 a:not([class*="text-"]):not([class*="bg-"]) {
-  @apply text-blue-500 hover:text-blue-400 transition-colors;
+  @apply text-cyan-400 hover:text-cyan-300 transition-colors;
 }
 
 /* Button reset */
@@ -105,7 +208,7 @@ select {
 
 /* Gradient text (brand accent) */
 .text-gradient {
-  @apply bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-emerald-400 via-cyan-400 to-rose-400 bg-clip-text text-transparent;
 }
 
 /* Gradient border ring (stories-style) */

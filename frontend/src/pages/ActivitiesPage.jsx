@@ -2,49 +2,14 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useSwipeable } from 'react-swipeable';
 import { activitiesAPI } from '../services/api';
+import { getActivityTypeEmoji, getActivityTypeInfo, getActivityTypesArray } from '../utils/constants';
 
 /**
- * Activity type options for filtering
- * Matches the ACTIVITY_TYPE_CHOICES from the backend Activity model
- */
-const ACTIVITY_TYPES = [
-  { value: '', label: 'All Activities' },
-  { value: 'climbing', label: '🧗 Climbing' },
-  { value: 'snowboarding', label: '🏂 Snowboarding' },
-  { value: 'skiing', label: '⛷️ Skiing' },
-  { value: 'hiking', label: '🥾 Hiking' },
-  { value: 'kayaking', label: '🛶 Kayaking' },
-  { value: 'surfing', label: '🏄 Surfing' },
-  { value: 'biking', label: '🚴 Biking' },
-  { value: 'camping', label: '🏕️ Camping' },
-  { value: 'coffee', label: '☕ Coffee' },
-  { value: 'cowork', label: '💻 Cowork' },
-  { value: 'potluck', label: '🍲 Potluck' },
-  { value: 'campfire', label: '🔥 Campfire' },
-  { value: 'dog_walk', label: '🐕 Dog Walk' },
-  { value: 'sunset', label: '🌅 Sunset' },
-  { value: 'sunrise_hike', label: '🌄 Sunrise Hike' },
-  { value: 'other', label: '✨ Other' },
-];
-
-/**
- * Get emoji for activity type
- */
-function getActivityTypeEmoji(type) {
-  const found = ACTIVITY_TYPES.find(t => t.value === type);
-  if (found && found.label) {
-    const emoji = found.label.split(' ')[0];
-    return emoji;
-  }
-  return '📅';
-}
-
-/**
- * Get display label for activity type
+ * Get display label for activity type (with emoji prefix)
  */
 function getActivityTypeLabel(type) {
-  const found = ACTIVITY_TYPES.find(t => t.value === type);
-  return found ? found.label : type;
+  const info = getActivityTypeInfo(type);
+  return `${info.emoji} ${info.label}`;
 }
 
 /**
@@ -569,7 +534,7 @@ function ActivitiesPage() {
   });
   const [showFilters, setShowFilters] = useState(false);
 
-  // Load activities for discovery (Requirement 5.1)
+  // Load activities for discovery
   const loadActivities = useCallback(async () => {
     try {
       setLoading(true);
@@ -592,7 +557,7 @@ function ActivitiesPage() {
     }
   }, [filters]);
 
-  // Load user's created activities (Requirement 5.6)
+  // Load user's created activities
   const loadMyActivities = useCallback(async () => {
     try {
       setLoading(true);
@@ -609,7 +574,7 @@ function ActivitiesPage() {
     }
   }, []);
 
-  // Load user's matched activities (Requirement 5.6)
+  // Load user's matched activities
   const loadMyMatches = useCallback(async () => {
     try {
       setLoading(true);
@@ -674,10 +639,10 @@ function ActivitiesPage() {
   const renderTabs = () => (
     <div className="flex border-b border-zinc-800">
       <button
-        className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold transition-colors ${
+        className={`app-tab flex items-center justify-center gap-2 ${
           viewMode === 'discover' 
-            ? 'text-emerald-500 border-b-2 border-emerald-500' 
-            : 'text-zinc-500 hover:text-zinc-300'
+            ? 'app-tab-active-activity' 
+            : 'app-tab-inactive'
         }`}
         onClick={() => setViewMode('discover')}
       >
@@ -685,10 +650,10 @@ function ActivitiesPage() {
         <span>Discover</span>
       </button>
       <button
-        className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold transition-colors ${
+        className={`app-tab flex items-center justify-center gap-2 ${
           viewMode === 'my-activities' 
-            ? 'text-emerald-500 border-b-2 border-emerald-500' 
-            : 'text-zinc-500 hover:text-zinc-300'
+            ? 'app-tab-active-activity' 
+            : 'app-tab-inactive'
         }`}
         onClick={() => setViewMode('my-activities')}
       >
@@ -696,10 +661,10 @@ function ActivitiesPage() {
         <span>My Activities</span>
       </button>
       <button
-        className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold transition-colors ${
+        className={`app-tab flex items-center justify-center gap-2 ${
           viewMode === 'my-matches' 
-            ? 'text-emerald-500 border-b-2 border-emerald-500' 
-            : 'text-zinc-500 hover:text-zinc-300'
+            ? 'app-tab-active-activity' 
+            : 'app-tab-inactive'
         }`}
         onClick={() => setViewMode('my-matches')}
       >
@@ -712,7 +677,7 @@ function ActivitiesPage() {
 
   // Render filter controls (Requirements 5.7, 9.1-9.6)
   const renderFilters = () => (
-    <div className={`overflow-hidden transition-all duration-300 ${showFilters ? 'max-h-96' : 'max-h-0'}`}>
+      <div className={`overflow-hidden transition-all duration-300 ${showFilters ? 'max-h-96' : 'max-h-0'}`}>
       <div className="px-4 py-4 space-y-4 bg-zinc-900/50 border-b border-zinc-800">
         {/* Activity Type Filter (Requirement 5.7, 9.3) */}
         <div>
@@ -722,13 +687,15 @@ function ActivitiesPage() {
             onChange={(e) => handleFilterChange('activity_type', e.target.value)}
             className="w-full px-4 py-3 bg-zinc-900 border border-zinc-700 rounded-lg text-white focus:border-emerald-500 focus:outline-none"
           >
-            {ACTIVITY_TYPES.map(type => (
-              <option key={type.value} value={type.value}>{type.label}</option>
+            {getActivityTypesArray(true).map(type => (
+              <option key={type.value} value={type.value}>
+                {type.emoji ? `${type.emoji} ${type.label}` : type.label}
+              </option>
             ))}
           </select>
         </div>
         
-        {/* Date Range Filter (Requirement 9.1) */}
+        {/* Date Range Filter */}
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-zinc-400 text-sm mb-2">From Date</label>
@@ -750,7 +717,7 @@ function ActivitiesPage() {
           </div>
         </div>
         
-        {/* Location Filter (Requirement 9.2) */}
+        {/* Location Filter */}
         <div>
           <label className="block text-zinc-400 text-sm mb-2">Location</label>
           <input
@@ -787,7 +754,7 @@ function ActivitiesPage() {
           {viewMode === 'my-activities' && (
             <Link
               to="/activities/create"
-              className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg transition-colors"
+              className="app-btn-primary-activity px-6 py-3"
             >
               Create Activity
             </Link>
@@ -801,7 +768,7 @@ function ActivitiesPage() {
         {activityList.map((activity) => (
           <div
             key={activity.id}
-            className="bg-zinc-900 rounded-xl border border-zinc-800 hover:border-emerald-500/30 overflow-hidden cursor-pointer transition-all"
+            className="app-card hover:border-emerald-500/30 overflow-hidden cursor-pointer transition-all"
             onClick={() => handleActivityClick(activity.id)}
           >
             <div className="flex">
@@ -851,7 +818,7 @@ function ActivitiesPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-black pb-20">
+      <div className="app-shell pb-20">
         <div className="max-w-lg mx-auto">
           {/* Header */}
           <header className="px-4 py-4 flex items-center justify-between border-b border-zinc-800">
@@ -861,7 +828,7 @@ function ActivitiesPage() {
             </h1>
             <Link
               to="/activities/create"
-              className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg transition-colors"
+              className="app-btn-primary-activity text-sm"
             >
               + Create
             </Link>
@@ -881,7 +848,7 @@ function ActivitiesPage() {
   // Error state
   if (error && activities.length === 0 && myActivities.length === 0 && myMatches.length === 0) {
     return (
-      <div className="min-h-screen bg-black pb-20">
+      <div className="app-shell pb-20">
         <div className="max-w-lg mx-auto">
           {/* Header */}
           <header className="px-4 py-4 flex items-center justify-between border-b border-zinc-800">
@@ -891,7 +858,7 @@ function ActivitiesPage() {
             </h1>
             <Link
               to="/activities/create"
-              className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg transition-colors"
+              className="app-btn-primary-activity text-sm"
             >
               + Create
             </Link>
@@ -902,7 +869,7 @@ function ActivitiesPage() {
           <div className="flex flex-col items-center justify-center py-20 px-4">
             <p className="text-red-400 mb-4">{error}</p>
             <button 
-              className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 rounded-lg font-semibold text-sm text-white"
+              className="app-btn-primary-activity px-4 py-2 text-sm"
               onClick={() => {
                 if (viewMode === 'discover') loadActivities();
                 else if (viewMode === 'my-activities') loadMyActivities();
@@ -919,9 +886,9 @@ function ActivitiesPage() {
 
 
   return (
-    <div className="min-h-screen bg-black pb-20">
+    <div className="app-shell pb-20">
       <div className="max-w-lg mx-auto">
-        {/* Header - Emerald themed (Requirement 5.2) */}
+        {/* Header - Emerald themed */}
         <header className="px-4 py-4 flex items-center justify-between border-b border-zinc-800">
           <div>
             <h1 className="text-xl font-bold text-white flex items-center gap-2">
@@ -949,10 +916,10 @@ function ActivitiesPage() {
               </button>
             )}
             
-            {/* Create button (Requirement 5.2) */}
+            {/* Create button */}
             <Link
               to="/activities/create"
-              className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg transition-colors"
+              className="app-btn-primary-activity text-sm"
             >
               + Create
             </Link>
@@ -988,14 +955,14 @@ function ActivitiesPage() {
                   {hasActiveFilters && (
                     <button
                       onClick={handleClearFilters}
-                      className="px-4 py-2 border border-zinc-700 hover:border-zinc-500 text-white text-sm font-semibold rounded-lg transition-colors"
+                      className="app-btn-secondary px-4 py-2 text-sm"
                     >
                       Clear Filters
                     </button>
                   )}
                   <Link
                     to="/activities/create"
-                    className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg transition-colors"
+                    className="app-btn-primary-activity px-4 py-2 text-sm"
                   >
                     Create Activity
                   </Link>

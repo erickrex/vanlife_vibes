@@ -78,9 +78,8 @@ function SignupForm() {
   };
 
   const inputClasses = (hasError) => `
-    w-full px-4 py-3 bg-zinc-900 border rounded-lg text-white placeholder-zinc-500 
-    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors
-    ${hasError ? 'border-red-500' : 'border-zinc-700'}
+    app-input
+    ${hasError ? 'border-red-500' : ''}
   `;
 
   return (
@@ -186,8 +185,7 @@ function SignupForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full py-3 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed 
-          text-white font-semibold rounded-lg transition-colors"
+        className="app-btn-primary-social w-full py-3"
       >
         {isSubmitting ? 'Creating Account...' : 'Sign Up'}
       </button>

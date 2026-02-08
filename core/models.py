@@ -122,7 +122,7 @@ class Profile(models.Model):
         ('solo_mode', 'Solo Mode'),
     ]
 
-    # Rig status choices for nomad-logistics feature (Requirement 2.1)
+    # Rig status choices for nomad-logistics feature
     RIG_STATUS_CHOICES = [
         ('van', 'Van'),
         ('rv', 'RV'),
@@ -133,39 +133,39 @@ class Profile(models.Model):
         ('other', 'Other'),
     ]
 
-    # Social vibe choices for nomad-logistics feature (Requirement 3.2)
+    # Social vibe choices for nomad-logistics feature
     SOCIAL_VIBE_CHOICES = [
         ('introvert', 'Introvert'),
         ('balanced', 'Balanced'),
         ('social', 'Social'),
     ]
 
-    # Lifestyle schedule choices for nomad-logistics feature (Requirement 3.6)
+    # Lifestyle schedule choices for nomad-logistics feature
     LIFESTYLE_SCHEDULE_CHOICES = [
         ('early_bird', 'Early Bird'),
         ('night_owl', 'Night Owl'),
     ]
 
-    # Lifestyle social choices for nomad-logistics feature (Requirement 3.6)
+    # Lifestyle social choices for nomad-logistics feature
     LIFESTYLE_SOCIAL_CHOICES = [
         ('quiet', 'Quiet'),
         ('party', 'Party'),
     ]
 
-    # Lifestyle environment choices for nomad-logistics feature (Requirement 3.6)
+    # Lifestyle environment choices for nomad-logistics feature
     LIFESTYLE_ENVIRONMENT_CHOICES = [
         ('outdoors', 'Outdoors'),
         ('city_mix', 'City Mix'),
     ]
 
-    # Pet type choices for nomad-logistics feature (Requirement 3.4)
+    # Pet type choices for nomad-logistics feature
     PET_TYPE_CHOICES = [
         ('dog', 'Dog'),
         ('cat', 'Cat'),
         ('other', 'Other'),
     ]
 
-    # Relationship status choices for friend-intent-filtering feature (Requirement 6.1)
+    # Relationship status choices for friend-intent-filtering feature
     RELATIONSHIP_STATUS_CHOICES = [
         ('single', 'Single'),
         ('in_relationship', 'In a Relationship'),
@@ -180,7 +180,7 @@ class Profile(models.Model):
         ('non_binary', 'Non-binary'),
     ]
 
-    # Looking for friend type choices for friend-intent-filtering feature (Requirement 6.2)
+    # Looking for friend type choices for friend-intent-filtering feature
     LOOKING_FOR_FRIEND_TYPE_CHOICES = [
         ('any', 'Any'),
         ('singles_only', 'Singles Only'),

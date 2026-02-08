@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { profilesAPI, friendsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { DEFAULT_AVATAR } from '../utils/constants';
 
 // Default placeholder images
-const DEFAULT_AVATAR = 'https://via.placeholder.com/150/6c5ce7/ffffff?text=👤';
 const DEFAULT_COVER = 'https://via.placeholder.com/800x300/1e1e3f/6c5ce7?text=Cover+Photo';
 
 // Display labels for enum values
@@ -230,7 +230,7 @@ function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black pb-20">
+      <div className="app-shell pb-20">
         <div className="flex justify-center items-center min-h-[50vh]">
           <div className="text-zinc-500">Loading profile...</div>
         </div>
@@ -240,7 +240,7 @@ function ProfilePage() {
 
   if (error && !profile) {
     return (
-      <div className="min-h-screen bg-black pb-20">
+      <div className="app-shell pb-20">
         <div className="text-center py-12 px-4">
           <p className="text-red-400 mb-4">{error}</p>
           <Link to="/" className="text-blue-500 hover:underline">
@@ -252,7 +252,7 @@ function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-black pb-20">
+    <div className="app-shell pb-20">
       <div className="max-w-lg mx-auto">
         {/* Cover Photo */}
         <div className="relative h-32 sm:h-48 bg-zinc-900 overflow-hidden">

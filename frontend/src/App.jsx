@@ -73,7 +73,7 @@ function AppContent() {
 
   if (loading || (isAuthenticated && profileLoading)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
+      <div className="app-shell flex items-center justify-center">
         <div className="text-zinc-500">Loading...</div>
       </div>
     );
@@ -90,7 +90,7 @@ function AppContent() {
   
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-x-hidden bg-black">
+    <div className="app-shell flex flex-col relative overflow-x-hidden">
       {!hideNavigation && <Navigation />}
       <main className={`flex-1 mx-auto w-full max-w-6xl px-4 py-6 sm:py-8 ${showTabNav ? 'pb-20' : ''}`}>
         <Routes>

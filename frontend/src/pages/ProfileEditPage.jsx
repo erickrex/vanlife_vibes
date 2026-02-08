@@ -407,7 +407,7 @@ function ProfileEditPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black pb-20">
+      <div className="app-shell pb-20">
         <div className="flex justify-center items-center min-h-[50vh]">
           <div className="text-zinc-500">Loading profile...</div>
         </div>
@@ -422,7 +422,7 @@ function ProfileEditPage() {
   const errorClass = "text-red-400 text-xs mt-1";
 
   return (
-    <div className="min-h-screen bg-black pb-20">
+    <div className="app-shell pb-20">
       <div className="max-w-lg mx-auto px-4 py-6">
         <form onSubmit={handleSubmit}>
           <h1 className="text-2xl font-bold text-white mb-6">Edit Profile</h1>

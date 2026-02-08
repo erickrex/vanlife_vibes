@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatTime } from '../utils/formatters';
 
 /**
  * PersonMessageBubble - Displays a single message in the chat
@@ -13,29 +14,6 @@ import React from 'react';
 function PersonMessageBubble({ message, isCurrentUser }) {
   const messageType = message.message_type || 'text';
   const miniCardData = message.mini_card_data;
-
-  // Format timestamp
-  const formatTime = (timestamp) => {
-    if (!timestamp) return '';
-    const date = new Date(timestamp);
-    const now = new Date();
-    const isToday = date.toDateString() === now.toDateString();
-
-    if (isToday) {
-      return date.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-      });
-    }
-
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    });
-  };
 
   // Format meet preference label
   const getMeetPreferenceLabel = (preference) => {

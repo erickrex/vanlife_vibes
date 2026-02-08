@@ -2,9 +2,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { plansAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { normalizePlanMessages } from '../utils/plans';
-
-// Default placeholder avatar
-const DEFAULT_AVATAR = 'https://via.placeholder.com/150/6c5ce7/ffffff?text=👤';
+import { formatTime } from '../utils/formatters';
+import { DEFAULT_AVATAR } from '../utils/constants';
 
 /**
  * PlanChat - Group chat component for plan attendees
@@ -86,29 +85,6 @@ function PlanChat({ planId }) {
       e.preventDefault();
       handleSendMessage(e);
     }
-  };
-
-  // Format timestamp
-  const formatTime = (timestamp) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const isToday = date.toDateString() === now.toDateString();
-    
-    if (isToday) {
-      return date.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-      });
-    }
-    
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
   };
 
   // Group messages by sender for consecutive messages

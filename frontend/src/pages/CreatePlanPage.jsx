@@ -125,7 +125,7 @@ function CreatePlanPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black px-4 py-6 pb-24">
+    <div className="app-shell px-4 py-6 pb-24">
       <div className="max-w-lg mx-auto">
         {/* Page Header */}
         <div className="mb-6">

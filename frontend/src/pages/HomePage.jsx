@@ -2,10 +2,10 @@ import { Link } from 'react-router-dom';
 
 function HomePage() {
   return (
-    <div className="min-h-screen bg-black pb-20">
+    <div className="app-shell pb-20">
       <div className="px-4 pt-12 pb-8">
         <div className="max-w-lg mx-auto">
-          <p className="text-blue-500 text-sm font-medium mb-3">
+          <p className="text-cyan-400 text-sm font-medium mb-3">
             VanlifeVibes · Connect with nomads
           </p>
           <h1 className="text-2xl sm:text-3xl font-bold text-white leading-tight mb-4">
@@ -19,13 +19,13 @@ function HomePage() {
           <div className="flex flex-col sm:flex-row gap-3">
             <Link 
               to="/signup" 
-              className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white text-center font-semibold rounded-lg transition-colors"
+              className="app-btn-primary-social px-6 py-3 text-center"
             >
               Get Started
             </Link>
             <Link 
               to="/login" 
-              className="px-6 py-3 border border-zinc-700 hover:border-zinc-500 text-white text-center font-semibold rounded-lg transition-colors"
+              className="app-btn-secondary px-6 py-3 text-center"
             >
               Sign In
             </Link>
@@ -35,7 +35,7 @@ function HomePage() {
 
       <div className="px-4 py-8">
         <div className="max-w-lg mx-auto space-y-4">
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5">
+          <div className="app-card p-5">
             <div className="flex items-start gap-4">
               <span className="text-2xl">📍</span>
               <div>
@@ -48,9 +48,9 @@ function HomePage() {
             </div>
           </div>
 
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5">
+          <div className="app-card p-5">
             <div className="flex items-start gap-4">
-              <span className="text-2xl">��</span>
+              <span className="text-2xl">🚐</span>
               <div>
                 <h2 className="text-white font-semibold mb-1">Show Off Your Rig</h2>
                 <p className="text-zinc-400 text-sm">
@@ -61,7 +61,7 @@ function HomePage() {
             </div>
           </div>
 
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5">
+          <div className="app-card p-5">
             <div className="flex items-start gap-4">
               <span className="text-2xl">👋</span>
               <div>

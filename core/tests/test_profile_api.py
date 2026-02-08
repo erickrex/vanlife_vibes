@@ -964,7 +964,7 @@ class FollowUnfollowAPITestCase(TestCase):
         self.target_profile = Profile.objects.get(user=self.target_user)
 
     def test_follow_user_success(self):
-        """Test POST /profiles/{id}/follow/ creates follow relationship (Requirement 9.1)"""
+        """Test POST /profiles/{id}/follow/ creates follow relationship"""
         from core.models import Follow
         
         response = self.client.post(f'/api/v1/profiles/{self.target_profile.id}/follow/')
@@ -984,7 +984,7 @@ class FollowUnfollowAPITestCase(TestCase):
         )
 
     def test_unfollow_user_success(self):
-        """Test DELETE /profiles/{id}/follow/ removes follow relationship (Requirement 9.2)"""
+        """Test DELETE /profiles/{id}/follow/ removes follow relationship"""
         from core.models import Follow
         
         # First create a follow relationship
@@ -1010,7 +1010,7 @@ class FollowUnfollowAPITestCase(TestCase):
         )
 
     def test_cannot_follow_self(self):
-        """Test users cannot follow themselves (Requirement 9.7)"""
+        """Test users cannot follow themselves"""
         response = self.client.post(f'/api/v1/profiles/{self.follower_profile.id}/follow/')
         
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -1018,7 +1018,7 @@ class FollowUnfollowAPITestCase(TestCase):
         self.assertEqual(response.data['message'], 'You cannot follow yourself')
 
     def test_duplicate_follow_is_idempotent(self):
-        """Test duplicate follows are handled gracefully - idempotent (Requirement 9.8)"""
+        """Test duplicate follows are handled gracefully - idempotent"""
         from core.models import Follow
         
         # First follow
@@ -1274,7 +1274,7 @@ class NearbyFeedAPITestCase(TestCase):
         self.assertIn('here_next_month', response.data['data'])
 
     def test_nearby_feed_excludes_current_user(self):
-        """Test GET /feed/nearby/ excludes the current user from results (Requirement 8.8)"""
+        """Test GET /feed/nearby/ excludes the current user from results"""
         # User's now_in is California, so they should not appear in their own feed
         response = self.client.get('/api/v1/feed/nearby/')
         
@@ -1290,7 +1290,7 @@ class NearbyFeedAPITestCase(TestCase):
         self.assertNotIn(str(self.profile.id), user_ids)
 
     def test_nearby_feed_includes_users_with_matching_now_in(self):
-        """Test GET /feed/nearby/ includes users whose now_in matches (Requirement 8.2)"""
+        """Test GET /feed/nearby/ includes users whose now_in matches"""
         # Create another user in California (same as main user's now_in)
         other_user = UserAccount.objects.create_user(
             username='otheruser',
@@ -1316,7 +1316,7 @@ class NearbyFeedAPITestCase(TestCase):
                 self.assertEqual(profile['timing_label'], 'Here Now')
 
     def test_nearby_feed_includes_users_with_matching_next_week_in(self):
-        """Test GET /feed/nearby/ includes users whose next_week_in matches (Requirement 8.3)"""
+        """Test GET /feed/nearby/ includes users whose next_week_in matches"""
         # Create user whose next_week_in is California
         other_user = UserAccount.objects.create_user(
             username='nextweekuser',
@@ -1343,7 +1343,7 @@ class NearbyFeedAPITestCase(TestCase):
                 self.assertEqual(profile['timing_label'], 'Here Next Week')
 
     def test_nearby_feed_includes_users_with_matching_next_month_in(self):
-        """Test GET /feed/nearby/ includes users whose next_month_in matches (Requirement 8.4)"""
+        """Test GET /feed/nearby/ includes users whose next_month_in matches"""
         # Create user whose next_month_in is California
         other_user = UserAccount.objects.create_user(
             username='nextmonthuser',
@@ -1396,7 +1396,7 @@ class NearbyFeedAPITestCase(TestCase):
         self.assertNotIn(str(other_profile.id), user_ids)
 
     def test_nearby_feed_card_has_correct_fields(self):
-        """Test feed cards have id, display_name, avatar_url, timing_label (Requirement 8.7)"""
+        """Test feed cards have id, display_name, avatar_url, timing_label"""
         # Create user in California with avatar
         other_user = UserAccount.objects.create_user(
             username='otheruser',

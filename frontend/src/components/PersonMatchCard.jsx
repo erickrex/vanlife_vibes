@@ -1,7 +1,5 @@
 import React from 'react';
-
-// Default placeholder avatar
-const DEFAULT_AVATAR = 'https://via.placeholder.com/150/6c5ce7/ffffff?text=👤';
+import { DEFAULT_AVATAR } from '../utils/constants';
 
 /**
  * PersonMatchCard - Displays a single match in the match list

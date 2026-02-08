@@ -4,6 +4,7 @@ import { plansAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import PlanChat from '../components/PlanChat';
 import { PLAN_TYPES, normalizePlan } from '../utils/plans';
+import { DEFAULT_AVATAR } from '../utils/constants';
 
 const TIME_WINDOWS = {
   morning: { label: 'Morning', time: '6am-12pm' },
@@ -17,8 +18,6 @@ const ATTENDEE_STATUS = {
   confirmed: { label: 'Confirmed', color: 'text-emerald-400' },
   declined: { label: 'Declined', color: 'text-red-400' },
 };
-
-const DEFAULT_AVATAR = 'https://via.placeholder.com/150/6c5ce7/ffffff?text=👤';
 
 function PlanDetailPage() {
   const { planId } = useParams();
@@ -94,7 +93,7 @@ function PlanDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black pb-20">
+      <div className="app-shell pb-20">
         <div className="flex flex-col items-center justify-center py-20">
           <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
           <p className="mt-4 text-zinc-500">Loading plan...</p>
@@ -105,7 +104,7 @@ function PlanDetailPage() {
 
   if (error && !plan) {
     return (
-      <div className="min-h-screen bg-black pb-20">
+      <div className="app-shell pb-20">
         <div className="flex flex-col items-center justify-center py-20 px-4">
           <p className="text-red-400 mb-4">{error}</p>
           <button onClick={loadPlan} className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg mb-2">
@@ -124,7 +123,7 @@ function PlanDetailPage() {
   const attendeeCount = plan.attendee_count || 0;
 
   return (
-    <div className="min-h-screen bg-black pb-20">
+    <div className="app-shell pb-20">
       <div className="max-w-lg mx-auto px-4">
         {/* Header */}
         <div className="py-4 flex items-center justify-between">

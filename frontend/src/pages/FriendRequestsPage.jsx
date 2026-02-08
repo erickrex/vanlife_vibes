@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { friendsAPI } from '../services/api';
-
-// Default placeholder avatar
-const DEFAULT_AVATAR = 'https://via.placeholder.com/150/6c5ce7/ffffff?text=👤';
+import { DEFAULT_AVATAR } from '../utils/constants';
 
 /**
  * Formats a timestamp into a relative time string (e.g., "2 hours ago", "3 days ago")
@@ -232,7 +230,7 @@ function FriendRequestsPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-black pb-20">
+      <div className="app-shell pb-20">
         <div className="flex flex-col items-center justify-center py-20">
           <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
           <p className="mt-4 text-zinc-500">Loading friend requests...</p>
@@ -244,7 +242,7 @@ function FriendRequestsPage() {
   // Error state (when no data loaded)
   if (error && !requests.sent.length && !requests.received.length) {
     return (
-      <div className="min-h-screen bg-black pb-20">
+      <div className="app-shell pb-20">
         <div className="flex flex-col items-center justify-center py-20 px-4">
           <p className="text-red-400 mb-4">{error}</p>
           <button 
@@ -259,7 +257,7 @@ function FriendRequestsPage() {
   }
   
   return (
-    <div className="min-h-screen bg-black pb-20">
+    <div className="app-shell pb-20">
       <div className="max-w-lg mx-auto px-4">
         {/* Header */}
         <div className="py-4">

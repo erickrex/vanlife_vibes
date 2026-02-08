@@ -1,30 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { activitiesAPI } from '../services/api';
-
-/**
- * Activity type options
- * Matches the ACTIVITY_TYPE_CHOICES from the backend Activity model
- * Requirement 6.3: Activity types include climbing, snowboarding, skiing, hiking, etc.
- */
-const ACTIVITY_TYPES = [
-  { value: 'climbing', label: 'Climbing', emoji: '🧗' },
-  { value: 'snowboarding', label: 'Snowboarding', emoji: '🏂' },
-  { value: 'skiing', label: 'Skiing', emoji: '⛷️' },
-  { value: 'hiking', label: 'Hiking', emoji: '🥾' },
-  { value: 'kayaking', label: 'Kayaking', emoji: '🛶' },
-  { value: 'surfing', label: 'Surfing', emoji: '🏄' },
-  { value: 'biking', label: 'Biking', emoji: '🚴' },
-  { value: 'camping', label: 'Camping', emoji: '🏕️' },
-  { value: 'coffee', label: 'Coffee', emoji: '☕' },
-  { value: 'cowork', label: 'Cowork', emoji: '💻' },
-  { value: 'potluck', label: 'Potluck', emoji: '🍲' },
-  { value: 'campfire', label: 'Campfire', emoji: '🔥' },
-  { value: 'dog_walk', label: 'Dog Walk', emoji: '🐕' },
-  { value: 'sunset', label: 'Sunset', emoji: '🌅' },
-  { value: 'sunrise_hike', label: 'Sunrise Hike', emoji: '🌄' },
-  { value: 'other', label: 'Other', emoji: '✨' },
-];
+import { getActivityTypesArray } from '../utils/constants';
 
 /**
  * Time window options
@@ -107,14 +84,14 @@ function CreateActivityPage() {
   const validateForm = () => {
     const newErrors = {};
     
-    // Title validation (Requirement 6.1)
+    // Title validation
     if (!formData.title.trim()) {
       newErrors.title = 'Title is required';
     } else if (formData.title.length > 100) {
       newErrors.title = 'Title must be 100 characters or less';
     }
     
-    // Activity type validation (Requirement 6.1)
+    // Activity type validation
     if (!formData.activity_type) {
       newErrors.activity_type = 'Please select an activity type';
     }
@@ -131,19 +108,19 @@ function CreateActivityPage() {
       }
     }
     
-    // Time window validation (Requirement 6.1)
+    // Time window validation
     if (!formData.time_window) {
       newErrors.time_window = 'Time window is required';
     }
     
-    // Location validation (Requirement 6.1)
+    // Location validation
     if (!formData.location.trim()) {
       newErrors.location = 'Location is required';
     } else if (formData.location.length > 100) {
       newErrors.location = 'Location must be 100 characters or less';
     }
     
-    // Spots validation (Requirement 6.1)
+    // Spots validation
     if (!formData.spots || formData.spots < 1 || formData.spots > 20) {
       newErrors.spots = 'Spots must be between 1 and 20';
     }
@@ -190,7 +167,7 @@ function CreateActivityPage() {
         spots: formData.spots,
       });
       
-      // Navigate to activity detail view (Requirement 6.7)
+      // Navigate to activity detail view
       const activityId = response.data.data?.id || response.data.id;
       navigate(`/activities/${activityId}`);
     } catch (err) {
@@ -201,7 +178,7 @@ function CreateActivityPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black px-4 py-6 pb-24">
+    <div className="app-shell px-4 py-6 pb-24">
       <div className="max-w-lg mx-auto">
         {/* Page Header */}
         <div className="mb-6">
@@ -232,7 +209,7 @@ function CreateActivityPage() {
               What kind of activity? <span className="text-red-400">*</span>
             </label>
             <div className="grid grid-cols-4 gap-2">
-              {ACTIVITY_TYPES.map((type) => (
+              {getActivityTypesArray().map((type) => (
                 <button
                   key={type.value}
                   type="button"
@@ -253,7 +230,7 @@ function CreateActivityPage() {
             )}
           </div>
 
-          {/* Title (Requirement 6.1) */}
+          {/* Title */}
           <div>
             <label htmlFor="title" className="flex items-center justify-between text-white text-sm font-medium mb-2">
               <span>Title <span className="text-red-400">*</span></span>
@@ -320,7 +297,7 @@ function CreateActivityPage() {
             </div>
           </div>
 
-          {/* Location (Requirement 6.1) */}
+          {/* Location */}
           <div>
             <label htmlFor="location" className="flex items-center justify-between text-white text-sm font-medium mb-2">
               <span>Location <span className="text-red-400">*</span></span>
@@ -345,7 +322,7 @@ function CreateActivityPage() {
             </p>
           </div>
 
-          {/* Spots (Requirement 6.1) */}
+          {/* Spots */}
           <div>
             <label htmlFor="spots" className="block text-white text-sm font-medium mb-2">
               Available Spots: <span className="text-emerald-400">{formData.spots}</span> <span className="text-red-400">*</span>

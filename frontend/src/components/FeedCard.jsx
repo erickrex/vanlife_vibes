@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
-
-const DEFAULT_AVATAR = 'https://via.placeholder.com/150/3f3f46/ffffff?text=👤';
+import { DEFAULT_AVATAR } from '../utils/constants';
 
 /**
  * Get friend status badge configuration based on friend_status value.

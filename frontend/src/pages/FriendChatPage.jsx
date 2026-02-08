@@ -2,9 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { friendsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
-
-// Default placeholder avatar
-const DEFAULT_AVATAR = 'https://via.placeholder.com/150/6c5ce7/ffffff?text=👤';
+import { DEFAULT_AVATAR } from '../utils/constants';
 
 /**
  * Formats a timestamp into a readable time string
@@ -376,7 +374,7 @@ function FriendChatPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-black pb-20">
+      <div className="app-shell pb-20">
         <div className="flex flex-col items-center justify-center py-20">
           <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
           <p className="mt-4 text-zinc-500">Loading chat...</p>
@@ -388,7 +386,7 @@ function FriendChatPage() {
   // Error state (when no friendship loaded)
   if (error && !friendship) {
     return (
-      <div className="min-h-screen bg-black pb-20">
+      <div className="app-shell pb-20">
         <div className="flex flex-col items-center justify-center py-20 px-4">
           <p className="text-red-400 mb-4">{error}</p>
           <button
@@ -413,7 +411,7 @@ function FriendChatPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black flex flex-col">
+    <div className="app-shell flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between p-3 border-b border-zinc-800 bg-zinc-900">
         <div className="flex items-center gap-3">

@@ -10,7 +10,7 @@ function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center px-4 py-12">
+    <div className="app-shell flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm space-y-8">
         {/* Header */}
         <div className="text-center space-y-2">
@@ -19,14 +19,14 @@ function LoginPage() {
         </div>
         
         {/* Form Card */}
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6">
+        <div className="app-panel p-6">
           <LoginForm />
         </div>
         
         {/* Footer */}
         <p className="text-center text-zinc-400 text-sm">
           Don't have an account?{' '}
-          <Link to="/signup" className="text-blue-500 hover:text-blue-400 font-medium">
+          <Link to="/signup" className="text-cyan-400 hover:text-cyan-300 font-medium">
             Sign up
           </Link>
         </p>

@@ -2,32 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { activitiesAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
-
-// Default placeholder avatar
-const DEFAULT_AVATAR = 'https://via.placeholder.com/150/6c5ce7/ffffff?text=👤';
-
-/**
- * Activity type options with emojis
- * Matches the ACTIVITY_TYPE_CHOICES from the backend Activity model
- */
-const ACTIVITY_TYPES = {
-  climbing: { label: 'Climbing', emoji: '🧗' },
-  snowboarding: { label: 'Snowboarding', emoji: '🏂' },
-  skiing: { label: 'Skiing', emoji: '⛷️' },
-  hiking: { label: 'Hiking', emoji: '🥾' },
-  kayaking: { label: 'Kayaking', emoji: '🛶' },
-  surfing: { label: 'Surfing', emoji: '🏄' },
-  biking: { label: 'Biking', emoji: '🚴' },
-  camping: { label: 'Camping', emoji: '🏕️' },
-  coffee: { label: 'Coffee', emoji: '☕' },
-  cowork: { label: 'Cowork', emoji: '💻' },
-  potluck: { label: 'Potluck', emoji: '🍲' },
-  campfire: { label: 'Campfire', emoji: '🔥' },
-  dog_walk: { label: 'Dog Walk', emoji: '🐕' },
-  sunset: { label: 'Sunset', emoji: '🌅' },
-  sunrise_hike: { label: 'Sunrise Hike', emoji: '🌄' },
-  other: { label: 'Other', emoji: '✨' },
-};
+import { DEFAULT_AVATAR, getActivityTypeInfo } from '../utils/constants';
 
 /**
  * Time window display labels
@@ -38,13 +13,6 @@ const TIME_WINDOWS = {
   evening: { label: 'Evening', time: '5pm-9pm' },
   flexible: { label: 'Flexible', time: 'Any time' },
 };
-
-/**
- * Get activity type info
- */
-function getActivityTypeInfo(type) {
-  return ACTIVITY_TYPES[type] || { label: type, emoji: '📅' };
-}
 
 /**
  * Get time window info
@@ -475,7 +443,7 @@ function ActivityChatPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-black pb-20">
+      <div className="app-shell pb-20">
         <div className="flex flex-col items-center justify-center py-20">
           <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
           <p className="mt-4 text-zinc-500">Loading chat...</p>
@@ -487,7 +455,7 @@ function ActivityChatPage() {
   // Error state (when no activity loaded)
   if (error && !activity) {
     return (
-      <div className="min-h-screen bg-black pb-20">
+      <div className="app-shell pb-20">
         <div className="flex flex-col items-center justify-center py-20 px-4">
           <div className="text-5xl mb-4">😕</div>
           <p className="text-red-400 mb-4 text-center">{error}</p>
@@ -517,7 +485,7 @@ function ActivityChatPage() {
   const attendeeCount = activity.match?.attendees?.length || 0;
 
   return (
-    <div className="min-h-screen bg-black flex flex-col">
+    <div className="app-shell flex flex-col">
       {/* Header with Activity Details - Requirement 8.5 */}
       <div className="border-b border-zinc-800 bg-zinc-900">
         {/* Top row: Back button and activity title */}

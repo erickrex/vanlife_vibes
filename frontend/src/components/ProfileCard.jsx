@@ -1,9 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
-
-// Default placeholder avatar
-const DEFAULT_AVATAR = 'https://via.placeholder.com/150/6c5ce7/ffffff?text=👤';
+import { DEFAULT_AVATAR } from '../utils/constants';
 
 // Display labels for vehicle types
 const VEHICLE_TYPE_LABELS = {

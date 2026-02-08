@@ -53,17 +53,17 @@ function DiscoveryFilters({ mode = 'dating', filters = {}, onFilterChange, disab
 
   const hasActiveFilters = activeFilterCount > 0;
 
-  const accentColor = mode === 'dating' ? 'rose' : 'blue';
-
   return (
     <div className="px-4 mb-4">
       {/* Filter header */}
       <div className="flex items-center justify-between">
         <button
           type="button"
-          className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors disabled:opacity-50 ${
-            isExpanded 
-              ? `border-${accentColor}-500/50 bg-${accentColor}-500/10` 
+          className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-colors disabled:opacity-50 ${
+            isExpanded
+              ? mode === 'dating'
+                ? 'border-rose-500/50 bg-rose-500/10'
+                : 'border-blue-500/50 bg-blue-500/10'
               : 'border-zinc-700 hover:border-zinc-600'
           }`}
           onClick={() => setIsExpanded(!isExpanded)}
@@ -96,7 +96,7 @@ function DiscoveryFilters({ mode = 'dating', filters = {}, onFilterChange, disab
 
       {/* Filter content */}
       {isExpanded && (
-        <div className="mt-4 p-4 bg-zinc-900 rounded-xl border border-zinc-800 space-y-4">
+        <div className="app-panel mt-4 p-4 space-y-4">
           {/* Travel Pace */}
           <div>
             <h4 className="text-white text-sm font-medium mb-2 flex items-center gap-2">

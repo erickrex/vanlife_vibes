@@ -70,7 +70,7 @@ function PlansPage() {
 
   if (loading && plans.length === 0) {
     return (
-      <div className="min-h-screen bg-black pb-20">
+      <div className="app-shell pb-20">
         <div className="flex flex-col items-center justify-center py-20">
           <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
           <p className="mt-4 text-zinc-500">Loading plans...</p>
@@ -80,7 +80,7 @@ function PlansPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black pb-20">
+    <div className="app-shell pb-20">
       <div className="max-w-lg mx-auto px-4">
         {/* Header */}
         <div className="py-4">

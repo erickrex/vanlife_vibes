@@ -68,9 +68,7 @@ function LoginForm() {
           onChange={handleChange}
           disabled={isSubmitting}
           autoComplete="username"
-          className={`w-full px-4 py-3 bg-zinc-900 border rounded-lg text-white placeholder-zinc-500 
-            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors
-            ${errors.username ? 'border-red-500' : 'border-zinc-700'}`}
+          className={`app-input ${errors.username ? 'border-red-500' : ''}`}
           placeholder="Enter your username"
         />
         {errors.username && (
@@ -92,9 +90,7 @@ function LoginForm() {
             onChange={handleChange}
             disabled={isSubmitting}
             autoComplete="current-password"
-            className={`w-full px-4 py-3 pr-12 bg-zinc-900 border rounded-lg text-white placeholder-zinc-500 
-              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors
-              ${errors.password ? 'border-red-500' : 'border-zinc-700'}`}
+            className={`app-input pr-12 ${errors.password ? 'border-red-500' : ''}`}
             placeholder="Enter your password"
           />
           <button
@@ -122,8 +118,7 @@ function LoginForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full py-3 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed 
-          text-white font-semibold rounded-lg transition-colors"
+        className="app-btn-primary-social w-full py-3"
       >
         {isSubmitting ? 'Logging in...' : 'Log In'}
       </button>

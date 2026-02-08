@@ -51,7 +51,7 @@ function TabNavigation({ activeTab }) {
   ];
   
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-black border-t border-zinc-800 px-4 py-2 z-50 safe-area-pb">
+    <nav className="app-bottom-nav fixed bottom-0 left-0 right-0 px-4 py-2 z-50 safe-area-pb">
       <div className="flex justify-around items-center max-w-lg mx-auto">
         {tabs.map((tab) => {
           const isActive = currentTab === tab.id;
@@ -63,12 +63,24 @@ function TabNavigation({ activeTab }) {
               to={tab.path}
               className={`flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-colors ${
                 isActive
-                  ? 'text-blue-500'
+                  ? tab.id === 'dating'
+                    ? 'text-rose-400'
+                    : tab.id === 'activities'
+                      ? 'text-emerald-400'
+                      : 'text-blue-400'
                   : 'text-zinc-500 hover:text-zinc-300'
               }`}
             >
               <Icon className="w-6 h-6" filled={isActive} />
-              <span className={`text-xs font-medium ${isActive ? 'text-blue-500' : ''}`}>
+              <span className={`text-xs font-medium ${
+                isActive
+                  ? tab.id === 'dating'
+                    ? 'text-rose-400'
+                    : tab.id === 'activities'
+                      ? 'text-emerald-400'
+                      : 'text-blue-400'
+                  : ''
+              }`}>
                 {tab.label}
               </span>
             </Link>

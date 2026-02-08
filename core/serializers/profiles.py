@@ -1,100 +1,24 @@
+"""
+Profile-related serializers for user profiles, vehicles, locations, and prompts.
+
+This module contains serializers for:
+- ProfileSerializer, ProfileUpdateSerializer, ProfileSummarySerializer
+- VehicleSerializer, VehicleUpdateSerializer, VehiclePhotoSerializer
+- CountrySerializer, RegionSerializer, CitySerializer
+- HobbyTagSerializer, FeedCardSerializer
+- InTownWindowSerializer, ProfilePromptSerializer
+
+Requirements: 2.2 (Backend File Organization)
+"""
+
 from rest_framework import serializers
-from django.contrib.auth.password_validation import validate_password
-from django.core.exceptions import ValidationError as DjangoValidationError
-from django.db import models, transaction, IntegrityError
+from django.db import models
 from django.utils import timezone
+
 from core.models import (
     UserAccount, Profile, Vehicle, VehiclePhoto, Follow, HobbyTag, Country, Region,
-    InTownWindow, City, Prompt, ProfilePrompt, PersonSwipe, PersonMatch, DirectMessage,
-    UserReport, AnalyticsEvent, Plan, PlanAttendee, PlanMessage,
-    Activity, ActivitySwipe, ActivityMatch, ActivityMessage,
-    FriendRequest, Friendship, FriendMessage
+    InTownWindow, City, Prompt, ProfilePrompt, FriendRequest, Friendship
 )
-
-
-class UserAccountSerializer(serializers.ModelSerializer):
-    """Serializer for UserAccount model"""
-    
-    class Meta:
-        model = UserAccount
-        fields = ['id', 'username', 'email', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at']
-
-
-class UserRegistrationSerializer(serializers.ModelSerializer):
-    """Serializer for user registration with password validation"""
-    password = serializers.CharField(
-        write_only=True,
-        required=True,
-        style={'input_type': 'password'}
-    )
-    password_confirm = serializers.CharField(
-        write_only=True,
-        required=True,
-        style={'input_type': 'password'}
-    )
-    
-    class Meta:
-        model = UserAccount
-        fields = ['username', 'email', 'password', 'password_confirm']
-    
-    def validate_email(self, value):
-        """Validate email uniqueness"""
-        if UserAccount.objects.filter(email=value).exists():
-            raise serializers.ValidationError("A user with this email already exists.")
-        return value
-    
-    def validate_username(self, value):
-        """Validate username uniqueness"""
-        if UserAccount.objects.filter(username=value).exists():
-            raise serializers.ValidationError("A user with this username already exists.")
-        return value
-    
-    def validate(self, attrs):
-        """Validate password complexity and matching"""
-        password = attrs.get('password')
-        password_confirm = attrs.get('password_confirm')
-        
-        # Check if passwords match
-        if password != password_confirm:
-            raise serializers.ValidationError({
-                'password_confirm': 'Passwords do not match.'
-            })
-        
-        # Validate password complexity using Django's validators
-        try:
-            validate_password(password)
-        except DjangoValidationError as e:
-            raise serializers.ValidationError({
-                'password': list(e.messages)
-            })
-        
-        return attrs
-    
-    def create(self, validated_data):
-        """Create user with hashed password"""
-        # Remove password_confirm as it's not needed for user creation
-        validated_data.pop('password_confirm')
-        
-        # Create user with hashed password
-        user = UserAccount.objects.create_user(
-            username=validated_data['username'],
-            email=validated_data['email'],
-            password=validated_data['password']
-        )
-        
-        return user
-
-
-class UserLoginSerializer(serializers.Serializer):
-    """Serializer for user login"""
-    username = serializers.CharField(required=True)
-    password = serializers.CharField(
-        required=True,
-        write_only=True,
-        style={'input_type': 'password'}
-    )
-
 
 
 class ProfileCardDataSerializer(serializers.ModelSerializer):
@@ -302,6 +226,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+
     
     def get_vehicle(self, obj):
         """
@@ -358,6 +283,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             }
             for prompt in prompts
         ]
+
     
     def get_now_in(self, obj):
         """Return now_in location with region, country, and updated_at"""
@@ -399,6 +325,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     def get_following_count(self, obj):
         """Return count of users this profile is following"""
         return obj.following_set.count()
+
     
     def get_is_following(self, obj):
         """
@@ -443,6 +370,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             ).exists()
         except Profile.DoesNotExist:
             return False
+
 
     def get_friend_status(self, obj):
         """
@@ -499,6 +427,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             return 'request_received'
         
         return 'none'
+
 
 
 class ProfileUpdateSerializer(serializers.ModelSerializer):
@@ -578,6 +507,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
             'next_month_in_city',
             'hobby_ids',
         ]
+
     
     def validate_display_name(self, value):
         """Validate display_name character limit (≤ 50 characters)"""
@@ -633,6 +563,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
             )
         return value
 
+
     def validate_now_in_city(self, value):
         if value is None or value == '':
             return value
@@ -675,13 +606,14 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
                 f"Invalid travel pace. Must be one of: {', '.join(valid_choices)}"
             )
         return value
+
     
     # =========================================================================
     # Nomad-logistics enum field validation (Requirements 1.1, 2.1, 3.1-3.6)
     # =========================================================================
     
     def validate_profile_type(self, value):
-        """Validate profile_type is a valid choice (Requirement 1.1)"""
+        """Validate profile_type is a valid choice"""
         if value is None:
             return value
         valid_choices = [choice[0] for choice in Profile.PROFILE_TYPE_CHOICES]
@@ -692,7 +624,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         return value
     
     def validate_group_description(self, value):
-        """Validate group_description character limit (≤ 200 characters) (Requirement 1.2)"""
+        """Validate group_description character limit (≤ 200 characters)"""
         if value and len(value) > 200:
             raise serializers.ValidationError(
                 "Group description must be 200 characters or fewer."
@@ -700,7 +632,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         return value
     
     def validate_meetup_interest(self, value):
-        """Validate meetup_interest is a valid choice (Requirement 1.1)"""
+        """Validate meetup_interest is a valid choice"""
         if value is None:
             return value
         valid_choices = [choice[0] for choice in Profile.MEETUP_INTEREST_CHOICES]
@@ -711,7 +643,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         return value
     
     def validate_rig_status(self, value):
-        """Validate rig_status is a valid choice (Requirement 2.1)"""
+        """Validate rig_status is a valid choice"""
         if value is None:
             return value
         valid_choices = [choice[0] for choice in Profile.RIG_STATUS_CHOICES]
@@ -722,7 +654,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         return value
     
     def validate_social_vibe(self, value):
-        """Validate social_vibe is a valid choice (Requirement 3.2)"""
+        """Validate social_vibe is a valid choice"""
         if value is None:
             return value
         valid_choices = [choice[0] for choice in Profile.SOCIAL_VIBE_CHOICES]
@@ -731,9 +663,10 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
                 f"Invalid social vibe. Must be one of: {', '.join(valid_choices)}"
             )
         return value
+
     
     def validate_pet_type(self, value):
-        """Validate pet_type is a valid choice (Requirement 3.4)"""
+        """Validate pet_type is a valid choice"""
         if value is None:
             return value
         valid_choices = [choice[0] for choice in Profile.PET_TYPE_CHOICES]
@@ -744,7 +677,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         return value
     
     def validate_lifestyle_schedule(self, value):
-        """Validate lifestyle_schedule is a valid choice (Requirement 3.6)"""
+        """Validate lifestyle_schedule is a valid choice"""
         if value is None:
             return value
         valid_choices = [choice[0] for choice in Profile.LIFESTYLE_SCHEDULE_CHOICES]
@@ -755,7 +688,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         return value
     
     def validate_lifestyle_social(self, value):
-        """Validate lifestyle_social is a valid choice (Requirement 3.6)"""
+        """Validate lifestyle_social is a valid choice"""
         if value is None:
             return value
         valid_choices = [choice[0] for choice in Profile.LIFESTYLE_SOCIAL_CHOICES]
@@ -766,7 +699,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         return value
     
     def validate_lifestyle_environment(self, value):
-        """Validate lifestyle_environment is a valid choice (Requirement 3.6)"""
+        """Validate lifestyle_environment is a valid choice"""
         if value is None:
             return value
         valid_choices = [choice[0] for choice in Profile.LIFESTYLE_ENVIRONMENT_CHOICES]
@@ -777,7 +710,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         return value
     
     def validate_relationship_status(self, value):
-        """Validate relationship_status is a valid choice (Requirement 6.1)"""
+        """Validate relationship_status is a valid choice"""
         if value is None:
             return value
         valid_choices = [choice[0] for choice in Profile.RELATIONSHIP_STATUS_CHOICES]
@@ -788,7 +721,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         return value
     
     def validate_looking_for_friend_type(self, value):
-        """Validate looking_for_friend_type is a valid choice (Requirement 6.2)"""
+        """Validate looking_for_friend_type is a valid choice"""
         if value is None:
             return value
         valid_choices = [choice[0] for choice in Profile.LOOKING_FOR_FRIEND_TYPE_CHOICES]
@@ -797,6 +730,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
                 f"Invalid looking_for_friend_type. Must be one of: {', '.join(valid_choices)}"
             )
         return value
+
     
     def validate_camping_preferences(self, value):
         """Validate camping_preferences contains only valid values"""
@@ -849,6 +783,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
                 "Region not found. Please provide a valid region ID."
             )
         return value
+
     
     def validate_hobby_ids(self, value):
         """Validate all hobby_ids exist in the database"""
@@ -909,6 +844,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({
                     'looking_for': "At least one of 'looking_for_dating' or 'looking_for_friends' must be true."
                 })
+
         
         # =========================================================================
         # Validate conditional pet_type (Requirement 3.4, Property 14)
@@ -933,7 +869,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
                 attrs['pet_type'] = None
         
         # =========================================================================
-        # Validate conditional group_description (Requirement 1.2)
+        # Validate conditional group_description
         # group_description should only be accepted when profile_type is 'couple' or 'group'
         # =========================================================================
         profile_type = attrs.get('profile_type')
@@ -955,6 +891,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
                 attrs['group_description'] = ''
         
         return attrs
+
     
     def update(self, instance, validated_data):
         """
@@ -1004,6 +941,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
             # Explicitly setting to null
             instance.next_week_in = None
             instance.next_week_in_updated_at = timezone.now()
+
         
         # Handle next_month_in region update
         if next_month_in_region_id is not None:
@@ -1029,6 +967,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
             instance.hobbies.set(hobbies)
         
         return instance
+
 
 
 class VehicleUpdateSerializer(serializers.ModelSerializer):
@@ -1105,6 +1044,7 @@ class VehicleUpdateSerializer(serializers.ModelSerializer):
         return value
 
 
+
 class VehiclePhotoCreateSerializer(serializers.ModelSerializer):
     """
     Serializer for uploading vehicle photos with validation.
@@ -1170,6 +1110,7 @@ class VehiclePhotoCreateSerializer(serializers.ModelSerializer):
         return VehiclePhoto.objects.create(vehicle=vehicle, **validated_data)
 
 
+
 class FeedCardSerializer(serializers.ModelSerializer):
     """
     Serializer for displaying profile cards in the nearby feed.
@@ -1222,6 +1163,7 @@ class InTownWindowSerializer(serializers.ModelSerializer):
                 "City/area name must be 100 characters or fewer."
             )
         return value
+
     
     def validate(self, attrs):
         """
@@ -1283,6 +1225,7 @@ class PromptListSerializer(serializers.ModelSerializer):
         fields = ['prompt_name', 'prompt_question', 'prompt_placeholder', 'prompt_type']
 
 
+
 # ============================================================================
 # ProfilePrompt Serializers (Nomad Logistics Feature)
 # ============================================================================
@@ -1330,6 +1273,7 @@ class ProfilePromptSerializer(serializers.ModelSerializer):
     def get_prompt_question(self, obj):
         """Return the human-readable prompt question text."""
         return obj.prompt.prompt_question
+
     
     def validate_prompt_answer(self, value):
         """
@@ -1353,7 +1297,7 @@ class ProfilePromptSerializer(serializers.ModelSerializer):
         Cross-field validation.
         
         Validates:
-        - Max 3 prompts per profile (Requirement 5.4)
+        - Max 3 prompts per profile
         - Unique prompt_question per profile (enforced by model, but provide better error)
         """
         prompt_name = attrs.pop('prompt_name', None)
@@ -1403,6 +1347,7 @@ class ProfilePromptSerializer(serializers.ModelSerializer):
                     })
         
         return attrs
+
     
     def create(self, validated_data):
         """Create a new profile prompt, setting profile from context if not provided."""
@@ -1434,1177 +1379,3 @@ class ProfilePromptSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         data['prompt_name'] = instance.prompt.prompt_name
         return data
-
-
-# ============================================================================
-# PersonSwipe and PersonMatch Serializers (Nomad Logistics Feature)
-# ============================================================================
-
-class PersonMatchSerializer(serializers.ModelSerializer):
-    """
-    Serializer for PersonMatch model.
-    
-    Returns match information including both users and match metadata.
-    """
-    user1_profile = serializers.SerializerMethodField()
-    user2_profile = serializers.SerializerMethodField()
-    other_user = serializers.SerializerMethodField()
-    
-    class Meta:
-        model = PersonMatch
-        fields = [
-            'id', 'user1', 'user2', 'user1_profile', 'user2_profile',
-            'other_user', 'mode', 'matched_at', 'is_active'
-        ]
-        read_only_fields = ['id', 'matched_at']
-    
-    def get_user1_profile(self, obj):
-        """Return basic profile info for user1"""
-        return {
-            'id': str(obj.user1.id),
-            'display_name': obj.user1.display_name,
-            'avatar_url': obj.user1.avatar_url,
-        }
-    
-    def get_user2_profile(self, obj):
-        """Return basic profile info for user2"""
-        return {
-            'id': str(obj.user2.id),
-            'display_name': obj.user2.display_name,
-            'avatar_url': obj.user2.avatar_url,
-        }
-    
-    def get_other_user(self, obj):
-        """
-        Return the other user in the match (relative to the request user).
-        
-        This is useful for displaying "who you matched with" in the UI.
-        """
-        request = self.context.get('request')
-        if not request or not request.user or not request.user.is_authenticated:
-            return None
-        
-        try:
-            request_user_profile = request.user.profile
-            other_profile = obj.get_other_user(request_user_profile)
-            return {
-                'id': str(other_profile.id),
-                'display_name': other_profile.display_name,
-                'avatar_url': other_profile.avatar_url,
-            }
-        except Profile.DoesNotExist:
-            return None
-
-
-class PersonSwipeSerializer(serializers.ModelSerializer):
-    """
-    Serializer for PersonSwipe model with mutual match detection.
-    
-    Creates swipe records and auto-creates PersonMatch on mutual likes.
-    """
-    swiper = serializers.PrimaryKeyRelatedField(
-        queryset=Profile.objects.all(),
-        required=False,
-        allow_null=True
-    )
-    swiper_profile = serializers.SerializerMethodField()
-    swiped_on_profile = serializers.SerializerMethodField()
-    match_created = serializers.SerializerMethodField()
-    match = serializers.SerializerMethodField()
-    
-    class Meta:
-        model = PersonSwipe
-        fields = [
-            'id', 'swiper', 'swiped_on', 'swiper_profile', 'swiped_on_profile',
-            'is_like', 'mode', 'swiped_at', 'match_created', 'match'
-        ]
-        read_only_fields = ['id', 'swiped_at', 'match_created', 'match']
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Store match info for response
-        self._match_created = False
-        self._match = None
-    
-    def get_swiper_profile(self, obj):
-        """Return basic profile info for swiper"""
-        return {
-            'id': str(obj.swiper.id),
-            'display_name': obj.swiper.display_name,
-            'avatar_url': obj.swiper.avatar_url,
-        }
-    
-    def get_swiped_on_profile(self, obj):
-        """Return basic profile info for swiped_on user"""
-        return {
-            'id': str(obj.swiped_on.id),
-            'display_name': obj.swiped_on.display_name,
-            'avatar_url': obj.swiped_on.avatar_url,
-        }
-    
-    def get_match_created(self, obj):
-        """Return whether a match was created from this swipe"""
-        return getattr(self, '_match_created', False)
-    
-    def get_match(self, obj):
-        """Return the match if one was created"""
-        match = getattr(self, '_match', None)
-        if match:
-            return {
-                'id': str(match.id),
-                'mode': match.mode,
-                'matched_at': match.matched_at.isoformat() if match.matched_at else None,
-            }
-        return None
-    
-    def validate_mode(self, value):
-        """Validate mode is a valid choice"""
-        valid_choices = [choice[0] for choice in PersonSwipe.MODE_CHOICES]
-        if value not in valid_choices:
-            raise serializers.ValidationError(
-                f"Invalid mode. Must be one of: {', '.join(valid_choices)}"
-            )
-        return value
-    
-    def validate_swiped_on(self, value):
-        """Validate swiped_on is a valid profile"""
-        if not value:
-            raise serializers.ValidationError("swiped_on is required.")
-        return value
-    
-    def validate(self, attrs):
-        """
-        Cross-field validation.
-        
-        Validates:
-        - swiper cannot swipe on themselves
-        - No duplicate swipes (same swiper, swiped_on, mode)
-        - swiped_on must opt in to dating for dating mode
-        """
-        swiper = attrs.get('swiper') or self.context.get('swiper')
-        swiped_on = attrs.get('swiped_on')
-        mode = attrs.get('mode')
-        
-        # Validate swiper is not swiping on themselves
-        if swiper and swiped_on and swiper.id == swiped_on.id:
-            raise serializers.ValidationError({
-                'swiped_on': "You cannot swipe on yourself."
-            })
-        
-        # Check for duplicate swipe (only for creation)
-        if not self.instance and swiper and swiped_on and mode:
-            existing_swipe = PersonSwipe.objects.filter(
-                swiper=swiper,
-                swiped_on=swiped_on,
-                mode=mode
-            ).exists()
-            
-            if existing_swipe:
-                raise serializers.ValidationError({
-                    'swiped_on': f"You have already swiped on this user in {mode} mode."
-                })
-
-        if swiped_on and mode == 'dating' and not swiped_on.looking_for_dating:
-            raise serializers.ValidationError({
-                'swiped_on': "This user is not available for dating."
-            })
-        
-        return attrs
-    
-    def create(self, validated_data):
-        """
-        Create a new PersonSwipe and check for mutual match.
-        
-        If the swipe is a like (is_like=True), check if the other user has also
-        liked the swiper in the same mode. If so, create a PersonMatch.
-        
-        Property 7: Mutual Match Creation
-        Validates: Requirements 7.3
-        """
-        # Set swiper from context if not provided
-        if 'swiper' not in validated_data or validated_data['swiper'] is None:
-            swiper = self.context.get('swiper')
-            if not swiper:
-                raise serializers.ValidationError(
-                    "Swiper context is required to create a swipe."
-                )
-            validated_data['swiper'] = swiper
-        
-        # Create the swipe
-        swipe = PersonSwipe.objects.create(**validated_data)
-        
-        # Check for mutual match if this is a like
-        if swipe.is_like:
-            match = self._check_and_create_match(swipe)
-            if match:
-                self._match_created = True
-                self._match = match
-        
-        return swipe
-    
-    def _check_and_create_match(self, swipe):
-        """
-        Check if there's a mutual like and create a PersonMatch if so.
-        
-        A mutual match occurs when:
-        1. User A likes User B in mode X
-        2. User B has already liked User A in mode X
-        
-        When mutual match is detected, create a PersonMatch with:
-        - user1: The user who swiped first (chronologically)
-        - user2: The user who swiped second (the current swiper)
-        - mode: The mode of the swipes
-        
-        Returns the created PersonMatch or None if no mutual match.
-        """
-        # Look for a reciprocal like from the swiped_on user
-        reciprocal_swipe = PersonSwipe.objects.filter(
-            swiper=swipe.swiped_on,
-            swiped_on=swipe.swiper,
-            mode=swipe.mode,
-            is_like=True
-        ).first()
-        
-        if not reciprocal_swipe:
-            return None
-        
-        # Check if a match already exists between these users in this mode
-        existing_match = PersonMatch.objects.filter(
-            mode=swipe.mode
-        ).filter(
-            models.Q(user1=swipe.swiper, user2=swipe.swiped_on) |
-            models.Q(user1=swipe.swiped_on, user2=swipe.swiper)
-        ).first()
-
-        if existing_match:
-            if not existing_match.is_active:
-                existing_match.is_active = True
-                existing_match.save(update_fields=['is_active'])
-            return existing_match
-
-        # Normalize ordering to prevent duplicate pair rows
-        user1 = swipe.swiper
-        user2 = swipe.swiped_on
-        if str(user1.id) > str(user2.id):
-            user1, user2 = user2, user1
-
-        # Create the match (unique by ordered pair + mode), handle race safely
-        try:
-            with transaction.atomic():
-                match, created = PersonMatch.objects.get_or_create(
-                    user1=user1,
-                    user2=user2,
-                    mode=swipe.mode,
-                    defaults={'is_active': True}
-                )
-        except IntegrityError:
-            match = PersonMatch.objects.get(
-                user1=user1,
-                user2=user2,
-                mode=swipe.mode
-            )
-            created = False
-
-        if not match.is_active:
-            match.is_active = True
-            match.save(update_fields=['is_active'])
-
-        return match
-
-
-# ============================================================================
-# DirectMessage Serializers (Nomad Logistics Feature - Chat System)
-# ============================================================================
-
-class DirectMessageSerializer(serializers.ModelSerializer):
-    """
-    Serializer for DirectMessage model with comprehensive validation.
-    
-    Enables 1:1 chat between matched users with support for text messages,
-    mini-card sharing, and icebreaker prompts.
-    """
-    
-    MAX_CONTENT_LENGTH = 1000
-    
-    # Include sender profile info for display
-    sender_profile = serializers.SerializerMethodField()
-    
-    class Meta:
-        model = DirectMessage
-        fields = [
-            'id', 'match', 'sender', 'sender_profile', 'content',
-            'message_type', 'mini_card_data', 'created_at', 'is_read'
-        ]
-        read_only_fields = ['id', 'created_at']
-        extra_kwargs = {
-            'sender': {'required': False},  # Will be set from context
-            'match': {'required': False},   # Will be set from context
-        }
-    
-    def get_sender_profile(self, obj):
-        """Return basic profile info for the sender."""
-        return {
-            'id': str(obj.sender.id),
-            'display_name': obj.sender.display_name,
-            'avatar_url': obj.sender.avatar_url,
-        }
-    
-    def validate_content(self, value):
-        """Validate content length (≤ 1000 characters)."""
-        if value and len(value) > self.MAX_CONTENT_LENGTH:
-            raise serializers.ValidationError(
-                f"Message content must be {self.MAX_CONTENT_LENGTH} characters or fewer."
-            )
-        if not value or not value.strip():
-            raise serializers.ValidationError(
-                "Message content is required and cannot be empty."
-            )
-        return value
-    
-    def validate_message_type(self, value):
-        """Validate message_type is a valid choice."""
-        valid_choices = [choice[0] for choice in DirectMessage.MESSAGE_TYPE_CHOICES]
-        if value not in valid_choices:
-            raise serializers.ValidationError(
-                f"Invalid message type. Must be one of: {', '.join(valid_choices)}"
-            )
-        return value
-    
-    def validate_mini_card_data(self, value):
-        """
-        Validate mini_card_data structure when provided.
-        
-        Mini-card data should contain: current_location, in_town_until, meet_preference.
-        """
-        if value is None:
-            return value
-        
-        if not isinstance(value, dict):
-            raise serializers.ValidationError(
-                "Mini-card data must be a JSON object."
-            )
-        
-        # Validate allowed fields
-        allowed_fields = {'current_location', 'in_town_until', 'meet_preference'}
-        provided_fields = set(value.keys())
-        unknown_fields = provided_fields - allowed_fields
-        
-        if unknown_fields:
-            raise serializers.ValidationError(
-                f"Unknown fields in mini-card data: {', '.join(unknown_fields)}. "
-                f"Allowed fields are: {', '.join(allowed_fields)}"
-            )
-        
-        # Validate current_location if provided
-        if 'current_location' in value and value['current_location'] is not None:
-            if not isinstance(value['current_location'], str):
-                raise serializers.ValidationError(
-                    "current_location must be a string."
-                )
-            if len(value['current_location']) > 100:
-                raise serializers.ValidationError(
-                    "current_location must be 100 characters or fewer."
-                )
-        
-        # Validate in_town_until if provided (should be a date string)
-        if 'in_town_until' in value and value['in_town_until'] is not None:
-            if not isinstance(value['in_town_until'], str):
-                raise serializers.ValidationError(
-                    "in_town_until must be a date string (YYYY-MM-DD format)."
-                )
-            # Try to parse the date
-            try:
-                from datetime import datetime
-                datetime.strptime(value['in_town_until'], '%Y-%m-%d')
-            except ValueError:
-                raise serializers.ValidationError(
-                    "in_town_until must be a valid date in YYYY-MM-DD format."
-                )
-        
-        # Validate meet_preference if provided
-        if 'meet_preference' in value and value['meet_preference'] is not None:
-            if not isinstance(value['meet_preference'], str):
-                raise serializers.ValidationError(
-                    "meet_preference must be a string."
-                )
-            if len(value['meet_preference']) > 200:
-                raise serializers.ValidationError(
-                    "meet_preference must be 200 characters or fewer."
-                )
-        
-        return value
-    
-    def validate(self, attrs):
-        """
-        Cross-field validation.
-        
-        Validates:
-        - Sender must be one of the two users in the match (Property 10: Chat Access Control)
-        - mini_card_data is required when message_type is 'mini_card'
-        - Match must be active
-        
-        Property 10: Chat Access Control
-        Validates: Requirements 10.1, 10.4
-        """
-        # Get match and sender from attrs or context
-        match = attrs.get('match') or self.context.get('match')
-        sender = attrs.get('sender') or self.context.get('sender')
-        message_type = attrs.get('message_type', 'text')
-        mini_card_data = attrs.get('mini_card_data')
-        
-        # Validate match is provided
-        if not match:
-            raise serializers.ValidationError({
-                'match': "Match is required."
-            })
-        
-        # Validate sender is provided
-        if not sender:
-            raise serializers.ValidationError({
-                'sender': "Sender is required."
-            })
-        
-        # Property 10: Chat Access Control
-        # Validate sender is one of the two users in the match
-        if sender.id != match.user1_id and sender.id != match.user2_id:
-            raise serializers.ValidationError({
-                'sender': "Sender must be one of the two users in the match."
-            })
-        
-        # Validate match is active
-        if not match.is_active:
-            raise serializers.ValidationError({
-                'match': "Cannot send messages to an inactive match."
-            })
-        
-        # Validate mini_card_data is provided when message_type is 'mini_card'
-        if message_type == 'mini_card':
-            if not mini_card_data:
-                raise serializers.ValidationError({
-                    'mini_card_data': "mini_card_data is required when message_type is 'mini_card'."
-                })
-            # Ensure at least one field is provided in mini_card_data
-            if not any(mini_card_data.get(field) for field in ['current_location', 'in_town_until', 'meet_preference']):
-                raise serializers.ValidationError({
-                    'mini_card_data': "mini_card_data must contain at least one of: "
-                                      "current_location, in_town_until, meet_preference."
-                })
-        
-        return attrs
-    
-    def create(self, validated_data):
-        """
-        Create a new DirectMessage.
-        
-        Sets match and sender from context if not provided in validated_data.
-        """
-        # Set match from context if not provided
-        if 'match' not in validated_data or validated_data['match'] is None:
-            match = self.context.get('match')
-            if not match:
-                raise serializers.ValidationError(
-                    "Match context is required to create a message."
-                )
-            validated_data['match'] = match
-        
-        # Set sender from context if not provided
-        if 'sender' not in validated_data or validated_data['sender'] is None:
-            sender = self.context.get('sender')
-            if not sender:
-                raise serializers.ValidationError(
-                    "Sender context is required to create a message."
-                )
-            validated_data['sender'] = sender
-        
-        return DirectMessage.objects.create(**validated_data)
-
-
-class DirectMessageCreateSerializer(serializers.Serializer):
-    """
-    Simplified serializer for creating DirectMessages via API.
-    
-    Accepts content, message_type, and mini_card_data. Match and sender
-    are set from the URL and authenticated user.
-    """
-    content = serializers.CharField(
-        max_length=1000,
-        required=True,
-        help_text="Message content (max 1000 characters)"
-    )
-    message_type = serializers.ChoiceField(
-        choices=DirectMessage.MESSAGE_TYPE_CHOICES,
-        default='text',
-        required=False,
-        help_text="Type of message: text, mini_card, or icebreaker"
-    )
-    mini_card_data = serializers.JSONField(
-        required=False,
-        allow_null=True,
-        help_text="Mini-card data with current_location, in_town_until, meet_preference"
-    )
-    
-    def validate_content(self, value):
-        """Validate content is not empty."""
-        if not value or not value.strip():
-            raise serializers.ValidationError(
-                "Message content is required and cannot be empty."
-            )
-        return value
-    
-    def validate_mini_card_data(self, value):
-        """
-        Validate mini_card_data structure.
-        
-        Delegates to DirectMessageSerializer for consistent validation.
-        """
-        if value is None:
-            return value
-        
-        # Use DirectMessageSerializer's validation logic
-        temp_serializer = DirectMessageSerializer()
-        return temp_serializer.validate_mini_card_data(value)
-    
-    def validate(self, attrs):
-        """
-        Cross-field validation.
-        
-        Validates mini_card_data is provided when message_type is 'mini_card'.
-        """
-        message_type = attrs.get('message_type', 'text')
-        mini_card_data = attrs.get('mini_card_data')
-        
-        if message_type == 'mini_card':
-            if not mini_card_data:
-                raise serializers.ValidationError({
-                    'mini_card_data': "mini_card_data is required when message_type is 'mini_card'."
-                })
-            # Ensure at least one field is provided
-            if not any(mini_card_data.get(field) for field in ['current_location', 'in_town_until', 'meet_preference']):
-                raise serializers.ValidationError({
-                    'mini_card_data': "mini_card_data must contain at least one of: "
-                                      "current_location, in_town_until, meet_preference."
-                })
-        
-        return attrs
-
-
-# ============================================================================
-# User Report Serializers
-# ============================================================================
-class UserReportSerializer(serializers.ModelSerializer):
-    """
-    Serializer for UserReport model.
-    
-    Used for creating user reports for policy violations.
-    """
-    reporter_profile = serializers.SerializerMethodField()
-    reported_profile = serializers.SerializerMethodField()
-    
-    class Meta:
-        model = UserReport
-        fields = [
-            'id', 'reporter', 'reported', 'reporter_profile', 'reported_profile',
-            'reason', 'description', 'created_at'
-        ]
-        read_only_fields = ['id', 'reporter', 'created_at']
-    
-    def get_reporter_profile(self, obj):
-        """Return basic profile info for reporter"""
-        return {
-            'id': str(obj.reporter.id),
-            'display_name': obj.reporter.display_name,
-            'avatar_url': obj.reporter.avatar_url,
-        }
-    
-    def get_reported_profile(self, obj):
-        """Return basic profile info for reported user"""
-        return {
-            'id': str(obj.reported.id),
-            'display_name': obj.reported.display_name,
-            'avatar_url': obj.reported.avatar_url,
-        }
-    
-    def validate_reason(self, value):
-        """Validate reason is a valid choice"""
-        valid_choices = [choice[0] for choice in UserReport.REASON_CHOICES]
-        if value not in valid_choices:
-            raise serializers.ValidationError(
-                f"Invalid reason. Must be one of: {', '.join(valid_choices)}"
-            )
-        return value
-    
-    def validate_description(self, value):
-        """Validate description length"""
-        if value and len(value) > 500:
-            raise serializers.ValidationError(
-                "Description must be 500 characters or less."
-            )
-        return value
-
-
-class UserReportCreateSerializer(serializers.Serializer):
-    """
-    Serializer for creating a user report from a match context.
-    """
-    reason = serializers.ChoiceField(choices=UserReport.REASON_CHOICES)
-    description = serializers.CharField(max_length=500, required=False, allow_blank=True)
-    
-    def validate_reason(self, value):
-        """Validate reason is a valid choice"""
-        valid_choices = [choice[0] for choice in UserReport.REASON_CHOICES]
-        if value not in valid_choices:
-            raise serializers.ValidationError(
-                f"Invalid reason. Must be one of: {', '.join(valid_choices)}"
-            )
-        return value
-
-
-class AnalyticsEventCreateSerializer(serializers.Serializer):
-    """
-    Serializer for analytics event ingestion from authenticated clients.
-    """
-
-    event_name = serializers.CharField(max_length=80)
-    metadata = serializers.JSONField(required=False, default=dict)
-
-    def validate_event_name(self, value):
-        normalized = value.strip()
-        if not normalized:
-            raise serializers.ValidationError("event_name is required.")
-        return normalized
-
-    def validate_metadata(self, value):
-        if value is None:
-            return {}
-        if not isinstance(value, dict):
-            raise serializers.ValidationError("metadata must be a JSON object.")
-        return value
-
-
-class AnalyticsEventSerializer(serializers.ModelSerializer):
-    """
-    Serializer for returning stored analytics events.
-    """
-
-    class Meta:
-        model = AnalyticsEvent
-        fields = ['id', 'event_name', 'metadata', 'created_at', 'user', 'profile']
-        read_only_fields = ['id', 'created_at', 'user', 'profile']
-
-
-# ============================================================================
-# Plan Serializers (Nomad Logistics Feature)
-# ============================================================================
-
-class PlanAttendeeSerializer(serializers.ModelSerializer):
-    """
-    Serializer for PlanAttendee model with profile information.
-    """
-    user_profile = serializers.SerializerMethodField()
-    
-    class Meta:
-        model = PlanAttendee
-        fields = ['id', 'plan', 'user', 'user_profile', 'status', 'joined_at', 'confirmed_at']
-        read_only_fields = ['id', 'joined_at', 'confirmed_at']
-    
-    def get_user_profile(self, obj):
-        """Return basic profile info for the attendee"""
-        return {
-            'id': str(obj.user.id),
-            'display_name': obj.user.display_name,
-            'avatar_url': obj.user.avatar_url,
-        }
-
-
-class PlanMessageSerializer(serializers.ModelSerializer):
-    """
-    Serializer for PlanMessage model with sender profile data.
-    """
-    sender_profile = serializers.SerializerMethodField()
-    
-    class Meta:
-        model = PlanMessage
-        fields = ['id', 'plan', 'sender', 'sender_profile', 'content', 'created_at']
-        read_only_fields = ['id', 'sender', 'created_at']
-    
-    def get_sender_profile(self, obj):
-        """Return basic profile info for the sender"""
-        return {
-            'id': str(obj.sender.id),
-            'display_name': obj.sender.display_name,
-            'avatar_url': obj.sender.avatar_url,
-        }
-    
-    def validate_content(self, value):
-        """Validate message content length (max 500 chars)"""
-        if not value or not value.strip():
-            raise serializers.ValidationError("Message content cannot be empty.")
-        if len(value) > 500:
-            raise serializers.ValidationError(
-                "Message content must be 500 characters or less."
-            )
-        return value
-
-
-class PlanSerializer(serializers.ModelSerializer):
-    """
-    Serializer for Plan model with nested attendees.
-    """
-    created_by_profile = serializers.SerializerMethodField()
-    attendees = PlanAttendeeSerializer(many=True, read_only=True)
-    attendee_count = serializers.SerializerMethodField()
-    
-    class Meta:
-        model = Plan
-        fields = [
-            'id', 'created_by', 'created_by_profile', 'title', 'plan_type',
-            'plan_date', 'time_window', 'meetup_area', 'description',
-            'max_attendees', 'status', 'created_at', 'attendees', 'attendee_count'
-        ]
-        read_only_fields = ['id', 'created_by', 'created_at', 'status']
-    
-    def get_created_by_profile(self, obj):
-        """Return basic profile info for the plan creator"""
-        return {
-            'id': str(obj.created_by.id),
-            'display_name': obj.created_by.display_name,
-            'avatar_url': obj.created_by.avatar_url,
-        }
-    
-    def get_attendee_count(self, obj):
-        """Return count of attendees (joined or confirmed)"""
-        return obj.attendees.exclude(status='declined').count()
-
-
-class PlanCreateSerializer(serializers.ModelSerializer):
-    """
-    Serializer for creating plans with validation.
-    
-    Validates max_attendees (1-10), plan_date (not in past), and title length.
-    """
-    
-    class Meta:
-        model = Plan
-        fields = [
-            'title', 'plan_type', 'plan_date', 'time_window',
-            'meetup_area', 'description', 'max_attendees'
-        ]
-    
-    def validate_title(self, value):
-        """Validate title is not empty and within length limit"""
-        if not value or not value.strip():
-            raise serializers.ValidationError("Title cannot be empty.")
-        if len(value) > 100:
-            raise serializers.ValidationError(
-                "Title must be 100 characters or less."
-            )
-        return value
-    
-    def validate_plan_type(self, value):
-        """Validate plan_type is a valid choice"""
-        valid_choices = [choice[0] for choice in Plan.PLAN_TYPE_CHOICES]
-        if value not in valid_choices:
-            raise serializers.ValidationError(
-                f"Invalid plan type. Must be one of: {', '.join(valid_choices)}"
-            )
-        return value
-    
-    def validate_time_window(self, value):
-        """Validate time_window is a valid choice"""
-        valid_choices = [choice[0] for choice in Plan.TIME_WINDOW_CHOICES]
-        if value not in valid_choices:
-            raise serializers.ValidationError(
-                f"Invalid time window. Must be one of: {', '.join(valid_choices)}"
-            )
-        return value
-    
-    def validate_plan_date(self, value):
-        """Validate plan_date is not in the past"""
-        from datetime import date
-        today = date.today()
-        if value < today:
-            raise serializers.ValidationError(
-                "Plan date cannot be in the past."
-            )
-        return value
-    
-    def validate_meetup_area(self, value):
-        """Validate meetup_area is not empty and within length limit"""
-        if not value or not value.strip():
-            raise serializers.ValidationError("Meetup area cannot be empty.")
-        if len(value) > 100:
-            raise serializers.ValidationError(
-                "Meetup area must be 100 characters or less."
-            )
-        return value
-    
-    def validate_max_attendees(self, value):
-        """Validate max_attendees is between 1 and 10"""
-        if value < 1:
-            raise serializers.ValidationError(
-                "Max attendees must be at least 1."
-            )
-        if value > 10:
-            raise serializers.ValidationError(
-                "Max attendees cannot exceed 10."
-            )
-        return value
-    
-    def validate_description(self, value):
-        """Validate description length if provided"""
-        if value and len(value) > 500:
-            raise serializers.ValidationError(
-                "Description must be 500 characters or less."
-            )
-        return value
-
-
-class PlanUpdateSerializer(serializers.ModelSerializer):
-    """
-    Serializer for updating plans.
-    
-    Allows updating title, description, time_window, meetup_area, and max_attendees.
-    """
-    
-    class Meta:
-        model = Plan
-        fields = ['title', 'time_window', 'meetup_area', 'description', 'max_attendees']
-    
-    def validate_title(self, value):
-        """Validate title is not empty and within length limit"""
-        if not value or not value.strip():
-            raise serializers.ValidationError("Title cannot be empty.")
-        if len(value) > 100:
-            raise serializers.ValidationError(
-                "Title must be 100 characters or less."
-            )
-        return value
-    
-    def validate_time_window(self, value):
-        """Validate time_window is a valid choice"""
-        valid_choices = [choice[0] for choice in Plan.TIME_WINDOW_CHOICES]
-        if value not in valid_choices:
-            raise serializers.ValidationError(
-                f"Invalid time window. Must be one of: {', '.join(valid_choices)}"
-            )
-        return value
-    
-    def validate_meetup_area(self, value):
-        """Validate meetup_area is not empty and within length limit"""
-        if not value or not value.strip():
-            raise serializers.ValidationError("Meetup area cannot be empty.")
-        if len(value) > 100:
-            raise serializers.ValidationError(
-                "Meetup area must be 100 characters or less."
-            )
-        return value
-    
-    def validate_max_attendees(self, value):
-        """
-        Validate max_attendees is between 1 and 10.
-        Also ensure it's not less than current attendee count.
-        """
-        if value < 1:
-            raise serializers.ValidationError(
-                "Max attendees must be at least 1."
-            )
-        if value > 10:
-            raise serializers.ValidationError(
-                "Max attendees cannot exceed 10."
-            )
-        
-        # Check if reducing below current attendee count
-        if self.instance:
-            current_count = self.instance.attendees.exclude(status='declined').count()
-            if value < current_count:
-                raise serializers.ValidationError(
-                    f"Cannot reduce max attendees below current attendee count ({current_count})."
-                )
-        
-        return value
-    
-    def validate_description(self, value):
-        """Validate description length if provided"""
-        if value and len(value) > 500:
-            raise serializers.ValidationError(
-                "Description must be 500 characters or less."
-            )
-        return value
-
-
-class PlanMessageCreateSerializer(serializers.Serializer):
-    """
-    Simplified serializer for creating PlanMessages via API.
-    Only requires content field, plan and sender are set by the view.
-    """
-    content = serializers.CharField(max_length=500)
-    
-    def validate_content(self, value):
-        """Validate message content is not empty"""
-        if not value or not value.strip():
-            raise serializers.ValidationError("Message content cannot be empty.")
-        return value
-
-
-# ============================================================================
-# Activity Serializers (Three-Tab Restructure Feature)
-# ============================================================================
-
-class ActivityCreatedBySerializer(serializers.ModelSerializer):
-    """
-    Minimal profile serializer for activity created_by field.
-    Includes id, display_name, and avatar_url.
-    """
-    
-    class Meta:
-        model = Profile
-        fields = ['id', 'display_name', 'avatar_url']
-        read_only_fields = ['id', 'display_name', 'avatar_url']
-
-
-class ActivitySerializer(serializers.ModelSerializer):
-    """
-    Serializer for Activity model with computed spots_remaining field.
-    
-    spots_remaining = spots - 1 (creator) - count(likes)
-    """
-    created_by = ActivityCreatedBySerializer(read_only=True)
-    spots_remaining = serializers.SerializerMethodField()
-    
-    class Meta:
-        model = Activity
-        fields = [
-            'id',
-            'title',
-            'activity_type',
-            'description',
-            'image_url',
-            'spots',
-            'spots_remaining',
-            'activity_date',
-            'time_window',
-            'location',
-            'status',
-            'created_by',
-            'created_at',
-        ]
-        read_only_fields = [
-            'id',
-            'spots_remaining',
-            'created_by',
-            'created_at',
-        ]
-    
-    def get_spots_remaining(self, obj):
-        """
-        Calculate remaining spots for the activity.
-        
-        Formula: spots - 1 (creator) - count(likes)
-        
-        The creator automatically occupies 1 spot, so we subtract 1 from total spots.
-        Each user who swiped right (is_like=True) occupies 1 additional spot.
-        
-        Returns:
-            int: Number of remaining spots available (minimum 0)
-        """
-        # Count the number of likes (right swipes) on this activity
-        likes_count = obj.swipes.filter(is_like=True).count()
-        
-        # spots_remaining = total_spots - 1 (creator) - likes_count
-        # Ensure we don't return negative values
-        remaining = obj.spots - 1 - likes_count
-        return max(0, remaining)
-
-
-class ActivityCreateSerializer(serializers.ModelSerializer):
-    """
-    Serializer for creating Activity instances with validation.
-    
-    Validates activity_date (must be today or future) and spots (1-20).
-    """
-    
-    class Meta:
-        model = Activity
-        fields = [
-            'title',
-            'activity_type',
-            'description',
-            'image_url',
-            'spots',
-            'activity_date',
-            'time_window',
-            'location',
-        ]
-    
-    def validate_activity_date(self, value):
-        """Validate that activity_date is not in the past."""
-        from datetime import date
-        today = date.today()
-        
-        if value < today:
-            raise serializers.ValidationError(
-                "Activity date must be today or in the future."
-            )
-        
-        return value
-    
-    def validate_spots(self, value):
-        """Validate that spots is between 1 and 20."""
-        if value < 1:
-            raise serializers.ValidationError(
-                "Number of spots must be at least 1."
-            )
-        
-        if value > 20:
-            raise serializers.ValidationError(
-                "Number of spots cannot exceed 20."
-            )
-        
-        return value
-    
-    def create(self, validated_data):
-        """
-        Create an Activity with the current user as the creator.
-        
-        The status is automatically set to 'open' by the model default.
-        """
-        # Get the user's profile from the request context
-        request = self.context.get('request')
-        if request and hasattr(request.user, 'profile'):
-            validated_data['created_by'] = request.user.profile
-        
-        return super().create(validated_data)
-
-
-class ActivitySwipeSerializer(serializers.ModelSerializer):
-    """
-    Serializer for ActivitySwipe model - recording swipe direction on activities.
-    """
-    
-    class Meta:
-        model = ActivitySwipe
-        fields = [
-            'id',
-            'activity',
-            'user',
-            'is_like',
-            'swiped_at',
-        ]
-        read_only_fields = ['id', 'activity', 'user', 'swiped_at']
-
-
-class ActivityMatchSerializer(serializers.ModelSerializer):
-    """
-    Serializer for ActivityMatch model with nested activity and attendees.
-    """
-    activity = ActivitySerializer(read_only=True)
-    attendees = ActivityCreatedBySerializer(many=True, read_only=True)
-    
-    class Meta:
-        model = ActivityMatch
-        fields = [
-            'id',
-            'activity',
-            'attendees',
-            'matched_at',
-        ]
-        read_only_fields = ['id', 'activity', 'attendees', 'matched_at']
-
-
-class ActivityMessageSerializer(serializers.ModelSerializer):
-    """
-    Serializer for ActivityMessage model - chat messages in matched activity groups.
-    """
-    sender = ActivityCreatedBySerializer(read_only=True)
-    
-    class Meta:
-        model = ActivityMessage
-        fields = [
-            'id',
-            'sender',
-            'content',
-            'created_at',
-        ]
-        read_only_fields = ['id', 'sender', 'created_at']
-
-
-# ============================================================================
-# Friend Request and Friendship Serializers
-# ============================================================================
-
-class FriendRequestSerializer(serializers.ModelSerializer):
-    """
-    Serializer for FriendRequest model with nested profile data.
-    """
-    from_user = ActivityCreatedBySerializer(read_only=True)
-    to_user = ActivityCreatedBySerializer(read_only=True)
-    
-    class Meta:
-        model = FriendRequest
-        fields = [
-            'id',
-            'from_user',
-            'to_user',
-            'status',
-            'created_at',
-            'responded_at',
-        ]
-        read_only_fields = ['id', 'from_user', 'to_user', 'status', 'created_at', 'responded_at']
-
-
-class FriendshipSerializer(serializers.ModelSerializer):
-    """
-    Serializer for Friendship model with nested friend profile data.
-    
-    The 'friend' field returns the other user in the friendship (not the current user).
-    """
-    friend = serializers.SerializerMethodField()
-    
-    class Meta:
-        model = Friendship
-        fields = [
-            'id',
-            'friend',
-            'created_at',
-        ]
-        read_only_fields = ['id', 'friend', 'created_at']
-    
-    def get_friend(self, obj):
-        """
-        Return the other user's profile data based on the request context.
-        
-        The Friendship model has user1 and user2 fields. This method determines
-        which user is the "friend" (the other user, not the current user) and
-        returns their profile data using ActivityCreatedBySerializer.
-        """
-        request = self.context.get('request')
-        if not request or not request.user:
-            return None
-        
-        try:
-            current_profile = request.user.profile
-        except Profile.DoesNotExist:
-            return None
-        
-        # Determine which user is the friend (the other user)
-        friend_profile = obj.get_friend(current_profile)
-        
-        return ActivityCreatedBySerializer(friend_profile).data
-
-
-class FriendMessageSerializer(serializers.ModelSerializer):
-    """
-    Serializer for FriendMessage model - chat messages between friends.
-    """
-    sender = ActivityCreatedBySerializer(read_only=True)
-    
-    class Meta:
-        model = FriendMessage
-        fields = [
-            'id',
-            'sender',
-            'content',
-            'created_at',
-            'is_read',
-        ]
-        read_only_fields = ['id', 'sender', 'created_at', 'is_read']

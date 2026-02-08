@@ -30,12 +30,12 @@ function Navigation() {
   const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
   
   return (
-    <nav className="sticky top-0 z-50 bg-black/95 backdrop-blur border-b border-zinc-800">
+    <nav className="app-topbar">
       <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
         {/* Brand */}
         <Link 
           to={isAuthenticated ? "/feed" : "/"} 
-          className="text-xl font-bold bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 bg-clip-text text-transparent"
+          className="text-xl font-bold app-brand-gradient"
         >
           VanlifeVibes
         </Link>
@@ -44,7 +44,7 @@ function Navigation() {
         <div className="flex items-center gap-1">
           {isAuthenticated ? (
             <>
-              {/* Profile link - accessible from all tabs (Requirement 10.5) */}
+              {/* Profile link - accessible from all tabs */}
               <NavLink to="/profile" active={isActive('/profile')}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -64,7 +64,7 @@ function Navigation() {
               </NavLink>
               <Link 
                 to="/signup"
-                className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold rounded-lg transition-colors"
+                className="app-btn-primary-social px-3 py-1.5 text-sm"
               >
                 Sign Up
               </Link>

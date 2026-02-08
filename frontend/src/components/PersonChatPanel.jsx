@@ -6,9 +6,7 @@ import PersonMessageList from './PersonMessageList';
 import PersonMessageInput from './PersonMessageInput';
 import ChatActionsMenu from './ChatActionsMenu';
 import MiniCardModal from './MiniCardModal';
-
-// Default placeholder avatar
-const DEFAULT_AVATAR = 'https://via.placeholder.com/150/6c5ce7/ffffff?text=👤';
+import { DEFAULT_AVATAR } from '../utils/constants';
 
 /**
  * PersonChatPanel - Chat interface for person-to-person matches
