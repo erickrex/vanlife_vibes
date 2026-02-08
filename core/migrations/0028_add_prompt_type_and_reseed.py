@@ -61,5 +61,11 @@ class Migration(migrations.Migration):
             field=models.CharField(choices=[('travel', 'Travel'), ('dating', 'Dating'), ('friendship', 'Friendship')], default='travel', max_length=20),
             preserve_default=False,
         ),
+        # Increase prompt_question length to hold full text
+        migrations.AlterField(
+            model_name='prompt',
+            name='prompt_question',
+            field=models.CharField(max_length=500),
+        ),
         migrations.RunPython(reseed_prompts, migrations.RunPython.noop),
     ]

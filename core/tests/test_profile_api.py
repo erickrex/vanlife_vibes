@@ -1849,6 +1849,10 @@ class ProfilePromptAPITestCase(TestCase):
         )
         self.client.force_authenticate(user=self.user)
         self.profile = Profile.objects.get(user=self.user)
+        # Fetch prompts seeded by migrations
+        self.next_stop_journey = Prompt.objects.get(prompt_name='next_stop_journey')
+        self.always_down_team_up = Prompt.objects.get(prompt_name='always_down_team_up')
+        self.looking_for_travel_buddy = Prompt.objects.get(prompt_name='looking_for_travel_buddy')
 
     # ========================================================================
     # GET /profiles/me/prompts/ Tests

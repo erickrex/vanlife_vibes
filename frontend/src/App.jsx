@@ -6,13 +6,6 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './contexts/AuthContext';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
-import GroupsPage from './pages/GroupsPage';
-import GroupDetailPage from './pages/GroupDetailPage';
-import CreateSessionPage from './pages/CreateSessionPage';
-import SessionDetailPage from './pages/SessionDetailPage';
-import SwipePage from './pages/SwipePage';
-import MatchesPage from './pages/MatchesPage';
-import CandidateManagementPage from './pages/CandidateManagementPage';
 import ProfilePage from './pages/ProfilePage';
 import ProfileEditPage from './pages/ProfileEditPage';
 import NearbyFeedPage from './pages/NearbyFeedPage';
@@ -48,7 +41,6 @@ function getActiveTabFromPath(pathname) {
 /**
  * Routes that should show the TabNavigation.
  * These are the main tab routes where the bottom navigation should persist.
- * Requirements: 1.3 - Tab navigation persists across all authenticated screens within the three main tabs
  */
 const TAB_ROUTES = ['/feed', '/dating', '/activities'];
 
@@ -67,11 +59,6 @@ function shouldShowTabNavigation(pathname) {
  * 
  * Inner component that handles the main app layout including conditional
  * rendering of TabNavigation based on authentication state and current route.
- * 
- * Requirements:
- * - 1.2: When a user taps a tab, switch to that tab's content and highlight the active tab
- * - 1.3: Tab navigation persists across all authenticated screens within the three main tabs
- * - 1.4: When a user is not authenticated, the tab navigation shall not be displayed
  */
 function AppContent() {
   const { isAuthenticated, loading, profile, profileLoading } = useAuth();
@@ -119,62 +106,6 @@ function AppContent() {
               </ProtectedRoute>
             } 
           />
-          <Route 
-            path="/groups" 
-            element={
-              <ProtectedRoute>
-                <GroupsPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/groups/:groupId" 
-            element={
-              <ProtectedRoute>
-                <GroupDetailPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/groups/:groupId/sessions/new" 
-            element={
-              <ProtectedRoute>
-                <CreateSessionPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/sessions/:sessionId" 
-            element={
-              <ProtectedRoute>
-                <SessionDetailPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/sessions/:sessionId/swipe" 
-            element={
-              <ProtectedRoute>
-                <SwipePage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/sessions/:sessionId/matches" 
-            element={
-              <ProtectedRoute>
-                <MatchesPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/sessions/:sessionId/candidates" 
-            element={
-              <ProtectedRoute>
-                <CandidateManagementPage />
-              </ProtectedRoute>
-            } 
-          />
           
           {/* Profile routes */}
           <Route 
@@ -212,7 +143,7 @@ function AppContent() {
             } 
           />
           
-          {/* Discovery route (Requirements 7.1, 8.1) */}
+          {/* Discovery route */}
           <Route 
             path="/discover" 
             element={
@@ -222,7 +153,7 @@ function AppContent() {
             } 
           />
           
-          {/* Dating route (Requirements 4.1, 4.2) */}
+          {/* Dating route */}
           <Route 
             path="/dating" 
             element={
@@ -232,7 +163,7 @@ function AppContent() {
             } 
           />
           
-          {/* Person Matches route (Requirements 10.1, 12.6) */}
+          {/* Person Matches route */}
           <Route 
             path="/matches" 
             element={
@@ -242,7 +173,7 @@ function AppContent() {
             } 
           />
           
-          {/* Plans routes (Requirements 11.1, 11.2, 11.3, 11.4, 11.5) */}
+          {/* Plans routes */}
           <Route 
             path="/plans" 
             element={
@@ -268,7 +199,7 @@ function AppContent() {
             } 
           />
           
-          {/* Friend Requests route (Requirements 14.2, 14.3, 14.4) */}
+          {/* Friend Requests route */}
           <Route 
             path="/friends" 
             element={
@@ -278,7 +209,7 @@ function AppContent() {
             } 
           />
           
-          {/* Friend Chat route (Requirements 3.6, 14.6, 14.7) */}
+          {/* Friend Chat route */}
           <Route 
             path="/friends/:friendshipId/chat" 
             element={
@@ -288,7 +219,7 @@ function AppContent() {
             } 
           />
           
-          {/* Activities routes (Requirements 5.1-5.7, 9.1-9.6) */}
+          {/* Activities routes */}
           <Route 
             path="/activities" 
             element={
@@ -298,7 +229,7 @@ function AppContent() {
             } 
           />
           
-          {/* Create Activity route (Requirements 6.1-6.7) */}
+          {/* Create Activity route */}
           <Route 
             path="/activities/create" 
             element={
@@ -308,7 +239,7 @@ function AppContent() {
             } 
           />
           
-          {/* Activity Detail route (Requirement 5.6) */}
+          {/* Activity Detail route */}
           <Route 
             path="/activities/:id" 
             element={
@@ -318,7 +249,7 @@ function AppContent() {
             } 
           />
           
-          {/* Activity Chat route (Requirements 8.1-8.5) */}
+          {/* Activity Chat route */}
           <Route 
             path="/activities/:id/chat" 
             element={
@@ -328,13 +259,11 @@ function AppContent() {
             } 
           />
           
-          {/* Legacy URL redirects (Requirement 10.4) */}
-          {/* Redirect any unmatched /groups/* paths to /activities */}
+          {/* Legacy URL redirects - redirect old group/session URLs to activities */}
           <Route 
             path="/groups/*" 
             element={<Navigate to="/activities" replace />} 
           />
-          {/* Redirect any unmatched /sessions/* paths to /activities */}
           <Route 
             path="/sessions/*" 
             element={<Navigate to="/activities" replace />} 
@@ -342,7 +271,7 @@ function AppContent() {
         </Routes>
       </main>
       
-      {/* Tab Navigation - Requirements 1.2, 1.3, 1.4 */}
+      {/* Tab Navigation */}
       {showTabNav && <TabNavigation activeTab={activeTab} />}
     </div>
   );
