@@ -40,9 +40,29 @@ api.interceptors.response.use(
       const data = error.response.data;
       
       if (data) {
-        if (typeof data === 'string') {
+        // If there are field-specific errors, format them nicely
+        if (data.errors && typeof data.errors === 'object') {
+          const errorMessages = [];
+          for (const [field, messages] of Object.entries(data.errors)) {
+            const fieldErrors = Array.isArray(messages) ? messages : [messages];
+            // Capitalize field name and join with errors
+            const fieldName = field.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+            fieldErrors.forEach(msg => {
+              // Avoid redundant field names in message
+              if (msg.toLowerCase().includes(field.toLowerCase())) {
+                errorMessages.push(msg);
+              } else {
+                errorMessages.push(`${fieldName}: ${msg}`);
+              }
+            });
+          }
+          if (errorMessages.length > 0) {
+            errorMessage = errorMessages.join('. ');
+          }
+        } else if (typeof data === 'string') {
           errorMessage = data;
-        } else if (data.message) {
+        } else if (data.message && data.message !== 'Registration failed' && data.message !== 'Invalid credentials') {
+          // Use message only if it's specific (not generic)
           errorMessage = data.message;
         } else if (data.error) {
           errorMessage = data.error;
@@ -56,6 +76,9 @@ api.interceptors.response.use(
           errorMessage = Array.isArray(data.username) 
             ? data.username[0] 
             : data.username;
+        } else if (data.message) {
+          // Fallback to generic message
+          errorMessage = data.message;
         } else {
           // Try to extract first field error
           const firstKey = Object.keys(data)[0];
@@ -106,6 +129,14 @@ export const profilesAPI = {
   createPrompt: (data) => api.post('/profiles/me/prompts/', data),
   deletePrompt: (id) => api.delete(`/profiles/me/prompts/${id}/`),
   getAvailablePrompts: () => api.get('/profiles/prompts/available/'),
+  
+  // Profile photo methods
+  uploadPhoto: (formData) => api.post('/profiles/me/photos/', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+  getPhotos: () => api.get('/profiles/me/photos/'),
+  deletePhoto: (id) => api.delete(`/profiles/me/photos/${id}/`),
+  updatePhotoOrder: (id, displayOrder) => api.patch(`/profiles/me/photos/${id}/`, { display_order: displayOrder }),
 };
 
 // Locations API

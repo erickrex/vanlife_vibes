@@ -243,7 +243,6 @@ class PersonSwipeSerializer(serializers.ModelSerializer):
         liked the swiper in the same mode. If so, create a PersonMatch.
         
         Property 7: Mutual Match Creation
-        Validates: Requirements 7.3
         """
         # Set swiper from context if not provided
         if 'swiper' not in validated_data or validated_data['swiper'] is None:
@@ -468,7 +467,6 @@ class DirectMessageSerializer(serializers.ModelSerializer):
         - Match must be active
         
         Property 10: Chat Access Control
-        Validates: Requirements 10.1, 10.4
         """
         # Get match and sender from attrs or context
         match = attrs.get('match') or self.context.get('match')

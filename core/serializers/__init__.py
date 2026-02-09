@@ -40,6 +40,8 @@ from .profiles import (
     PromptListSerializer,
     AvailablePromptSerializer,
     ProfilePromptSerializer,
+    ProfilePhotoSerializer,
+    ProfilePhotoUploadSerializer,
 )
 
 # Match serializers (unified for dating + friends messaging)
@@ -93,6 +95,8 @@ __all__ = [
     'PromptListSerializer',
     'AvailablePromptSerializer',
     'ProfilePromptSerializer',
+    'ProfilePhotoSerializer',
+    'ProfilePhotoUploadSerializer',
     # Match (unified for dating + friends messaging)
     'PersonMatchSerializer',
     'PersonSwipeSerializer',

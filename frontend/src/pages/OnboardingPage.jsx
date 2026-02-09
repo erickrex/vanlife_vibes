@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { profilesAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import CityAutocomplete from '../components/CityAutocomplete';
+import PhotoUploader from '../components/PhotoUploader';
+import ProfilePreviewCard from '../components/ProfilePreviewCard';
 
 const STEPS = [
   {
@@ -75,6 +77,7 @@ function OnboardingPage() {
     display_name: '',
     bio: '',
     avatar_url: '',
+    cover_url: '',
     gender: '',
     now_in_city: '',
     next_week_in_city: '',
@@ -93,6 +96,8 @@ function OnboardingPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [photoError, setPhotoError] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const [showUrlFallback, setShowUrlFallback] = useState(false);
   const stepData = STEPS[step];
   const isLastStep = step === STEPS.length - 1;
 
@@ -114,6 +119,7 @@ function OnboardingPage() {
           display_name: profile.display_name || '',
           bio: profile.bio || '',
           avatar_url: profile.avatar_url || '',
+          cover_url: profile.cover_url || '',
           gender: profile.gender || '',
           looking_for_dating: profile.looking_for_dating || false,
           looking_for_friends: profile.looking_for_friends !== false,
@@ -269,7 +275,6 @@ function OnboardingPage() {
       const payload = {
         display_name: formData.display_name.trim(),
         bio: formData.bio || '',
-        avatar_url: formData.avatar_url || null,
         gender: formData.gender || null,
         looking_for_dating: !!formData.looking_for_dating,
         looking_for_friends: !!formData.looking_for_friends,
@@ -507,6 +512,7 @@ function OnboardingPage() {
 
           {stepData?.id === 'photo' && (
             <div className="space-y-5">
+              {/* Photo Preview Header */}
               <div className="flex items-center gap-4">
                 <div className="h-16 w-16 rounded-2xl border border-[var(--onboard-border)] bg-black/40 flex items-center justify-center overflow-hidden">
                   {formData.avatar_url && !photoError ? (
@@ -524,20 +530,105 @@ function OnboardingPage() {
                 </div>
                 <div>
                   <p className="text-sm text-[var(--onboard-muted)]">Photo preview</p>
-                  <p className="text-base font-medium text-[var(--onboard-ink)]">Add a URL to your favorite photo.</p>
+                  <p className="text-base font-medium text-[var(--onboard-ink)]">Upload a photo to make your profile stand out.</p>
                 </div>
               </div>
+
+              {/* Cover Photo Upload */}
               <div>
-                <label className="text-sm text-[var(--onboard-muted)]">Photo URL</label>
-                <input
-                  className="mt-2 w-full rounded-2xl border border-[var(--onboard-border)] bg-black/30 px-4 py-3 text-[var(--onboard-ink)] focus:border-[var(--onboard-accent)] focus:outline-none"
-                  value={formData.avatar_url}
-                  onChange={(e) => setFormData(prev => ({ ...prev, avatar_url: e.target.value }))}
-                  placeholder="https://"
-                  maxLength={500}
-                />
-                <p className="text-xs text-[var(--onboard-muted)] mt-2">You can add more photos later from your profile.</p>
+                <label className="text-sm text-[var(--onboard-muted)]">Cover Photo</label>
+                <div className="mt-2 rounded-2xl border border-[var(--onboard-border)] bg-black/20 p-4">
+                  <PhotoUploader
+                    photoType="cover"
+                    currentUrl={formData.cover_url}
+                    onUploadSuccess={(data) => {
+                      const photoUrl = data?.data?.image || data?.image;
+                      if (photoUrl) {
+                        setFormData(prev => ({ ...prev, cover_url: photoUrl }));
+                        setUploadError('');
+                      }
+                    }}
+                    onUploadError={(errorMsg) => {
+                      setUploadError(errorMsg);
+                    }}
+                  />
+                </div>
               </div>
+
+              {/* Avatar Photo Upload */}
+              <div>
+                <label className="text-sm text-[var(--onboard-muted)]">Profile Photo</label>
+                <div className="mt-2 rounded-2xl border border-[var(--onboard-border)] bg-black/20 p-4">
+                  <PhotoUploader
+                    photoType="avatar"
+                    currentUrl={formData.avatar_url}
+                    onUploadSuccess={(data) => {
+                      // Update avatar_url with the uploaded photo URL
+                      const photoUrl = data?.data?.image || data?.image;
+                      if (photoUrl) {
+                        setFormData(prev => ({ ...prev, avatar_url: photoUrl }));
+                        setPhotoError(false);
+                        setUploadError('');
+                      }
+                    }}
+                    onUploadError={(errorMsg) => {
+                      setUploadError(errorMsg);
+                    }}
+                  />
+                </div>
+                {uploadError && (
+                  <div className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300 text-center">
+                    {uploadError}
+                  </div>
+                )}
+              </div>
+
+              {/* Profile Preview */}
+              <div>
+                <p className="text-sm text-[var(--onboard-muted)] mb-2">Preview</p>
+                <ProfilePreviewCard
+                  avatarUrl={formData.avatar_url}
+                  coverUrl={formData.cover_url}
+                  displayName={formData.display_name}
+                />
+              </div>
+
+              {/* Secondary: URL Fallback */}
+              <div className="border-t border-[var(--onboard-border)] pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowUrlFallback(!showUrlFallback)}
+                  className="flex items-center gap-2 text-sm text-[var(--onboard-muted)] hover:text-[var(--onboard-ink)] transition-colors"
+                >
+                  <svg
+                    className={`w-4 h-4 transition-transform ${showUrlFallback ? 'rotate-90' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                  Or add a photo URL instead
+                </button>
+                
+                {showUrlFallback && (
+                  <div className="mt-3">
+                    <label className="text-sm text-[var(--onboard-muted)]">Photo URL</label>
+                    <input
+                      className="mt-2 w-full rounded-2xl border border-[var(--onboard-border)] bg-black/30 px-4 py-3 text-[var(--onboard-ink)] focus:border-[var(--onboard-accent)] focus:outline-none"
+                      value={formData.avatar_url}
+                      onChange={(e) => {
+                        setFormData(prev => ({ ...prev, avatar_url: e.target.value }));
+                        setPhotoError(false);
+                      }}
+                      placeholder="https://"
+                      maxLength={500}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <p className="text-xs text-[var(--onboard-muted)]">You can add more photos later from your profile.</p>
             </div>
           )}
 

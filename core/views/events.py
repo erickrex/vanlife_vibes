@@ -8,8 +8,6 @@ This module contains the EventViewSet which handles:
 - Join, leave, and confirm actions for direct mode events
 - Swipe action for swipe mode events
 - Messages endpoint for event group chat
-
-Requirements: REQ-5.1 through REQ-5.7 (API endpoints for events)
 """
 
 from rest_framework import status, viewsets
@@ -45,19 +43,19 @@ class EventViewSet(MessageMixin, viewsets.ModelViewSet):
     ViewSet for managing unified events (direct-join and swipe-to-join).
     
     Provides endpoints for:
-    - GET /events/ - List available events (REQ-5.1)
-    - POST /events/ - Create a new event (REQ-5.2)
-    - GET /events/{id}/ - Get event details (REQ-5.3)
+    - GET /events/ - List available events
+    - POST /events/ - Create a new event
+    - GET /events/{id}/ - Get event details
     - PATCH /events/{id}/ - Update event (creator only)
     - DELETE /events/{id}/ - Cancel event (creator only)
-    - POST /events/{id}/join/ - Join event (direct mode only) (REQ-5.4)
-    - POST /events/{id}/leave/ - Leave event (REQ-5.5)
+    - POST /events/{id}/join/ - Join event (direct mode only)
+    - POST /events/{id}/leave/ - Leave event
     - POST /events/{id}/confirm/ - Confirm attendance (direct mode only)
-    - POST /events/{id}/swipe/ - Swipe on event (swipe mode only) (REQ-5.6)
-    - GET /events/{id}/messages/ - List messages in event chat (REQ-5.7)
-    - POST /events/{id}/messages/ - Send a message to event chat (REQ-5.7)
+    - POST /events/{id}/swipe/ - Swipe on event (swipe mode only)
+    - GET /events/{id}/messages/ - List messages in event chat
+    - POST /events/{id}/messages/ - Send a message to event chat
     
-    Uses MessageMixin for the messages endpoint (REQ-5.7, REQ-4.3).
+    Uses MessageMixin for the messages endpoint.
     """
     permission_classes = [IsAuthenticated]
     
@@ -144,7 +142,6 @@ class EventViewSet(MessageMixin, viewsets.ModelViewSet):
         Look up the Event by ID.
         
         Returns (event, None) on success or (None, error_response) on failure.
-        Requirement 1.2: Customizable parent object lookup
         """
         try:
             event = Event.objects.get(pk=pk)
@@ -158,8 +155,6 @@ class EventViewSet(MessageMixin, viewsets.ModelViewSet):
     def get_message_queryset(self, parent):
         """
         Return messages for this event, ordered by created_at ascending.
-        
-        Requirement 1.5: Messages ordered by created_at ascending
         """
         return EventMessage.objects.filter(event=parent).order_by('created_at')
     
@@ -170,8 +165,6 @@ class EventViewSet(MessageMixin, viewsets.ModelViewSet):
         For swipe mode events, also verify the event is matched.
         
         Returns (True, None) if allowed, (False, error_response) if not.
-        Requirement 1.3: Customizable authorization check
-        REQ-4.3: Access control: only attendees can send/view messages
         """
         # For swipe mode events, only matched events allow messaging
         if parent.join_mode == 'swipe' and parent.status != 'matched':
@@ -248,8 +241,6 @@ class EventViewSet(MessageMixin, viewsets.ModelViewSet):
         - from_date: Filter events on or after this date (YYYY-MM-DD)
         - to_date: Filter events on or before this date (YYYY-MM-DD)
         - status: Filter by status (open, full, matched, cancelled, completed)
-        
-        REQ-5.1: GET /events/ - List events (filterable by join_mode, type, location, date)
         """
         user_profile = self._get_user_profile(request)
         if not user_profile:
@@ -277,8 +268,6 @@ class EventViewSet(MessageMixin, viewsets.ModelViewSet):
         GET /events/{id}/
         
         Returns event details including attendees and computed fields.
-        
-        REQ-5.3: GET /events/{id}/ - Get event details
         """
         user_profile = self._get_user_profile(request)
         if not user_profile:
@@ -323,8 +312,6 @@ class EventViewSet(MessageMixin, viewsets.ModelViewSet):
         
         The creator is automatically added as an attendee with 'confirmed' status
         for direct mode events.
-        
-        REQ-5.2: POST /events/ - Create event (specify join_mode)
         """
         user_profile = self._get_user_profile(request)
         if not user_profile:
@@ -521,8 +508,6 @@ class EventViewSet(MessageMixin, viewsets.ModelViewSet):
         - Event cannot be at max capacity
         
         When joining causes the event to reach max capacity, status changes to 'full'.
-        
-        REQ-5.4: POST /events/{id}/join/ - Direct join (only for direct mode)
         """
         user_profile = self._get_user_profile(request)
         if not user_profile:
@@ -625,8 +610,6 @@ class EventViewSet(MessageMixin, viewsets.ModelViewSet):
         The event creator cannot leave their own event.
         
         If leaving causes the event to go below max capacity, status changes back to 'open'.
-        
-        REQ-5.5: POST /events/{id}/leave/ - Leave event
         """
         user_profile = self._get_user_profile(request)
         if not user_profile:
@@ -820,8 +803,6 @@ class EventViewSet(MessageMixin, viewsets.ModelViewSet):
         - 400: Event is no longer accepting swipes (already matched/cancelled/completed)
         - 400: You have already swiped on this event
         - 400: You cannot swipe on your own event
-        
-        REQ-5.6: POST /events/{id}/swipe/ - Swipe on event (only for swipe mode)
         """
         user_profile = self._get_user_profile(request)
         if not user_profile:
@@ -976,8 +957,6 @@ class EventViewSet(MessageMixin, viewsets.ModelViewSet):
         - User is an attendee with status != 'declined'
 
         By default, excludes cancelled and completed events.
-
-        REQ-5.8: GET /events/my-events/ - Events user created or is attending
         """
         user_profile = self._get_user_profile(request)
         if not user_profile:

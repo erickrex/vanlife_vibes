@@ -10,6 +10,9 @@ wheels/
 # Environment
 .env
 
+# Media files (user uploads)
+media/
+
 # Frontend
 frontend/docs/
 frontend/node_modules

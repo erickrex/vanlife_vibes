@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { profilesAPI, locationsAPI } from '../services/api';
 import CityAutocomplete from '../components/CityAutocomplete';
+import PhotoUploader from '../components/PhotoUploader';
+import GalleryManager from '../components/GalleryManager';
 
 const VEHICLE_TYPE_OPTIONS = [
   { value: 'van', label: 'Van' },
@@ -127,6 +129,12 @@ function ProfileEditPage() {
   const [promptError, setPromptError] = useState('');
   const [addingPrompt, setAddingPrompt] = useState(false);
   const [deletingPromptId, setDeletingPromptId] = useState(null);
+  const [avatarUploadError, setAvatarUploadError] = useState('');
+  const [showAvatarUrlInput, setShowAvatarUrlInput] = useState(false);
+  const [coverUploadError, setCoverUploadError] = useState('');
+  const [showCoverUrlInput, setShowCoverUrlInput] = useState(false);
+  const [profile, setProfile] = useState(null);
+  const [galleryPhotos, setGalleryPhotos] = useState([]);
 
   useEffect(() => { loadInitialData(); }, []);
   
@@ -136,15 +144,24 @@ function ProfileEditPage() {
     try {
       setLoading(true);
       setError('');
-      const [profileRes, hobbiesRes, promptsRes, availablePromptsRes] = await Promise.all([
+      const [profileRes, hobbiesRes, promptsRes, availablePromptsRes, photosRes] = await Promise.all([
         profilesAPI.getMyProfile(), profilesAPI.getHobbyTags(),
         profilesAPI.getPrompts(), profilesAPI.getAvailablePrompts(),
+        profilesAPI.getPhotos(),
       ]);
       
       const profile = profileRes.data.data || profileRes.data;
+      setProfile(profile);
       setHobbyTags(hobbiesRes.data.data || hobbiesRes.data);
       setPrompts(promptsRes.data.data || promptsRes.data || []);
       setAvailablePrompts(availablePromptsRes.data.data || availablePromptsRes.data || []);
+      
+      // Fetch gallery photos
+      const allPhotos = photosRes.data.data || photosRes.data || [];
+      const gallery = allPhotos
+        .filter(p => p.photo_type === 'gallery')
+        .map(p => ({ id: p.id, url: p.url, display_order: p.display_order }));
+      setGalleryPhotos(gallery);
       
       setFormData({
         display_name: profile.display_name || '', bio: profile.bio || '',
@@ -418,19 +435,112 @@ function ProfileEditPage() {
               </div>
             </div>
 
-            <div className="mb-4">
-              <label className={labelClass}>Avatar URL</label>
-              <input type="url" name="avatar_url" value={formData.avatar_url} onChange={handleChange}
-                className={inputClass} placeholder="https://example.com/avatar.jpg" disabled={saving} />
-              <span className="text-zinc-500 text-xs">Enter a URL for your profile picture</span>
+            {/* Avatar Photo Upload */}
+            <div className="mb-6">
+              <label className={labelClass}>Profile Photo</label>
+              <PhotoUploader
+                photoType="avatar"
+                currentUrl={profile?.avatar || formData.avatar_url}
+                onUploadSuccess={(data) => {
+                  // Update formData with the new avatar URL
+                  setFormData(prev => ({ ...prev, avatar_url: data.url }));
+                  setAvatarUploadError('');
+                }}
+                onUploadError={(errorMsg) => {
+                  setAvatarUploadError(errorMsg);
+                }}
+                className="mb-3"
+              />
+              {avatarUploadError && (
+                <div className="mb-3 p-2 bg-red-500/10 border border-red-500/20 rounded-lg">
+                  <p className="text-sm text-red-400">{avatarUploadError}</p>
+                </div>
+              )}
+              
+              {/* Collapsible URL fallback */}
+              <button
+                type="button"
+                onClick={() => setShowAvatarUrlInput(!showAvatarUrlInput)}
+                className="text-zinc-500 text-xs hover:text-zinc-400 transition-colors flex items-center gap-1"
+              >
+                <span>{showAvatarUrlInput ? '▼' : '▶'}</span>
+                <span>Or enter URL manually</span>
+              </button>
+              
+              {showAvatarUrlInput && (
+                <div className="mt-2">
+                  <input
+                    type="url"
+                    name="avatar_url"
+                    value={formData.avatar_url}
+                    onChange={handleChange}
+                    className={inputClass}
+                    placeholder="https://example.com/avatar.jpg"
+                    disabled={saving}
+                  />
+                  <span className="text-zinc-500 text-xs">Enter a URL for your profile picture</span>
+                </div>
+              )}
             </div>
             
+            {/* Cover Photo Upload */}
             <div>
-              <label className={labelClass}>Cover Photo URL</label>
-              <input type="url" name="cover_url" value={formData.cover_url} onChange={handleChange}
-                className={inputClass} placeholder="https://example.com/cover.jpg" disabled={saving} />
-              <span className="text-zinc-500 text-xs">Enter a URL for your cover photo</span>
+              <label className={labelClass}>Cover Photo</label>
+              <PhotoUploader
+                photoType="cover"
+                currentUrl={profile?.cover || formData.cover_url}
+                onUploadSuccess={(data) => {
+                  // Update formData with the new cover URL
+                  setFormData(prev => ({ ...prev, cover_url: data.url }));
+                  setCoverUploadError('');
+                }}
+                onUploadError={(errorMsg) => {
+                  setCoverUploadError(errorMsg);
+                }}
+                className="mb-3"
+              />
+              {coverUploadError && (
+                <div className="mb-3 p-2 bg-red-500/10 border border-red-500/20 rounded-lg">
+                  <p className="text-sm text-red-400">{coverUploadError}</p>
+                </div>
+              )}
+              
+              {/* Collapsible URL fallback */}
+              <button
+                type="button"
+                onClick={() => setShowCoverUrlInput(!showCoverUrlInput)}
+                className="text-zinc-500 text-xs hover:text-zinc-400 transition-colors flex items-center gap-1"
+              >
+                <span>{showCoverUrlInput ? '▼' : '▶'}</span>
+                <span>Or enter URL manually</span>
+              </button>
+              
+              {showCoverUrlInput && (
+                <div className="mt-2">
+                  <input
+                    type="url"
+                    name="cover_url"
+                    value={formData.cover_url}
+                    onChange={handleChange}
+                    className={inputClass}
+                    placeholder="https://example.com/cover.jpg"
+                    disabled={saving}
+                  />
+                  <span className="text-zinc-500 text-xs">Enter a URL for your cover photo</span>
+                </div>
+              )}
             </div>
+          </div>
+
+          {/* Gallery Photos */}
+          <div className={sectionClass}>
+            <h2 className="text-lg font-semibold text-white mb-4">📸 Gallery Photos</h2>
+            <p className="text-zinc-500 text-sm mb-4">Add up to 6 photos to showcase your adventures</p>
+            <GalleryManager
+              photos={galleryPhotos}
+              onPhotosChange={setGalleryPhotos}
+              disabled={saving}
+            />
           </div>
 
           {/* Profile Type */}

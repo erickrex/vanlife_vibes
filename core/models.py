@@ -193,7 +193,6 @@ class Profile(models.Model):
     interested_in_men = models.BooleanField(default=False)
     interested_in_women = models.BooleanField(default=False)
     interested_in_nonbinary = models.BooleanField(default=False)
-    # New fields for nomad-logistics feature (Requirements 1.1, 1.2, 4.1, 4.2, 5.1)
     profile_type = models.CharField(
         max_length=20,
         choices=PROFILE_TYPE_CHOICES,
@@ -232,7 +231,6 @@ class Profile(models.Model):
         blank=True,
         null=True
     )
-    # New travel and lifestyle fields for nomad-logistics feature (Requirements 2.1, 3.1-3.6)
     rig_status = models.CharField(
         max_length=20,
         choices=RIG_STATUS_CHOICES,
@@ -271,7 +269,7 @@ class Profile(models.Model):
         blank=True,
         null=True
     )
-    # Relationship status fields for friend-intent-filtering feature (Requirements 6.1, 6.2)
+    # Relationship status fields for friend-intent-filtering feature
     relationship_status = models.CharField(
         max_length=20,
         choices=RELATIONSHIP_STATUS_CHOICES,
@@ -372,6 +370,36 @@ class VehiclePhoto(models.Model):
 
     def __str__(self):
         return f"Photo {self.display_order} for {self.vehicle}"
+
+
+class ProfilePhoto(models.Model):
+    """Photos uploaded for a user's profile (avatar, cover, or gallery)"""
+    PHOTO_TYPE_CHOICES = [
+        ('avatar', 'Avatar'),
+        ('cover', 'Cover'),
+        ('gallery', 'Gallery'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    profile = models.ForeignKey(
+        Profile,
+        on_delete=models.CASCADE,
+        related_name='photos'
+    )
+    photo_type = models.CharField(max_length=10, choices=PHOTO_TYPE_CHOICES)
+    image = models.ImageField(upload_to='profile_photos/%Y/%m/')
+    display_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'profile_photo'
+        ordering = ['display_order', '-created_at']
+        indexes = [
+            models.Index(fields=['profile', 'photo_type']),
+        ]
+
+    def __str__(self):
+        return f"{self.photo_type} photo for {self.profile}"
 
 
 class Follow(models.Model):

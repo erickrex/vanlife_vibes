@@ -24,7 +24,6 @@ class MessageMixin:
     - check_can_send_message(parent): Method returning (allowed, error_response)
     - create_message(parent, profile, validated_data): Method creating and returning message
     
-    Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9
     """
     
     # Class attributes to be overridden by subclasses
@@ -81,7 +80,6 @@ class MessageMixin:
         List all messages for the parent object.
         
         Returns messages ordered by created_at ascending (oldest first).
-        Requirement 1.5: Messages ordered by created_at ascending
         """
         # Get the message queryset from the hook
         messages = self.get_message_queryset(parent)
@@ -99,7 +97,6 @@ class MessageMixin:
         Send a message to the parent object.
         
         Validates content, creates message, returns serialized response.
-        Requirement 1.6: Validate content, create message, return serialized response
         """
         # Check if sending is allowed (e.g., match is active, plan not cancelled)
         allowed, error_response = self.check_can_send_message(parent)
@@ -137,8 +134,6 @@ class MessageMixin:
         
         Override in subclass to look up the parent object (match, plan, activity, friendship).
         Should return (parent, None) on success or (None, Response) on failure.
-        
-        Requirement 1.2: Customizable parent object lookup
         """
         raise NotImplementedError(
             "Subclasses must implement get_message_parent(pk) to look up the parent object"
@@ -150,8 +145,6 @@ class MessageMixin:
         
         Override in subclass to return the appropriate queryset.
         Should return messages ordered by created_at ascending.
-        
-        Requirement 1.5: Messages ordered by created_at ascending
         """
         raise NotImplementedError(
             "Subclasses must implement get_message_queryset(parent) to return message queryset"
@@ -163,8 +156,6 @@ class MessageMixin:
         
         Override in subclass to check if the user has access to messages.
         Should return (True, None) if allowed or (False, Response) if not.
-        
-        Requirement 1.3: Customizable authorization check
         """
         raise NotImplementedError(
             "Subclasses must implement check_message_access(parent, profile) for authorization"

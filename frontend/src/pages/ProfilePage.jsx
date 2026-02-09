@@ -71,7 +71,13 @@ function ProfilePage() {
 
   const photoGallery = useMemo(() => {
     const vehiclePhotos = profile?.vehicle?.photos || [];
-    return vehiclePhotos.map((photo) => photo.url || photo.image_url).filter(Boolean);
+    const vehicleUrls = vehiclePhotos.map((photo) => photo.url || photo.image_url).filter(Boolean);
+    
+    // Add profile gallery photos
+    const galleryPhotos = profile?.gallery_photos || [];
+    const galleryUrls = galleryPhotos.map((photo) => photo.url).filter(Boolean);
+    
+    return [...galleryUrls, ...vehicleUrls];
   }, [profile]);
 
   const quickFacts = useMemo(() => {
@@ -142,14 +148,14 @@ function ProfilePage() {
       <div className="max-w-3xl mx-auto">
         <section className="app-card overflow-hidden">
           <div className="relative h-48 sm:h-64">
-            <img src={profile.cover_url || DEFAULT_COVER} alt="Cover" className="w-full h-full object-cover" />
+            <img src={profile.cover || profile.cover_url || DEFAULT_COVER} alt="Cover" className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" />
           </div>
 
           <div className="px-4 sm:px-6 pb-6 -mt-14 relative">
             <div className="flex items-end justify-between gap-4">
               <img
-                src={profile.avatar_url || DEFAULT_AVATAR}
+                src={profile.avatar || profile.avatar_url || DEFAULT_AVATAR}
                 alt={profile.display_name || 'User'}
                 className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border-4 border-zinc-950 object-cover shadow-xl"
               />

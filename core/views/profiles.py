@@ -22,7 +22,7 @@ from django.utils import timezone
 from core.models import (
     Profile, Country, HobbyTag, Vehicle, VehiclePhoto,
     InTownWindow, City, Prompt, ProfilePrompt, PersonSwipe,
-    AnalyticsEvent
+    AnalyticsEvent, ProfilePhoto
 )
 from core.serializers import (
     ProfileSerializer,
@@ -41,6 +41,13 @@ from core.serializers import (
     PersonSwipeSerializer,
     AnalyticsEventCreateSerializer,
     AnalyticsEventSerializer,
+    ProfilePhotoSerializer,
+    ProfilePhotoUploadSerializer,
+)
+from core.services.photo_upload import (
+    validate_photo_file,
+    handle_photo_upload,
+    handle_photo_delete,
 )
 from core.services.feed_filters import FeedFilterService
 from core.services.relevance import RelevanceScorer
@@ -430,6 +437,198 @@ class ProfileViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
         return Response({
             'status': 'success',
             'data': serializer.data
+        }, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get', 'post'], url_path='me/photos')
+    def photos(self, request):
+        """
+        List or upload profile photos for the current user.
+
+        GET /api/v1/profiles/me/photos/
+        Returns all ProfilePhoto records for the authenticated user's profile,
+        ordered by display_order ascending, then created_at descending.
+
+        POST /api/v1/profiles/me/photos/
+        Upload a new profile photo. Accepts multipart/form-data with:
+        - image (file, required): The photo file (JPEG, PNG, or WebP, max 10MB)
+        - photo_type (string, required): One of 'avatar', 'cover', or 'gallery'
+
+        Requirements: 4.1, 4.2
+        """
+        try:
+            profile = Profile.objects.get(user=request.user)
+        except Profile.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': 'Profile not found. Please contact support.'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        if request.method == 'GET':
+            photos = ProfilePhoto.objects.filter(profile=profile)
+            serializer = ProfilePhotoSerializer(
+                photos, many=True, context={'request': request}
+            )
+            return Response({
+                'status': 'success',
+                'data': serializer.data
+            }, status=status.HTTP_200_OK)
+
+        elif request.method == 'POST':
+            upload_serializer = ProfilePhotoUploadSerializer(data=request.data)
+            if not upload_serializer.is_valid():
+                return Response({
+                    'status': 'error',
+                    'message': 'Invalid upload data',
+                    'errors': upload_serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            image_file = upload_serializer.validated_data['image']
+            photo_type = upload_serializer.validated_data['photo_type']
+
+            # Validate the photo file (size, content type, image integrity)
+            try:
+                validate_photo_file(image_file)
+            except Exception as e:
+                message = e.detail if hasattr(e, 'detail') else str(e)
+                if isinstance(message, list):
+                    message = str(message[0])
+                return Response({
+                    'status': 'error',
+                    'message': str(message)
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Handle the upload (enforce limits, create record, sync URLs)
+            try:
+                photo = handle_photo_upload(
+                    profile=profile,
+                    image_file=image_file,
+                    photo_type=photo_type,
+                )
+            except Exception as e:
+                message = e.detail if hasattr(e, 'detail') else str(e)
+                if isinstance(message, list):
+                    message = str(message[0])
+                return Response({
+                    'status': 'error',
+                    'message': str(message)
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            response_serializer = ProfilePhotoSerializer(
+                photo, context={'request': request}
+            )
+            return Response({
+                'status': 'success',
+                'data': response_serializer.data,
+                'message': 'Photo uploaded successfully'
+            }, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=['delete'], url_path='me/photos/(?P<photo_id>[^/.]+)')
+    def delete_photo(self, request, photo_id=None):
+        """
+        Delete a profile photo by ID.
+
+        DELETE /api/v1/profiles/me/photos/{photo_id}/
+        Deletes the specified photo if it belongs to the authenticated user.
+        Returns 403 if the photo belongs to another user.
+
+        Requirements: 4.3, 4.6
+        """
+        try:
+            profile = Profile.objects.get(user=request.user)
+        except Profile.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': 'Profile not found. Please contact support.'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            photo = ProfilePhoto.objects.get(id=photo_id)
+        except ProfilePhoto.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': 'Photo not found.'
+            }, status=status.HTTP_404_NOT_FOUND)
+        except Exception:
+            return Response({
+                'status': 'error',
+                'message': 'Invalid photo ID'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check ownership
+        if photo.profile_id != profile.id:
+            return Response({
+                'status': 'error',
+                'message': 'You do not have permission to perform this action.'
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        handle_photo_delete(profile, photo)
+
+        return Response({
+            'status': 'success',
+            'message': 'Photo deleted successfully'
+        }, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['patch'], url_path='me/photos/(?P<photo_id>[^/.]+)/update')
+    def update_photo(self, request, photo_id=None):
+        """
+        Update a profile photo's display_order.
+
+        PATCH /api/v1/profiles/me/photos/{photo_id}/update/
+        Accepts JSON with an optional 'display_order' field.
+        Returns 403 if the photo belongs to another user.
+
+        Requirements: 4.4, 4.6
+        """
+        try:
+            profile = Profile.objects.get(user=request.user)
+        except Profile.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': 'Profile not found. Please contact support.'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            photo = ProfilePhoto.objects.get(id=photo_id)
+        except ProfilePhoto.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': 'Photo not found.'
+            }, status=status.HTTP_404_NOT_FOUND)
+        except Exception:
+            return Response({
+                'status': 'error',
+                'message': 'Invalid photo ID'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check ownership
+        if photo.profile_id != profile.id:
+            return Response({
+                'status': 'error',
+                'message': 'You do not have permission to perform this action.'
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        # Update display_order if provided
+        display_order = request.data.get('display_order')
+        if display_order is not None:
+            try:
+                display_order = int(display_order)
+                if display_order < 0:
+                    raise ValueError()
+            except (ValueError, TypeError):
+                return Response({
+                    'status': 'error',
+                    'message': 'display_order must be a non-negative integer'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            photo.display_order = display_order
+            photo.save(update_fields=['display_order'])
+
+        serializer = ProfilePhotoSerializer(
+            photo, context={'request': request}
+        )
+        return Response({
+            'status': 'success',
+            'data': serializer.data,
+            'message': 'Photo updated successfully'
         }, status=status.HTTP_200_OK)
 
 

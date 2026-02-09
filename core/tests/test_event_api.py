@@ -1,8 +1,5 @@
 """
 Tests for Event API endpoints including join, leave, and confirm actions.
-
-Tests REQ-5.4: POST /events/{id}/join/ - Direct join (only for direct mode)
-Tests REQ-5.5: POST /events/{id}/leave/ - Leave event
 """
 import pytest
 from django.test import TestCase
@@ -518,8 +515,6 @@ class EventSwipeTestCase(TestCase):
     Test cases for event swipe endpoint (swipe mode only).
     
     POST /events/{id}/swipe/ - Swipe on event (swipe mode only)
-    
-    Tests REQ-5.6: POST /events/{id}/swipe/ - Swipe on event (only for swipe mode)
     """
     
     def setUp(self):
@@ -897,9 +892,6 @@ class EventMessageTestCase(TestCase):
     
     GET /events/{id}/messages/ - List messages in event chat
     POST /events/{id}/messages/ - Send a message to event chat
-    
-    REQ-5.7: GET/POST /events/{id}/messages/ - Event chat
-    REQ-4.3: Access control: only attendees can send/view messages
     """
     
     def setUp(self):
@@ -1324,8 +1316,6 @@ class EventMessageTestCase(TestCase):
 class EventMyEventsEndpointTestCase(TestCase):
     """
     Test cases for GET /events/my-events/ endpoint.
-    
-    Tests REQ-5.8: GET /events/my-events/ - Events user created or is attending
     """
     
     def setUp(self):

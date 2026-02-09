@@ -48,7 +48,7 @@ class PersonMatchViewSet(MessageMixin, viewsets.GenericViewSet):
     - POST /matches/{id}/messages/mini-card/ - Share a mini-card
     - POST /matches/{id}/messages/icebreaker/ - Send an icebreaker prompt
     
-    Uses MessageMixin for the messages endpoint (Requirements 1.1, 1.9).
+    Uses MessageMixin for the messages endpoint.
     """
     permission_classes = [IsAuthenticated]
     
@@ -108,7 +108,6 @@ class PersonMatchViewSet(MessageMixin, viewsets.GenericViewSet):
         Look up the PersonMatch by ID.
         
         Returns (match, None) on success or (None, error_response) on failure.
-        Requirement 1.2: Customizable parent object lookup
         """
         try:
             match = PersonMatch.objects.get(pk=pk)
@@ -122,8 +121,6 @@ class PersonMatchViewSet(MessageMixin, viewsets.GenericViewSet):
     def get_message_queryset(self, parent):
         """
         Return messages for this match, ordered by created_at ascending.
-        
-        Requirement 1.5: Messages ordered by created_at ascending
         """
         return DirectMessage.objects.filter(match=parent).order_by('created_at')
 
@@ -158,7 +155,6 @@ class PersonMatchViewSet(MessageMixin, viewsets.GenericViewSet):
         Verify the user is one of the two users in the match.
         
         Returns (True, None) if allowed, (False, error_response) if not.
-        Requirement 1.3: Customizable authorization check
         """
         if parent.user1 != profile and parent.user2 != profile:
             return False, Response({

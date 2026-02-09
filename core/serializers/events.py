@@ -11,8 +11,6 @@ This module contains serializers for:
 - EventUpdateSerializer: Updating events
 - EventSwipeSerializer: Recording swipe direction on events
 - EventMessageCreateSerializer: Simplified serializer for creating event messages
-
-Requirements: REQ-5.1 through REQ-5.8 (API endpoints for events)
 """
 
 from datetime import date

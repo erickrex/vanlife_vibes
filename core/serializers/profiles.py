@@ -17,7 +17,7 @@ from django.utils import timezone
 
 from core.models import (
     UserAccount, Profile, Vehicle, VehiclePhoto, HobbyTag, Country,
-    InTownWindow, City, Prompt, ProfilePrompt
+    InTownWindow, City, Prompt, ProfilePrompt, ProfilePhoto
 )
 
 
@@ -591,7 +591,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
 
     
     # =========================================================================
-    # Nomad-logistics enum field validation (Requirements 1.1, 2.1, 3.1-3.6)
+    # Nomad-logistics enum field validation
     # =========================================================================
     
     def validate_profile_type(self, value):
@@ -763,11 +763,11 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         Cross-field validation.
         
         Validates:
-        - At least one of looking_for_dating or looking_for_friends must be true (Requirements 5.3, 5.4)
+        - At least one of looking_for_dating or looking_for_friends must be true
         """
         # =========================================================================
         # Validate looking_for_dating / looking_for_friends
-        # Requirements 5.3, 5.4: At least one intent must be selected
+        # At least one intent must be selected
         # =========================================================================
         looking_for_dating = attrs.get('looking_for_dating')
         looking_for_friends = attrs.get('looking_for_friends')
@@ -795,7 +795,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
 
         
         # =========================================================================
-        # Validate conditional pet_type (Requirement 3.4, Property 14)
+        # Validate conditional pet_type
         # pet_type should only be accepted when has_pets is true
         # =========================================================================
         has_pets = attrs.get('has_pets')
@@ -1253,9 +1253,6 @@ class ProfilePromptSerializer(serializers.ModelSerializer):
     def validate_prompt_answer(self, value):
         """
         Validate prompt_answer character limit (≤ 200 characters).
-        
-        Requirement 5.5: THE Profile_System SHALL limit prompt answers to 200 
-        characters each
         """
         if value and len(value) > self.MAX_ANSWER_LENGTH:
             raise serializers.ValidationError(
@@ -1354,3 +1351,35 @@ class ProfilePromptSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         data['prompt_name'] = instance.prompt.prompt_name
         return data
+
+
+class ProfilePhotoSerializer(serializers.ModelSerializer):
+    """
+    Read serializer for ProfilePhoto responses.
+    
+    Returns photo metadata including the full image URL.
+    Used for GET list and POST response payloads.
+    
+    Requirements: 6.1 (Photo Serialization)
+    """
+    
+    class Meta:
+        model = ProfilePhoto
+        fields = ['id', 'photo_type', 'image', 'display_order', 'created_at']
+        read_only_fields = ['id', 'photo_type', 'image', 'display_order', 'created_at']
+
+
+class ProfilePhotoUploadSerializer(serializers.Serializer):
+    """
+    Write serializer for photo upload validation.
+    
+    Accepts multipart/form-data with an image file and photo_type.
+    Used for POST upload requests.
+    
+    Requirements: 6.2 (Upload Deserialization)
+    """
+    image = serializers.ImageField(required=True)
+    photo_type = serializers.ChoiceField(
+        choices=ProfilePhoto.PHOTO_TYPE_CHOICES,
+        required=True,
+    )
