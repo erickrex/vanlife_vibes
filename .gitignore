@@ -17,6 +17,9 @@ media/
 frontend/docs/
 frontend/node_modules
 frontend/dist
+
+# Mobile app
+mobile-app/node_modules
 frontend/dist-ssr
 frontend/*.local
 
