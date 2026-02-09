@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { profilesAPI } from '../services/api';
 
 /**
@@ -18,6 +18,7 @@ function PhotoUploader({
   currentUrl,
   onUploadSuccess,
   onUploadError,
+  autoUploadOnSelect = false,
   className = '',
 }) {
   const [file, setFile] = useState(null);
@@ -25,6 +26,15 @@ function PhotoUploader({
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
+  const selectionTokenRef = useRef(0);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // Determine aspect ratio and sizing based on photo type
   const getPhotoStyles = () => {
@@ -58,6 +68,61 @@ function PhotoUploader({
 
   const styles = getPhotoStyles();
 
+  const clearFileInput = useCallback(() => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }, []);
+
+  const uploadFile = useCallback(async (fileToUpload) => {
+    if (!fileToUpload) return;
+
+    if (isMountedRef.current) {
+      setUploading(true);
+      setError(null);
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('image', fileToUpload);
+      formData.append('photo_type', photoType);
+
+      const response = await profilesAPI.uploadPhoto(formData);
+
+      // Clear local state on success
+      selectionTokenRef.current += 1;
+      if (isMountedRef.current) {
+        setFile(null);
+        setPreview(null);
+        clearFileInput();
+      }
+
+      // Call success callback with response data (+ convenience URL fields)
+      if (onUploadSuccess) {
+        const payload = response.data || {};
+        const imageUrl = payload?.data?.image;
+        onUploadSuccess({
+          ...payload,
+          url: imageUrl,
+          image: imageUrl,
+          photo: payload?.data,
+        });
+      }
+    } catch (err) {
+      const errorMessage = err.message || 'Upload failed. Please try again.';
+      if (isMountedRef.current) {
+        setError(errorMessage);
+      }
+      if (onUploadError) {
+        onUploadError(errorMessage);
+      }
+    } finally {
+      if (isMountedRef.current) {
+        setUploading(false);
+      }
+    }
+  }, [clearFileInput, onUploadError, onUploadSuccess, photoType]);
+
   // Handle file selection
   const handleFileSelect = (e) => {
     const selectedFile = e.target.files?.[0];
@@ -67,60 +132,40 @@ function PhotoUploader({
     setError(null);
     setFile(selectedFile);
 
+    const token = (selectionTokenRef.current += 1);
+
     // Generate preview using FileReader
     const reader = new FileReader();
     reader.onload = (event) => {
+      if (token !== selectionTokenRef.current) return;
       setPreview(event.target.result);
     };
     reader.onerror = () => {
+      if (token !== selectionTokenRef.current) return;
       setError('Failed to read file. Please try again.');
       setFile(null);
       setPreview(null);
     };
     reader.readAsDataURL(selectedFile);
+
+    if (autoUploadOnSelect) {
+      uploadFile(selectedFile);
+    }
   };
 
   // Handle upload
   const handleUpload = async () => {
     if (!file) return;
-
-    setUploading(true);
-    setError(null);
-
-    try {
-      const formData = new FormData();
-      formData.append('image', file);
-      formData.append('photo_type', photoType);
-
-      const response = await profilesAPI.uploadPhoto(formData);
-      
-      // Clear local state on success
-      setFile(null);
-      setPreview(null);
-      
-      // Call success callback with response data
-      if (onUploadSuccess) {
-        onUploadSuccess(response.data);
-      }
-    } catch (err) {
-      const errorMessage = err.message || 'Upload failed. Please try again.';
-      setError(errorMessage);
-      if (onUploadError) {
-        onUploadError(errorMessage);
-      }
-    } finally {
-      setUploading(false);
-    }
+    uploadFile(file);
   };
 
   // Handle cancel/clear preview
   const handleCancel = () => {
+    selectionTokenRef.current += 1;
     setFile(null);
     setPreview(null);
     setError(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    clearFileInput();
   };
 
   // Trigger file input click
@@ -188,7 +233,7 @@ function PhotoUploader({
 
       {/* Action Buttons */}
       <div className="flex items-center gap-2">
-        {preview ? (
+        {preview && !autoUploadOnSelect ? (
           <>
             {/* Upload Button */}
             <button
@@ -210,15 +255,38 @@ function PhotoUploader({
             </button>
           </>
         ) : (
-          /* Select Photo Button */
-          <button
-            type="button"
-            onClick={handleSelectClick}
-            disabled={uploading}
-            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-500/50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-lg transition-colors"
-          >
-            {currentUrl ? 'Change Photo' : 'Select Photo'}
-          </button>
+          <>
+            {/* Select / Change Photo Button */}
+            <button
+              type="button"
+              onClick={handleSelectClick}
+              disabled={uploading}
+              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-500/50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-lg transition-colors"
+            >
+              {uploading ? 'Uploading...' : (currentUrl ? 'Change Photo' : 'Select Photo')}
+            </button>
+
+            {/* Retry / Cancel when auto-upload fails */}
+            {autoUploadOnSelect && preview && !uploading && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => uploadFile(file)}
+                  disabled={!file}
+                  className="px-4 py-2 border border-zinc-700 hover:border-zinc-500 disabled:border-zinc-800 disabled:text-zinc-600 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-lg transition-colors"
+                >
+                  Retry
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  className="px-4 py-2 border border-zinc-700 hover:border-zinc-500 text-white text-sm font-semibold rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+              </>
+            )}
+          </>
         )}
       </div>
 

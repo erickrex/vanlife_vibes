@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "VanlifeVibes",
+    "slug": "vanlifevibes-mobile",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "assetBundlePatterns": ["**/*"]
+  }
+}
+

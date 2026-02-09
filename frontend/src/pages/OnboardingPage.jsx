@@ -534,15 +534,40 @@ function OnboardingPage() {
                 </div>
               </div>
 
+              {/* Avatar Photo Upload */}
+              <div>
+                <label className="text-sm text-[var(--onboard-muted)]">Profile Photo</label>
+                <div className="mt-2 rounded-2xl border border-[var(--onboard-border)] bg-black/20 p-4">
+                  <PhotoUploader
+                    photoType="avatar"
+                    autoUploadOnSelect
+                    currentUrl={formData.avatar_url}
+                    onUploadSuccess={(data) => {
+                      // Update avatar_url with the uploaded photo URL
+                      const photoUrl = data?.url || data?.data?.image || data?.image;
+                      if (photoUrl) {
+                        setFormData(prev => ({ ...prev, avatar_url: photoUrl }));
+                        setPhotoError(false);
+                        setUploadError('');
+                      }
+                    }}
+                    onUploadError={(errorMsg) => {
+                      setUploadError(errorMsg);
+                    }}
+                  />
+                </div>
+              </div>
+
               {/* Cover Photo Upload */}
               <div>
                 <label className="text-sm text-[var(--onboard-muted)]">Cover Photo</label>
                 <div className="mt-2 rounded-2xl border border-[var(--onboard-border)] bg-black/20 p-4">
                   <PhotoUploader
                     photoType="cover"
+                    autoUploadOnSelect
                     currentUrl={formData.cover_url}
                     onUploadSuccess={(data) => {
-                      const photoUrl = data?.data?.image || data?.image;
+                      const photoUrl = data?.url || data?.data?.image || data?.image;
                       if (photoUrl) {
                         setFormData(prev => ({ ...prev, cover_url: photoUrl }));
                         setUploadError('');
@@ -555,34 +580,6 @@ function OnboardingPage() {
                 </div>
               </div>
 
-              {/* Avatar Photo Upload */}
-              <div>
-                <label className="text-sm text-[var(--onboard-muted)]">Profile Photo</label>
-                <div className="mt-2 rounded-2xl border border-[var(--onboard-border)] bg-black/20 p-4">
-                  <PhotoUploader
-                    photoType="avatar"
-                    currentUrl={formData.avatar_url}
-                    onUploadSuccess={(data) => {
-                      // Update avatar_url with the uploaded photo URL
-                      const photoUrl = data?.data?.image || data?.image;
-                      if (photoUrl) {
-                        setFormData(prev => ({ ...prev, avatar_url: photoUrl }));
-                        setPhotoError(false);
-                        setUploadError('');
-                      }
-                    }}
-                    onUploadError={(errorMsg) => {
-                      setUploadError(errorMsg);
-                    }}
-                  />
-                </div>
-                {uploadError && (
-                  <div className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300 text-center">
-                    {uploadError}
-                  </div>
-                )}
-              </div>
-
               {/* Profile Preview */}
               <div>
                 <p className="text-sm text-[var(--onboard-muted)] mb-2">Preview</p>
@@ -592,6 +589,12 @@ function OnboardingPage() {
                   displayName={formData.display_name}
                 />
               </div>
+
+              {uploadError && (
+                <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300 text-center">
+                  {uploadError}
+                </div>
+              )}
 
               {/* Secondary: URL Fallback */}
               <div className="border-t border-[var(--onboard-border)] pt-4">
