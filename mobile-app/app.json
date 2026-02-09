@@ -5,7 +5,13 @@
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
-    "assetBundlePatterns": ["**/*"]
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "bundleIdentifier": "com.erickrea.vanlifevibes"
+    },
+    "android": {
+      "package": "com.erickrea.vanlifevibes",
+      "versionCode": 1
+    }
   }
 }
-
