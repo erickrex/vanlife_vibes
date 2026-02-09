@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
   FlatList,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -11,11 +13,40 @@ import {
 } from 'react-native';
 
 import AppButton from '../components/AppButton';
+import CityAutocomplete from '../components/CityAutocomplete';
 import FormTextInput from '../components/FormTextInput';
 import Screen from '../components/Screen';
 import { useAuth } from '../contexts/AuthContext';
 import { profilesAPI } from '../services/api';
 import { colors } from '../theme/colors';
+
+const STEPS = [
+  {
+    id: 'intent',
+    title: 'Welcome',
+    subtitle: 'Tell us what you’re here for so we can tune your discovery.',
+  },
+  {
+    id: 'basics',
+    title: 'Your basics',
+    subtitle: 'A few details that help others understand you.',
+  },
+  {
+    id: 'prefs',
+    title: 'Preferences',
+    subtitle: 'Set the vibe for who you’ll see first.',
+  },
+  {
+    id: 'polish',
+    title: 'Quick polish',
+    subtitle: 'Pick two prompts to stand out.',
+  },
+  {
+    id: 'location',
+    title: 'Your location',
+    subtitle: 'Where are you now, next week, and next month?',
+  },
+];
 
 function PromptPicker({ label, prompts, value, onChange }) {
   const [open, setOpen] = useState(false);
@@ -100,12 +131,23 @@ export default function OnboardingScreen() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [prompts, setPrompts] = useState([]);
+  const [step, setStep] = useState(0);
 
   const [lookingForFriends, setLookingForFriends] = useState(true);
   const [lookingForDating, setLookingForDating] = useState(false);
   const [displayName, setDisplayName] = useState('');
+  const [bio, setBio] = useState('');
   const [gender, setGender] = useState('');
+  const [interestedInMen, setInterestedInMen] = useState(false);
+  const [interestedInWomen, setInterestedInWomen] = useState(false);
+  const [interestedInNonbinary, setInterestedInNonbinary] = useState(false);
+  const [profileType, setProfileType] = useState('solo');
+  const [travelPace, setTravelPace] = useState('');
+  const [hasPets, setHasPets] = useState(false);
+  const [petType, setPetType] = useState('');
   const [nowInCity, setNowInCity] = useState('');
+  const [nextWeekInCity, setNextWeekInCity] = useState('');
+  const [nextMonthInCity, setNextMonthInCity] = useState('');
   const [prompt1, setPrompt1] = useState('');
   const [prompt1Answer, setPrompt1Answer] = useState('');
   const [prompt2, setPrompt2] = useState('');
@@ -130,10 +172,20 @@ export default function OnboardingScreen() {
 
         setPrompts(Array.isArray(promptsData) ? promptsData : []);
         setDisplayName(profileData.display_name || '');
+        setBio(profileData.bio || '');
         setGender(profileData.gender || '');
         setNowInCity(profileData.now_in_city || '');
+        setNextWeekInCity(profileData.next_week_in_city || '');
+        setNextMonthInCity(profileData.next_month_in_city || '');
         setLookingForDating(!!profileData.looking_for_dating);
         setLookingForFriends(profileData.looking_for_friends !== false);
+        setInterestedInMen(!!profileData.interested_in_men);
+        setInterestedInWomen(!!profileData.interested_in_women);
+        setInterestedInNonbinary(!!profileData.interested_in_nonbinary);
+        setProfileType(profileData.profile_type || 'solo');
+        setTravelPace(profileData.travel_pace || '');
+        setHasPets(!!profileData.has_pets);
+        setPetType(profileData.pet_type || '');
       } catch (err) {
         setError(err.message || 'Failed to load onboarding data');
       } finally {
@@ -147,21 +199,59 @@ export default function OnboardingScreen() {
     };
   }, []);
 
-  const canSubmit = useMemo(() => {
-    if (!displayName.trim()) return false;
-    if (!gender) return false;
-    if (!nowInCity.trim()) return false;
-    if (!lookingForDating && !lookingForFriends) return false;
-    if (!prompt1 || !prompt1Answer.trim()) return false;
-    if (!prompt2 || !prompt2Answer.trim()) return false;
-    if (prompt1 === prompt2) return false;
+  const stepData = STEPS[step];
+  const isLastStep = step === STEPS.length - 1;
+
+  const canContinue = useMemo(() => {
+    if (!stepData) return false;
+    if (stepData.id === 'intent') {
+      return lookingForDating || lookingForFriends;
+    }
+    if (stepData.id === 'basics') {
+      return !!displayName.trim() && !!gender;
+    }
+    if (stepData.id === 'polish') {
+      if (!prompt1 || !prompt1Answer.trim()) return false;
+      if (!prompt2 || !prompt2Answer.trim()) return false;
+      if (prompt1 === prompt2) return false;
+      return true;
+    }
+    if (stepData.id === 'location') {
+      return !!nowInCity.trim();
+    }
     return true;
-  }, [displayName, gender, lookingForDating, lookingForFriends, nowInCity, prompt1, prompt1Answer, prompt2, prompt2Answer]);
+  }, [
+    displayName,
+    gender,
+    lookingForDating,
+    lookingForFriends,
+    nowInCity,
+    prompt1,
+    prompt1Answer,
+    prompt2,
+    prompt2Answer,
+    stepData,
+  ]);
+
+  const handleNext = () => {
+    setError('');
+    if (!stepData) return;
+    if (!canContinue) {
+      setError('Please complete the required fields to continue.');
+      return;
+    }
+    setStep((prev) => Math.min(prev + 1, STEPS.length - 1));
+  };
+
+  const handleBack = () => {
+    setError('');
+    setStep((prev) => Math.max(prev - 1, 0));
+  };
 
   const handleFinish = async () => {
     setError('');
-    if (!canSubmit) {
-      setError('Please complete all required fields.');
+    if (!canContinue || !isLastStep) {
+      setError('Please complete this step before finishing.');
       return;
     }
 
@@ -169,14 +259,35 @@ export default function OnboardingScreen() {
       setSaving(true);
       const payload = {
         display_name: displayName.trim(),
+        bio: bio.trim(),
         gender,
         now_in_city: nowInCity.trim(),
+        next_week_in_city: nextWeekInCity.trim(),
+        next_month_in_city: nextMonthInCity.trim(),
         looking_for_dating: !!lookingForDating,
         looking_for_friends: !!lookingForFriends,
+        interested_in_men: !!interestedInMen,
+        interested_in_women: !!interestedInWomen,
+        interested_in_nonbinary: !!interestedInNonbinary,
+        profile_type: profileType,
+        travel_pace: travelPace || null,
+        has_pets: !!hasPets,
+        pet_type: hasPets ? petType : '',
         has_completed_onboarding: true,
       };
 
       await profilesAPI.updateMyProfile(payload);
+
+      try {
+        const existing = await profilesAPI.getPrompts();
+        const existingData = existing.data.data || existing.data || [];
+        if (Array.isArray(existingData)) {
+          await Promise.all(existingData.map((p) => (p?.id ? profilesAPI.deletePrompt(p.id) : null)));
+        }
+      } catch {
+        // Ignore prompt cleanup errors.
+      }
+
       await profilesAPI.createPrompt({ prompt_name: prompt1, prompt_answer: prompt1Answer.trim() });
       await profilesAPI.createPrompt({ prompt_name: prompt2, prompt_answer: prompt2Answer.trim() });
       await refreshProfile();
@@ -186,6 +297,8 @@ export default function OnboardingScreen() {
       setSaving(false);
     }
   };
+
+  const showDatingPrefs = lookingForDating;
 
   if (loading) {
     return (
@@ -200,108 +313,252 @@ export default function OnboardingScreen() {
 
   return (
     <Screen>
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Welcome</Text>
-        <Text style={styles.subtitle}>Let’s set up the basics so you can start connecting.</Text>
-
-        {error ? (
-          <View style={styles.banner}>
-            <Text style={styles.bannerText}>{error}</Text>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      >
+        <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+          <View style={styles.stepHeader}>
+            <Text style={styles.stepCount}>{`Step ${step + 1} of ${STEPS.length}`}</Text>
+            <Text style={styles.title}>{stepData?.title || 'Onboarding'}</Text>
+            <Text style={styles.subtitle}>{stepData?.subtitle || ''}</Text>
           </View>
-        ) : null}
 
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Intent</Text>
-          <Text style={styles.sectionSubtitle}>Tell us what you’re here for.</Text>
-          <View style={{ gap: 10 }}>
-            <Toggle label="Friends" value={lookingForFriends} onChange={setLookingForFriends} color={colors.blue} />
-            <Toggle label="Dating" value={lookingForDating} onChange={setLookingForDating} color={colors.rose} />
-          </View>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Basics</Text>
-          <FormTextInput
-            label="Display name"
-            value={displayName}
-            onChangeText={setDisplayName}
-            placeholder="What should people call you?"
-            autoCapitalize="words"
-          />
-
-          <Text style={[styles.label, { marginTop: 12 }]}>Gender</Text>
-          <View style={styles.segmentRow}>
-            <SegmentedOption label="Man" selected={gender === 'man'} onPress={() => setGender('man')} />
-            <SegmentedOption label="Woman" selected={gender === 'woman'} onPress={() => setGender('woman')} />
-            <SegmentedOption
-              label="Non-binary"
-              selected={gender === 'non_binary'}
-              onPress={() => setGender('non_binary')}
-            />
-          </View>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Location</Text>
-          <Text style={styles.sectionSubtitle}>Where are you right now?</Text>
-          <FormTextInput
-            label="Current city"
-            value={nowInCity}
-            onChangeText={setNowInCity}
-            placeholder="e.g. Flagstaff, AZ"
-            autoCapitalize="words"
-          />
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Prompts</Text>
-          <Text style={styles.sectionSubtitle}>Pick two prompts to stand out.</Text>
-
-          <PromptPicker label="Prompt 1" prompts={prompts} value={prompt1} onChange={setPrompt1} />
-          <FormTextInput
-            label="Answer 1"
-            value={prompt1Answer}
-            onChangeText={setPrompt1Answer}
-            placeholder="Your answer"
-            autoCapitalize="sentences"
-          />
-
-          <View style={{ height: 10 }} />
-
-          <PromptPicker label="Prompt 2" prompts={prompts} value={prompt2} onChange={setPrompt2} />
-          <FormTextInput
-            label="Answer 2"
-            value={prompt2Answer}
-            onChangeText={setPrompt2Answer}
-            placeholder="Your answer"
-            autoCapitalize="sentences"
-          />
-
-          {prompt1 && prompt2 && prompt1 === prompt2 ? (
-            <Text style={styles.inlineError}>Choose two different prompts.</Text>
+          {error ? (
+            <View style={styles.banner}>
+              <Text style={styles.bannerText}>{error}</Text>
+            </View>
           ) : null}
-        </View>
 
-        <View style={{ gap: 10 }}>
-          <AppButton
-            title={saving ? 'Saving…' : 'Finish'}
-            onPress={handleFinish}
-            disabled={!canSubmit || saving}
-            variant="primary"
-          />
-          <Text style={styles.smallPrint}>
-            Profile id: {profile?.id || '—'} · You can edit more details later.
-          </Text>
-        </View>
-      </ScrollView>
+          {stepData?.id === 'intent' ? (
+            <View style={styles.card}>
+              <Text style={styles.sectionTitle}>Intent</Text>
+              <Text style={styles.sectionSubtitle}>Tell us what you’re here for.</Text>
+              <View style={{ gap: 10 }}>
+                <Toggle label="Friends" value={lookingForFriends} onChange={setLookingForFriends} color={colors.blue} />
+                <Toggle label="Dating" value={lookingForDating} onChange={setLookingForDating} color={colors.rose} />
+              </View>
+            </View>
+          ) : null}
+
+          {stepData?.id === 'basics' ? (
+            <View style={styles.card}>
+              <Text style={styles.sectionTitle}>Basics</Text>
+              <FormTextInput
+                label="Display name"
+                value={displayName}
+                onChangeText={setDisplayName}
+                placeholder="What should people call you?"
+                autoCapitalize="words"
+              />
+
+              <FormTextInput
+                label="Bio (optional)"
+                value={bio}
+                onChangeText={setBio}
+                placeholder="A quick intro (optional)"
+                autoCapitalize="sentences"
+              />
+
+              <Text style={[styles.label, { marginTop: 12 }]}>Gender</Text>
+              <View style={styles.segmentRow}>
+                <SegmentedOption label="Man" selected={gender === 'man'} onPress={() => setGender('man')} />
+                <SegmentedOption label="Woman" selected={gender === 'woman'} onPress={() => setGender('woman')} />
+                <SegmentedOption
+                  label="Non-binary"
+                  selected={gender === 'non_binary'}
+                  onPress={() => setGender('non_binary')}
+                />
+              </View>
+
+              {showDatingPrefs ? (
+                <View style={{ gap: 12, marginTop: 10 }}>
+                  <Text style={styles.sectionSubtitle}>Interested in (for dating)</Text>
+                  <View style={{ gap: 10 }}>
+                    <Toggle
+                      label="Men"
+                      value={interestedInMen}
+                      onChange={setInterestedInMen}
+                      color={colors.primary}
+                    />
+                    <Toggle
+                      label="Women"
+                      value={interestedInWomen}
+                      onChange={setInterestedInWomen}
+                      color={colors.primary}
+                    />
+                    <Toggle
+                      label="Non-binary"
+                      value={interestedInNonbinary}
+                      onChange={setInterestedInNonbinary}
+                      color={colors.primary}
+                    />
+                  </View>
+                </View>
+              ) : null}
+            </View>
+          ) : null}
+
+          {stepData?.id === 'prefs' ? (
+            <View style={styles.card}>
+              <Text style={styles.sectionTitle}>Preferences</Text>
+
+              <Text style={styles.label}>Profile type</Text>
+              <View style={styles.segmentRow}>
+                <SegmentedOption label="Solo" selected={profileType === 'solo'} onPress={() => setProfileType('solo')} />
+                <SegmentedOption
+                  label="Couple"
+                  selected={profileType === 'couple'}
+                  onPress={() => setProfileType('couple')}
+                />
+                <SegmentedOption
+                  label="Group"
+                  selected={profileType === 'group'}
+                  onPress={() => setProfileType('group')}
+                />
+              </View>
+
+              <Text style={[styles.label, { marginTop: 12 }]}>Travel pace (optional)</Text>
+              <View style={styles.segmentRow}>
+                <SegmentedOption label="Slow" selected={travelPace === 'slow'} onPress={() => setTravelPace('slow')} />
+                <SegmentedOption
+                  label="Mixed"
+                  selected={travelPace === 'mixed'}
+                  onPress={() => setTravelPace('mixed')}
+                />
+                <SegmentedOption label="Fast" selected={travelPace === 'fast'} onPress={() => setTravelPace('fast')} />
+              </View>
+
+              <View style={{ marginTop: 12, gap: 10 }}>
+                <Toggle label="I have pets" value={hasPets} onChange={setHasPets} color={colors.emerald} />
+                {hasPets ? (
+                  <FormTextInput
+                    label="Pet type (optional)"
+                    value={petType}
+                    onChangeText={setPetType}
+                    placeholder="e.g. dog, cat"
+                    autoCapitalize="words"
+                  />
+                ) : null}
+              </View>
+            </View>
+          ) : null}
+
+          {stepData?.id === 'polish' ? (
+            <View style={styles.card}>
+              <Text style={styles.sectionTitle}>Prompts</Text>
+              <Text style={styles.sectionSubtitle}>Pick two prompts to stand out.</Text>
+
+              <PromptPicker label="Prompt 1" prompts={prompts} value={prompt1} onChange={setPrompt1} />
+              <FormTextInput
+                label="Answer 1"
+                value={prompt1Answer}
+                onChangeText={setPrompt1Answer}
+                placeholder="Your answer"
+                autoCapitalize="sentences"
+              />
+
+              <View style={{ height: 10 }} />
+
+              <PromptPicker label="Prompt 2" prompts={prompts} value={prompt2} onChange={setPrompt2} />
+              <FormTextInput
+                label="Answer 2"
+                value={prompt2Answer}
+                onChangeText={setPrompt2Answer}
+                placeholder="Your answer"
+                autoCapitalize="sentences"
+              />
+
+              {prompt1 && prompt2 && prompt1 === prompt2 ? (
+                <Text style={styles.inlineError}>Choose two different prompts.</Text>
+              ) : null}
+            </View>
+          ) : null}
+
+          {stepData?.id === 'location' ? (
+            <View style={styles.card}>
+              <Text style={styles.sectionTitle}>Location</Text>
+              <Text style={styles.sectionSubtitle}>Use the city list so everyone matches consistently.</Text>
+
+              <CityAutocomplete
+                label="Now in"
+                value={nowInCity}
+                onChange={setNowInCity}
+                placeholder="Search cities…"
+                editable={!saving}
+              />
+
+              <CityAutocomplete
+                label="Next week"
+                value={nextWeekInCity}
+                onChange={setNextWeekInCity}
+                placeholder="Search cities…"
+                editable={!saving}
+                optional
+              />
+
+              <CityAutocomplete
+                label="Next month"
+                value={nextMonthInCity}
+                onChange={setNextMonthInCity}
+                placeholder="Search cities…"
+                editable={!saving}
+                optional
+              />
+            </View>
+          ) : null}
+
+          <View style={styles.navRow}>
+            <AppButton
+              title="Back"
+              onPress={handleBack}
+              disabled={step === 0 || saving}
+              variant="secondary"
+              style={styles.navButton}
+            />
+            {isLastStep ? (
+              <AppButton
+                title={saving ? 'Saving…' : 'Finish'}
+                onPress={handleFinish}
+                disabled={!canContinue || saving}
+                variant="primary"
+                style={styles.navButton}
+              />
+            ) : (
+              <AppButton
+                title="Next"
+                onPress={handleNext}
+                disabled={!canContinue || saving}
+                variant="primary"
+                style={styles.navButton}
+              />
+            )}
+          </View>
+
+          <Text style={styles.smallPrint}>Profile id: {profile?.id || '—'} · You can edit more details later.</Text>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+  },
   container: {
     padding: 20,
     gap: 14,
+  },
+  stepHeader: {
+    gap: 6,
+  },
+  stepCount: {
+    color: colors.muted,
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 0.3,
   },
   title: {
     color: colors.text,
@@ -477,6 +734,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 12,
   },
+  navRow: {
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'space-between',
+  },
+  navButton: {
+    flex: 1,
+  },
   loading: {
     flex: 1,
     alignItems: 'center',
@@ -487,4 +752,3 @@ const styles = StyleSheet.create({
     color: colors.muted,
   },
 });
-

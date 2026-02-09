@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import AppButton from '../components/AppButton';
 import FormTextInput from '../components/FormTextInput';
@@ -66,106 +66,121 @@ export default function SignupScreen({ navigation }) {
 
   return (
     <Screen>
-      <View style={styles.container}>
-        <Text style={styles.title}>Create Account</Text>
-        <Text style={styles.subtitle}>Join the van life community</Text>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+        >
+          <Text style={styles.title}>Create Account</Text>
+          <Text style={styles.subtitle}>Join the van life community</Text>
 
-        <View style={styles.form}>
-          <FormTextInput
-            label="Username"
-            value={username}
-            onChangeText={(value) => {
-              setUsername(value);
-              if (errors.username) setErrors((prev) => ({ ...prev, username: null }));
-            }}
-            placeholder="Choose a username"
-            autoCapitalize="none"
-            error={errors.username}
-            editable={!submitting}
-          />
+          <View style={styles.form}>
+            <FormTextInput
+              label="Username"
+              value={username}
+              onChangeText={(value) => {
+                setUsername(value);
+                if (errors.username) setErrors((prev) => ({ ...prev, username: null }));
+              }}
+              placeholder="Choose a username"
+              autoCapitalize="none"
+              error={errors.username}
+              editable={!submitting}
+            />
 
-          <FormTextInput
-            label="Email"
-            value={email}
-            onChangeText={(value) => {
-              setEmail(value);
-              if (errors.email) setErrors((prev) => ({ ...prev, email: null }));
-            }}
-            placeholder="you@example.com"
-            autoCapitalize="none"
-            keyboardType="email-address"
-            error={errors.email}
-            editable={!submitting}
-          />
+            <FormTextInput
+              label="Email"
+              value={email}
+              onChangeText={(value) => {
+                setEmail(value);
+                if (errors.email) setErrors((prev) => ({ ...prev, email: null }));
+              }}
+              placeholder="you@example.com"
+              autoCapitalize="none"
+              keyboardType="email-address"
+              error={errors.email}
+              editable={!submitting}
+            />
 
-          <FormTextInput
-            label="Password"
-            value={password}
-            onChangeText={(value) => {
-              setPassword(value);
-              if (errors.password) setErrors((prev) => ({ ...prev, password: null }));
-            }}
-            placeholder="Create a password"
-            secureTextEntry={!showPassword}
-            error={errors.password}
-            editable={!submitting}
-          />
+            <FormTextInput
+              label="Password"
+              value={password}
+              onChangeText={(value) => {
+                setPassword(value);
+                if (errors.password) setErrors((prev) => ({ ...prev, password: null }));
+              }}
+              placeholder="Create a password"
+              secureTextEntry={!showPassword}
+              error={errors.password}
+              editable={!submitting}
+            />
 
-          <Pressable
-            onPress={() => setShowPassword((prev) => !prev)}
-            style={({ pressed }) => [styles.toggle, pressed ? styles.togglePressed : null]}
-          >
-            <Text style={styles.toggleText}>{showPassword ? 'Hide password' : 'Show password'}</Text>
-          </Pressable>
+            <Pressable
+              onPress={() => setShowPassword((prev) => !prev)}
+              style={({ pressed }) => [styles.toggle, pressed ? styles.togglePressed : null]}
+            >
+              <Text style={styles.toggleText}>{showPassword ? 'Hide password' : 'Show password'}</Text>
+            </Pressable>
 
-          <FormTextInput
-            label="Confirm Password"
-            value={confirmPassword}
-            onChangeText={(value) => {
-              setConfirmPassword(value);
-              if (errors.confirmPassword) setErrors((prev) => ({ ...prev, confirmPassword: null }));
-            }}
-            placeholder="Confirm your password"
-            secureTextEntry={!showConfirm}
-            error={errors.confirmPassword}
-            editable={!submitting}
-          />
+            <FormTextInput
+              label="Confirm Password"
+              value={confirmPassword}
+              onChangeText={(value) => {
+                setConfirmPassword(value);
+                if (errors.confirmPassword) setErrors((prev) => ({ ...prev, confirmPassword: null }));
+              }}
+              placeholder="Confirm your password"
+              secureTextEntry={!showConfirm}
+              error={errors.confirmPassword}
+              editable={!submitting}
+            />
 
-          <Pressable
-            onPress={() => setShowConfirm((prev) => !prev)}
-            style={({ pressed }) => [styles.toggle, pressed ? styles.togglePressed : null]}
-          >
-            <Text style={styles.toggleText}>{showConfirm ? 'Hide confirmation' : 'Show confirmation'}</Text>
-          </Pressable>
+            <Pressable
+              onPress={() => setShowConfirm((prev) => !prev)}
+              style={({ pressed }) => [styles.toggle, pressed ? styles.togglePressed : null]}
+            >
+              <Text style={styles.toggleText}>{showConfirm ? 'Hide confirmation' : 'Show confirmation'}</Text>
+            </Pressable>
 
-          {errors.submit ? (
-            <View style={styles.banner}>
-              <Text style={styles.bannerText}>{errors.submit}</Text>
-            </View>
-          ) : null}
+            {errors.submit ? (
+              <View style={styles.banner}>
+                <Text style={styles.bannerText}>{errors.submit}</Text>
+              </View>
+            ) : null}
 
-          <AppButton
-            title={submitting ? 'Creating account…' : 'Sign Up'}
-            onPress={onSubmit}
-            disabled={!canSubmit || submitting}
-          />
+            <AppButton
+              title={submitting ? 'Creating account…' : 'Sign Up'}
+              onPress={onSubmit}
+              disabled={!canSubmit || submitting}
+            />
 
-          <Pressable onPress={() => navigation.navigate('Login')} style={styles.footerLink}>
-            <Text style={styles.footerText}>
-              Already have an account? <Text style={styles.footerTextStrong}>Log in</Text>
-            </Text>
-          </Pressable>
-        </View>
-      </View>
+            <Pressable onPress={() => navigation.navigate('Login')} style={styles.footerLink}>
+              <Text style={styles.footerText}>
+                Already have an account? <Text style={styles.footerTextStrong}>Log in</Text>
+              </Text>
+            </Pressable>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  flex: {
+    flex: 1,
+  },
+  scrollContainer: {
+    flexGrow: 1,
     flex: 1,
     paddingHorizontal: 20,
     paddingTop: 28,
+    paddingBottom: 28,
   },
   title: {
     color: colors.text,
@@ -224,4 +239,3 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 });
-
