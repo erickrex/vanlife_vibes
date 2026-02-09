@@ -19,7 +19,6 @@ from .profiles import (
     DiscoveryViewSet,
 )
 from .matches import PersonMatchViewSet
-from .friends import FriendViewSet
 from .events import EventViewSet
 
 __all__ = [
@@ -32,6 +31,5 @@ __all__ = [
     'FeedViewSet',
     'DiscoveryViewSet',
     'PersonMatchViewSet',
-    'FriendViewSet',
     'EventViewSet',
 ]

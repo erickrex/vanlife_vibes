@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { matchesAPI, profilesAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -6,6 +6,7 @@ import PersonMessageList from './PersonMessageList';
 import PersonMessageInput from './PersonMessageInput';
 import ChatActionsMenu from './ChatActionsMenu';
 import MiniCardModal from './MiniCardModal';
+import IcebreakerModal from './IcebreakerModal';
 import { DEFAULT_AVATAR } from '../utils/constants';
 import { createRealtimeSocket } from '../services/realtime';
 
@@ -17,7 +18,10 @@ function PersonChatPanel({ match, onUnmatch, onReport, currentProfileId }) {
   const [sending, setSending] = useState(false);
   const [showActionsMenu, setShowActionsMenu] = useState(false);
   const [showMiniCardModal, setShowMiniCardModal] = useState(false);
+  const [showIcebreakerModal, setShowIcebreakerModal] = useState(false);
+  const [icebreakerSeed, setIcebreakerSeed] = useState(0);
   const [myProfile, setMyProfile] = useState(null);
+  const [otherProfile, setOtherProfile] = useState(null);
   const [socketConnected, setSocketConnected] = useState(false);
   const actionsMenuRef = useRef(null);
 
@@ -70,6 +74,22 @@ function PersonChatPanel({ match, onUnmatch, onReport, currentProfileId }) {
     }
   }, []);
 
+  const loadOtherProfile = useCallback(async () => {
+    const otherUserId = match?.other_user?.id;
+    if (!otherUserId) {
+      setOtherProfile(null);
+      return;
+    }
+
+    try {
+      const response = await profilesAPI.getProfile(otherUserId);
+      setOtherProfile(response.data.data || response.data || null);
+    } catch (err) {
+      console.error('Failed to load other profile:', err);
+      setOtherProfile(null);
+    }
+  }, [match]);
+
   useEffect(() => {
     loadMessages();
   }, [loadMessages]);
@@ -107,6 +127,10 @@ function PersonChatPanel({ match, onUnmatch, onReport, currentProfileId }) {
   useEffect(() => {
     loadMyProfile();
   }, [loadMyProfile]);
+
+  useEffect(() => {
+    loadOtherProfile();
+  }, [loadOtherProfile]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -172,6 +196,126 @@ function PersonChatPanel({ match, onUnmatch, onReport, currentProfileId }) {
     setShowActionsMenu(false);
   };
 
+  const getCurrentLocationText = useCallback((profileData) => {
+    if (!profileData) return null;
+
+    const firstWindow = profileData.in_town_windows?.[0];
+    return firstWindow?.city_area || profileData.current_location || null;
+  }, []);
+
+  const buildIcebreakerSuggestions = useCallback((seed = 0) => {
+    const myName = myProfile?.display_name || 'I';
+    const theirName = otherUser?.display_name || 'you';
+    const myLocation = getCurrentLocationText(myProfile);
+    const theirLocation = getCurrentLocationText(otherProfile);
+    const myHobbies = Array.isArray(myProfile?.hobbies) ? myProfile.hobbies : [];
+    const theirHobbies = Array.isArray(otherProfile?.hobbies) ? otherProfile.hobbies : [];
+    const myHobbyNames = new Set(
+      myHobbies.map((hobby) => String(hobby?.name || '').trim().toLowerCase()).filter(Boolean)
+    );
+    const sharedHobbyNames = theirHobbies
+      .map((hobby) => String(hobby?.name || '').trim())
+      .filter((hobbyName) => hobbyName && myHobbyNames.has(hobbyName.toLowerCase()));
+    const uniqueSharedHobbies = Array.from(new Set(sharedHobbyNames));
+
+    const theirPrompts = Array.isArray(otherProfile?.prompts) ? otherProfile.prompts : [];
+    const highlightedPrompt = theirPrompts.find((promptItem) => promptItem?.prompt_answer);
+    const promptQuestion = highlightedPrompt?.prompt_question
+      ? String(highlightedPrompt.prompt_question).trim()
+      : '';
+    const promptAnswerPreview = highlightedPrompt?.prompt_answer
+      ? String(highlightedPrompt.prompt_answer).trim()
+      : '';
+    const shortPromptQuestion = promptQuestion.length > 90
+      ? `${promptQuestion.slice(0, 87)}...`
+      : promptQuestion;
+    const shortPromptAnswer = promptAnswerPreview.length > 90
+      ? `${promptAnswerPreview.slice(0, 87)}...`
+      : promptAnswerPreview;
+    const sameLocation =
+      myLocation &&
+      theirLocation &&
+      myLocation.trim().toLowerCase() === theirLocation.trim().toLowerCase();
+
+    const locationLine = sameLocation
+      ? `since we're both in ${myLocation}`
+      : myLocation && theirLocation
+        ? `while I'm in ${myLocation} and you're in ${theirLocation}`
+        : myLocation
+          ? `while I'm in ${myLocation}`
+          : theirLocation
+            ? `while you're in ${theirLocation}`
+            : '';
+
+    const suggestionPool = [
+      `Hey ${theirName}, what has been your favorite vanlife spot recently?`,
+      `What kind of adventure are you in the mood for this week${locationLine ? ` ${locationLine}` : ''}?`,
+      `If we planned a low-key hang in the next couple days${locationLine ? ` ${locationLine}` : ''}, what would you pick?`,
+      `Quick road question: sunrise hike or sunset campfire?`,
+      `${myName} says hi. What is one place you would recommend around ${theirLocation || 'your area'}?`,
+      `What is one thing you never skip when settling into a new place${locationLine ? ` ${locationLine}` : ''}?`,
+      `If we had one free evening on the road, would you pick a food stop, a hike, or live music?`,
+      `What is your go-to way to meet people in a new town?`,
+    ];
+
+    if (uniqueSharedHobbies.length > 0) {
+      const topSharedHobbies = uniqueSharedHobbies.slice(0, 2).join(' and ');
+      suggestionPool.unshift(
+        `Looks like we both enjoy ${topSharedHobbies}. Want to trade favorite spots for that?`
+      );
+      suggestionPool.push(
+        `We have ${topSharedHobbies} in common. Want to plan something around that soon?`
+      );
+    }
+
+    if (shortPromptAnswer && shortPromptQuestion) {
+      suggestionPool.unshift(
+        `Your answer to "${shortPromptQuestion}" stood out: "${shortPromptAnswer}". What is the full story behind it?`
+      );
+    }
+
+    const uniqueSuggestions = Array.from(new Set(suggestionPool.filter(Boolean)));
+    if (uniqueSuggestions.length <= 6) {
+      return uniqueSuggestions;
+    }
+
+    const offset = seed % uniqueSuggestions.length;
+    const rotated = [
+      ...uniqueSuggestions.slice(offset),
+      ...uniqueSuggestions.slice(0, offset),
+    ];
+    if (Math.floor(seed / uniqueSuggestions.length) % 2 === 1) {
+      rotated.reverse();
+    }
+    return rotated.slice(0, 6);
+  }, [myProfile, otherProfile, otherUser?.display_name, getCurrentLocationText]);
+
+  const icebreakerSuggestions = useMemo(
+    () => buildIcebreakerSuggestions(icebreakerSeed),
+    [buildIcebreakerSuggestions, icebreakerSeed]
+  );
+
+  const handleRegenerateIcebreakers = () => {
+    setIcebreakerSeed((previousSeed) => previousSeed + 1);
+  };
+
+  const handleSendIcebreaker = async (content) => {
+    if (!match || !content?.trim()) return;
+
+    try {
+      setSending(true);
+      const response = await matchesAPI.sendIcebreaker(match.id, content.trim());
+      const newMessage = response.data.data || response.data;
+      appendUniqueMessage(newMessage);
+      setShowIcebreakerModal(false);
+    } catch (err) {
+      console.error('Failed to send icebreaker:', err);
+      setError('Failed to send icebreaker');
+    } finally {
+      setSending(false);
+    }
+  };
+
   if (!match) {
     return (
       <div className="app-card p-8 text-center">
@@ -211,6 +355,14 @@ function PersonChatPanel({ match, onUnmatch, onReport, currentProfileId }) {
           }`}>
             {socketConnected ? 'Live' : 'Syncing'}
           </span>
+          <button
+            onClick={() => setShowIcebreakerModal(true)}
+            className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-zinc-800 text-zinc-200 text-xs font-semibold hover:bg-zinc-700 transition-colors"
+            title="Send an icebreaker"
+          >
+            <span>✨</span>
+            <span className="hidden sm:inline">Icebreaker</span>
+          </button>
           <button
             onClick={() => setShowMiniCardModal(true)}
             className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-zinc-800 text-zinc-200 text-xs font-semibold hover:bg-zinc-700 transition-colors"
@@ -272,6 +424,17 @@ function PersonChatPanel({ match, onUnmatch, onReport, currentProfileId }) {
           onShare={handleShareMiniCard}
           onClose={() => setShowMiniCardModal(false)}
           sending={sending}
+        />
+      )}
+
+      {showIcebreakerModal && (
+        <IcebreakerModal
+          suggestions={icebreakerSuggestions}
+          onSend={handleSendIcebreaker}
+          onRegenerate={handleRegenerateIcebreakers}
+          onClose={() => setShowIcebreakerModal(false)}
+          sending={sending}
+          otherUserName={otherUser.display_name}
         />
       )}
     </div>

@@ -8,11 +8,8 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import ProfilePage from './pages/ProfilePage';
 import ProfileEditPage from './pages/ProfileEditPage';
-import NearbyFeedPage from './pages/NearbyFeedPage';
-import DiscoveryPage from './pages/DiscoveryPage';
+import FriendsPage from './pages/FriendsPage';
 import PersonMatchesPage from './pages/PersonMatchesPage';
-import FriendRequestsPage from './pages/FriendRequestsPage';
-import FriendChatPage from './pages/FriendChatPage';
 import DatingPage from './pages/DatingPage';
 import EventsPage from './pages/EventsPage';
 import CreateEventPage from './pages/CreateEventPage';
@@ -31,8 +28,8 @@ import WelcomePage from './pages/WelcomePage';
  */
 function getActiveTabFromPath(pathname) {
   if (pathname.startsWith('/feed')) return 'feed';
-  if (pathname.startsWith('/discover')) return 'feed';
   if (pathname.startsWith('/dating')) return 'dating';
+  if (pathname.startsWith('/matches')) return 'dating';
   if (pathname.startsWith('/activities')) return 'activities';
   if (pathname.startsWith('/events')) return 'activities';
   return null;
@@ -130,20 +127,13 @@ function AppContent() {
             path="/feed" 
             element={
               <ProtectedRoute>
-                <NearbyFeedPage />
+                <FriendsPage />
               </ProtectedRoute>
             } 
           />
           
-          {/* Discovery route */}
-          <Route 
-            path="/discover" 
-            element={
-              <ProtectedRoute>
-                <DiscoveryPage />
-              </ProtectedRoute>
-            } 
-          />
+          {/* Legacy discovery route redirect */}
+          <Route path="/discover/*" element={<Navigate to="/feed" replace />} />
           
           {/* Dating route */}
           <Route 
@@ -165,25 +155,7 @@ function AppContent() {
             } 
           />
           
-          {/* Friend Requests route */}
-          <Route 
-            path="/friends" 
-            element={
-              <ProtectedRoute>
-                <FriendRequestsPage />
-              </ProtectedRoute>
-            } 
-          />
-          
-          {/* Friend Chat route */}
-          <Route 
-            path="/friends/:friendshipId/chat" 
-            element={
-              <ProtectedRoute>
-                <FriendChatPage />
-              </ProtectedRoute>
-            } 
-          />
+          <Route path="/friends/*" element={<Navigate to="/matches" replace />} />
           
           {/* Events routes (unified Plan/Activity) */}
           <Route 

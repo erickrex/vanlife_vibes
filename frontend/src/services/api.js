@@ -96,13 +96,6 @@ export const profilesAPI = {
   uploadVehiclePhoto: (data) => api.post('/profiles/me/vehicle/photos/', data),
   deleteVehiclePhoto: (id) => api.delete(`/profiles/me/vehicle/photos/${id}/`),
   
-  // Follow methods
-  followUser: (id) => api.post(`/profiles/${id}/follow/`),
-  unfollowUser: (id) => api.delete(`/profiles/${id}/follow/`),
-  getFollowers: (id) => api.get(`/profiles/${id}/followers/`),
-  getFollowing: (id) => api.get(`/profiles/${id}/following/`),
-  startChat: (id, data) => api.post(`/profiles/${id}/chat/`, data),
-  
   // In-town windows methods
   getInTownWindows: () => api.get('/profiles/me/in-town-windows/'),
   createInTownWindow: (data) => api.post('/profiles/me/in-town-windows/', data),
@@ -142,6 +135,8 @@ export const matchesAPI = {
   getMessages: (matchId) => api.get(`/matches/${matchId}/messages/`),
   sendMessage: (matchId, content) => api.post(`/matches/${matchId}/messages/`, { content }),
   shareMiniCard: (matchId, data) => api.post(`/matches/${matchId}/messages/mini-card/`, data),
+  sendIcebreaker: (matchId, content) =>
+    api.post(`/matches/${matchId}/messages/icebreaker/`, { content }),
 };
 
 // Events API (unified Plan + Activity)
@@ -172,18 +167,6 @@ export const eventsAPI = {
   getMyEvents: () => api.get('/events/my-events/'),
   // Get user's matched swipe events
   getMyMatches: () => api.get('/events/my-matches/'),
-};
-
-// Friends API
-export const friendsAPI = {
-  sendFriendRequest: (toUserId) => api.post('/friends/request/', { to_user_id: toUserId }),
-  listFriendRequests: () => api.get('/friends/requests/'),
-  acceptFriendRequest: (requestId) => api.post(`/friends/requests/${requestId}/accept/`),
-  declineFriendRequest: (requestId) => api.post(`/friends/requests/${requestId}/decline/`),
-  listFriends: () => api.get('/friends/'),
-  getFriendMessages: (friendshipId) => api.get(`/friends/${friendshipId}/messages/`),
-  sendFriendMessage: (friendshipId, content) => api.post(`/friends/${friendshipId}/messages/`, { content }),
-  deleteFriendship: (friendshipId) => api.delete(`/friends/${friendshipId}/`),
 };
 
 // Analytics API

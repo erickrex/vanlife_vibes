@@ -16,8 +16,8 @@ from django.db import models
 from django.utils import timezone
 
 from core.models import (
-    UserAccount, Profile, Vehicle, VehiclePhoto, Follow, HobbyTag, Country,
-    InTownWindow, City, Prompt, ProfilePrompt, FriendRequest, Friendship
+    UserAccount, Profile, Vehicle, VehiclePhoto, HobbyTag, Country,
+    InTownWindow, City, Prompt, ProfilePrompt
 )
 
 
@@ -114,16 +114,13 @@ class ProfileSerializer(serializers.ModelSerializer):
     next_week_in_city = serializers.SerializerMethodField()
     next_month_in_city = serializers.SerializerMethodField()
     
-    # Social counts
-    follower_count = serializers.SerializerMethodField()
-    following_count = serializers.SerializerMethodField()
-    
-    # Relationship indicators (relative to request user)
-    is_following = serializers.SerializerMethodField()
-    is_followed_by = serializers.SerializerMethodField()
-    
-    # Friend status indicator (relative to request user)
-    friend_status = serializers.SerializerMethodField()
+    # Date fields for location timing
+    now_in_start_date = serializers.SerializerMethodField()
+    now_in_end_date = serializers.SerializerMethodField()
+    next_week_in_start_date = serializers.SerializerMethodField()
+    next_week_in_end_date = serializers.SerializerMethodField()
+    next_month_in_start_date = serializers.SerializerMethodField()
+    next_month_in_end_date = serializers.SerializerMethodField()
     
     class Meta:
         model = Profile
@@ -171,13 +168,14 @@ class ProfileSerializer(serializers.ModelSerializer):
             'now_in_city',
             'next_week_in_city',
             'next_month_in_city',
+            'now_in_start_date',
+            'now_in_end_date',
+            'next_week_in_start_date',
+            'next_week_in_end_date',
+            'next_month_in_start_date',
+            'next_month_in_end_date',
             'hobbies',
             'vehicle',
-            'follower_count',
-            'following_count',
-            'is_following',
-            'is_followed_by',
-            'friend_status',
             'created_at',
             'updated_at',
         ]
@@ -259,17 +257,21 @@ class ProfileSerializer(serializers.ModelSerializer):
     def get_next_week_in_city(self, obj):
         """
         Derive next_week_in_city from InTownWindow records.
-        Returns the city_area of a window starting within the next 7-13 days.
+        Returns the city_area of a window that starts on next Monday through next Sunday.
         """
         from django.utils import timezone
         from datetime import timedelta
         today = timezone.now().date()
-        next_week_start = today + timedelta(days=7)
-        next_week_end = today + timedelta(days=13)
+        
+        # Calculate next week boundaries (Monday to Sunday)
+        days_until_sunday = 6 - today.weekday()
+        this_sunday = today + timedelta(days=days_until_sunday)
+        next_monday = this_sunday + timedelta(days=1)
+        next_sunday = next_monday + timedelta(days=6)
         
         window = obj.in_town_windows.filter(
-            start_date__gte=next_week_start,
-            start_date__lte=next_week_end
+            start_date__gte=next_monday,
+            start_date__lte=next_sunday
         ).first()
         
         return window.city_area if window else None
@@ -277,133 +279,127 @@ class ProfileSerializer(serializers.ModelSerializer):
     def get_next_month_in_city(self, obj):
         """
         Derive next_month_in_city from InTownWindow records.
-        Returns the city_area of a window starting within the next 14-44 days.
+        Returns the city_area of a window starting the Monday after next week.
         """
         from django.utils import timezone
         from datetime import timedelta
         today = timezone.now().date()
-        next_month_start = today + timedelta(days=14)
-        next_month_end = today + timedelta(days=44)
+        
+        # Calculate month period boundaries
+        days_until_sunday = 6 - today.weekday()
+        this_sunday = today + timedelta(days=days_until_sunday)
+        next_monday = this_sunday + timedelta(days=1)
+        next_sunday = next_monday + timedelta(days=6)
+        month_start_monday = next_sunday + timedelta(days=1)
+        month_end_sunday = month_start_monday + timedelta(weeks=4) - timedelta(days=1)
         
         window = obj.in_town_windows.filter(
-            start_date__gte=next_month_start,
-            start_date__lte=next_month_end
+            start_date__gte=month_start_monday,
+            start_date__lte=month_end_sunday
         ).first()
         
         return window.city_area if window else None
     
-    def get_follower_count(self, obj):
-        """Return count of users following this profile"""
-        return obj.follower_set.count()
+    def get_now_in_start_date(self, obj):
+        """Return start_date for the current location window."""
+        from django.utils import timezone
+        today = timezone.now().date()
+        
+        window = obj.in_town_windows.filter(
+            start_date__lte=today,
+            end_date__gte=today
+        ).first()
+        
+        return window.start_date.isoformat() if window else None
     
-    def get_following_count(self, obj):
-        """Return count of users this profile is following"""
-        return obj.following_set.count()
-
+    def get_now_in_end_date(self, obj):
+        """Return end_date for the current location window."""
+        from django.utils import timezone
+        today = timezone.now().date()
+        
+        window = obj.in_town_windows.filter(
+            start_date__lte=today,
+            end_date__gte=today
+        ).first()
+        
+        return window.end_date.isoformat() if window else None
     
-    def get_is_following(self, obj):
-        """
-        Return True if the request user follows this profile.
-        Returns False if no request context or user is not authenticated.
-        """
-        request = self.context.get('request')
-        if not request or not request.user or not request.user.is_authenticated:
-            return False
+    def get_next_week_in_start_date(self, obj):
+        """Return start_date for the next week location window."""
+        from django.utils import timezone
+        from datetime import timedelta
+        today = timezone.now().date()
         
-        # Don't check follow relationship for own profile
-        if request.user.id == obj.user_id:
-            return False
+        days_until_sunday = 6 - today.weekday()
+        this_sunday = today + timedelta(days=days_until_sunday)
+        next_monday = this_sunday + timedelta(days=1)
+        next_sunday = next_monday + timedelta(days=6)
         
-        try:
-            request_user_profile = request.user.profile
-            return Follow.objects.filter(
-                follower=request_user_profile,
-                following=obj
-            ).exists()
-        except Profile.DoesNotExist:
-            return False
+        window = obj.in_town_windows.filter(
+            start_date__gte=next_monday,
+            start_date__lte=next_sunday
+        ).first()
+        
+        return window.start_date.isoformat() if window else None
     
-    def get_is_followed_by(self, obj):
-        """
-        Return True if this profile follows the request user.
-        Returns False if no request context or user is not authenticated.
-        """
-        request = self.context.get('request')
-        if not request or not request.user or not request.user.is_authenticated:
-            return False
+    def get_next_week_in_end_date(self, obj):
+        """Return end_date for the next week location window."""
+        from django.utils import timezone
+        from datetime import timedelta
+        today = timezone.now().date()
         
-        # Don't check follow relationship for own profile
-        if request.user.id == obj.user_id:
-            return False
+        days_until_sunday = 6 - today.weekday()
+        this_sunday = today + timedelta(days=days_until_sunday)
+        next_monday = this_sunday + timedelta(days=1)
+        next_sunday = next_monday + timedelta(days=6)
         
-        try:
-            request_user_profile = request.user.profile
-            return Follow.objects.filter(
-                follower=obj,
-                following=request_user_profile
-            ).exists()
-        except Profile.DoesNotExist:
-            return False
-
-
-    def get_friend_status(self, obj):
-        """
-        Return the friend status between the request user and this profile.
+        window = obj.in_town_windows.filter(
+            start_date__gte=next_monday,
+            start_date__lte=next_sunday
+        ).first()
         
-        Returns:
-        - None: if viewing own profile or not authenticated
-        - 'none': no friend relationship exists
-        - 'request_sent': current user sent a pending request to this profile
-        - 'request_received': this profile sent a pending request to current user
-        - 'friends': users are friends
-        """
-        request = self.context.get('request')
-        if not request or not request.user or not request.user.is_authenticated:
-            return None
+        return window.end_date.isoformat() if window else None
+    
+    def get_next_month_in_start_date(self, obj):
+        """Return start_date for the next month location window."""
+        from django.utils import timezone
+        from datetime import timedelta
+        today = timezone.now().date()
         
-        # Don't show friend status for own profile
-        if request.user.id == obj.user_id:
-            return None
+        days_until_sunday = 6 - today.weekday()
+        this_sunday = today + timedelta(days=days_until_sunday)
+        next_monday = this_sunday + timedelta(days=1)
+        next_sunday = next_monday + timedelta(days=6)
+        month_start_monday = next_sunday + timedelta(days=1)
+        month_end_sunday = month_start_monday + timedelta(weeks=4) - timedelta(days=1)
         
-        try:
-            request_user_profile = request.user.profile
-        except Profile.DoesNotExist:
-            return None
+        window = obj.in_town_windows.filter(
+            start_date__gte=month_start_monday,
+            start_date__lte=month_end_sunday
+        ).first()
         
-        # Check if they are already friends
-        # Friendship model enforces user1.id < user2.id
-        friendship_exists = Friendship.objects.filter(
-            models.Q(user1=request_user_profile, user2=obj) |
-            models.Q(user1=obj, user2=request_user_profile)
-        ).exists()
+        return window.start_date.isoformat() if window else None
+    
+    def get_next_month_in_end_date(self, obj):
+        """Return end_date for the next month location window."""
+        from django.utils import timezone
+        from datetime import timedelta
+        today = timezone.now().date()
         
-        if friendship_exists:
-            return 'friends'
+        days_until_sunday = 6 - today.weekday()
+        this_sunday = today + timedelta(days=days_until_sunday)
+        next_monday = this_sunday + timedelta(days=1)
+        next_sunday = next_monday + timedelta(days=6)
+        month_start_monday = next_sunday + timedelta(days=1)
+        month_end_sunday = month_start_monday + timedelta(weeks=4) - timedelta(days=1)
         
-        # Check if current user sent a pending request to this profile
-        request_sent = FriendRequest.objects.filter(
-            from_user=request_user_profile,
-            to_user=obj,
-            status='pending'
-        ).exists()
+        window = obj.in_town_windows.filter(
+            start_date__gte=month_start_monday,
+            start_date__lte=month_end_sunday
+        ).first()
         
-        if request_sent:
-            return 'request_sent'
-        
-        # Check if this profile sent a pending request to current user
-        request_received = FriendRequest.objects.filter(
-            from_user=obj,
-            to_user=request_user_profile,
-            status='pending'
-        ).exists()
-        
-        if request_received:
-            return 'request_received'
-        
-        return 'none'
-
-
-
+        return window.end_date.isoformat() if window else None
+    
 class ProfileUpdateSerializer(serializers.ModelSerializer):
     """
     Serializer for updating user profiles with comprehensive validation.
@@ -411,12 +407,23 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
     Validates character limits, enum fields, and camping preferences.
     Location fields (now_in_city, next_week_in_city, next_month_in_city) are
     converted to InTownWindow records on save.
+    
+    Date fields allow users to specify precise date ranges for each location.
+    If dates are not provided, week-aligned defaults are used.
     """
     
     # City name fields - these create/update InTownWindow records
     now_in_city = serializers.CharField(max_length=100, required=False, allow_null=True, allow_blank=True)
     next_week_in_city = serializers.CharField(max_length=100, required=False, allow_null=True, allow_blank=True)
     next_month_in_city = serializers.CharField(max_length=100, required=False, allow_null=True, allow_blank=True)
+    
+    # Date fields for precise location timing
+    now_in_start_date = serializers.DateField(required=False, allow_null=True)
+    now_in_end_date = serializers.DateField(required=False, allow_null=True)
+    next_week_in_start_date = serializers.DateField(required=False, allow_null=True)
+    next_week_in_end_date = serializers.DateField(required=False, allow_null=True)
+    next_month_in_start_date = serializers.DateField(required=False, allow_null=True)
+    next_month_in_end_date = serializers.DateField(required=False, allow_null=True)
     
     # Hobby IDs for updating hobbies
     hobby_ids = serializers.ListField(
@@ -473,6 +480,13 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
             'now_in_city',
             'next_week_in_city',
             'next_month_in_city',
+            # Date fields for precise location timing
+            'now_in_start_date',
+            'now_in_end_date',
+            'next_week_in_start_date',
+            'next_week_in_end_date',
+            'next_month_in_start_date',
+            'next_month_in_end_date',
             'hobby_ids',
         ]
 
@@ -833,7 +847,13 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         
         Handles special fields:
         - City name fields create/update InTownWindow records
+        - Date fields allow precise date ranges (if not provided, week-aligned defaults are used)
         - Hobby IDs are used to update the many-to-many relationship
+        
+        Week alignment logic (when dates not provided):
+        - now_in_city: today → Sunday of this week
+        - next_week_in_city: Monday of next week → Sunday of next week
+        - next_month_in_city: Monday after next week → 4 weeks later (Sunday)
         """
         from datetime import timedelta
         
@@ -844,7 +864,24 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         next_week_in_city = validated_data.pop('next_week_in_city', None)
         next_month_in_city = validated_data.pop('next_month_in_city', None)
         
+        # Handle date fields
+        now_in_start_date = validated_data.pop('now_in_start_date', None)
+        now_in_end_date = validated_data.pop('now_in_end_date', None)
+        next_week_in_start_date = validated_data.pop('next_week_in_start_date', None)
+        next_week_in_end_date = validated_data.pop('next_week_in_end_date', None)
+        next_month_in_start_date = validated_data.pop('next_month_in_start_date', None)
+        next_month_in_end_date = validated_data.pop('next_month_in_end_date', None)
+        
         today = timezone.now().date()
+        
+        # Calculate week-aligned dates (used as defaults when dates not provided)
+        # weekday(): Monday=0, Sunday=6
+        days_until_sunday = 6 - today.weekday()
+        this_sunday = today + timedelta(days=days_until_sunday)
+        next_monday = this_sunday + timedelta(days=1)
+        next_sunday = next_monday + timedelta(days=6)
+        month_start_monday = next_sunday + timedelta(days=1)
+        month_end_sunday = month_start_monday + timedelta(weeks=4) - timedelta(days=1)
         
         # Helper function to update or create a window for a time period
         def update_location_window(city_value, start_date, end_date, field_name):
@@ -874,32 +911,23 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
                 # City was explicitly cleared - delete the window
                 existing_window.delete()
         
-        # Update now_in_city (today to +6 days)
+        # Update now_in_city (use provided dates or default to today → this Sunday)
         if 'now_in_city' in self.initial_data:
-            update_location_window(
-                now_in_city,
-                today,
-                today + timedelta(days=6),
-                'now_in_city'
-            )
+            start = now_in_start_date if now_in_start_date else today
+            end = now_in_end_date if now_in_end_date else this_sunday
+            update_location_window(now_in_city, start, end, 'now_in_city')
         
-        # Update next_week_in_city (+7 to +13 days)
+        # Update next_week_in_city (use provided dates or default to next Monday → next Sunday)
         if 'next_week_in_city' in self.initial_data:
-            update_location_window(
-                next_week_in_city,
-                today + timedelta(days=7),
-                today + timedelta(days=13),
-                'next_week_in_city'
-            )
+            start = next_week_in_start_date if next_week_in_start_date else next_monday
+            end = next_week_in_end_date if next_week_in_end_date else next_sunday
+            update_location_window(next_week_in_city, start, end, 'next_week_in_city')
         
-        # Update next_month_in_city (+14 to +44 days)
+        # Update next_month_in_city (use provided dates or default to Monday after next week → 4 weeks later)
         if 'next_month_in_city' in self.initial_data:
-            update_location_window(
-                next_month_in_city,
-                today + timedelta(days=14),
-                today + timedelta(days=44),
-                'next_month_in_city'
-            )
+            start = next_month_in_start_date if next_month_in_start_date else month_start_monday
+            end = next_month_in_end_date if next_month_in_end_date else month_end_sunday
+            update_location_window(next_month_in_city, start, end, 'next_month_in_city')
         
         # Update standard fields
         for attr, value in validated_data.items():
@@ -1064,12 +1092,11 @@ class FeedCardSerializer(serializers.ModelSerializer):
     Serializer for displaying profile cards in the nearby feed.
     """
     timing_label = serializers.CharField(read_only=True)
-    friend_status = serializers.CharField(read_only=True, default='none')
     
     class Meta:
         model = Profile
-        fields = ['id', 'display_name', 'avatar_url', 'timing_label', 'friend_status']
-        read_only_fields = ['id', 'display_name', 'avatar_url', 'timing_label', 'friend_status']
+        fields = ['id', 'display_name', 'avatar_url', 'timing_label']
+        read_only_fields = ['id', 'display_name', 'avatar_url', 'timing_label']
 
 
 class ProfileSummarySerializer(serializers.ModelSerializer):

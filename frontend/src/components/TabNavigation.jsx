@@ -3,12 +3,12 @@ import { Link, useLocation } from 'react-router-dom';
 /**
  * TabNavigation Component
  * 
- * Bottom navigation bar with three main tabs: Feed, Dating, and Activities.
+ * Bottom navigation bar with three main tabs: Friends, Dating, and Campfire.
  * Uses fixed bottom positioning and highlights the active tab.
  * 
  * Requirements:
- * - 1.1: Display exactly three tabs: Feed, Dating, and Activities
- * - 1.5: Display icons and labels for each tab (Feed: compass, Dating: heart, Activities: calendar)
+ * - 1.1: Display exactly three tabs: Friends, Dating, and Campfire
+ * - 1.5: Display icons and labels for each tab (Friends: compass, Dating: heart, Campfire: calendar)
  * 
  * @param {Object} props
  * @param {'feed' | 'dating' | 'activities'} props.activeTab - The currently active tab
@@ -32,7 +32,7 @@ function TabNavigation({ activeTab }) {
   const tabs = [
     {
       id: 'feed',
-      label: 'Feed',
+      label: 'Friends',
       path: '/feed',
       icon: CompassIcon,
     },
@@ -44,7 +44,7 @@ function TabNavigation({ activeTab }) {
     },
     {
       id: 'activities',
-      label: 'Events',
+      label: 'Campfire',
       path: '/events',
       icon: CalendarIcon,
     },

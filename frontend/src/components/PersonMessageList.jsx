@@ -2,6 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import PersonMessageBubble from './PersonMessageBubble';
 
 function PersonMessageList({ messages, loading, currentUserId, mode = 'friends' }) {
+  const containerRef = useRef(null);
   const messagesEndRef = useRef(null);
 
   const normalizeId = (value) => {
@@ -25,6 +26,13 @@ function PersonMessageList({ messages, loading, currentUserId, mode = 'friends' 
   };
 
   const scrollToBottom = (behavior = 'smooth') => {
+    if (containerRef.current) {
+      containerRef.current.scrollTo({
+        top: containerRef.current.scrollHeight,
+        behavior,
+      });
+      return;
+    }
     messagesEndRef.current?.scrollIntoView({ behavior });
   };
 
@@ -101,7 +109,10 @@ function PersonMessageList({ messages, loading, currentUserId, mode = 'friends' 
   const groupedMessages = groupMessagesByDate(messages);
 
   return (
-    <div className="flex-1 overflow-y-auto bg-gradient-to-b from-zinc-950/65 via-zinc-950/35 to-zinc-900/20">
+    <div
+      ref={containerRef}
+      className="flex-1 overflow-y-auto overscroll-contain bg-gradient-to-b from-zinc-950/65 via-zinc-950/35 to-zinc-900/20"
+    >
       <div className="p-4 space-y-1">
         {groupedMessages.map((item, index) => {
           if (item.type === 'date') {

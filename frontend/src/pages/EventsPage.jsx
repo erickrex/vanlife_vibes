@@ -67,7 +67,7 @@ function getTimeWindowInfo(timeWindow) {
  * EventSwipeCard Component
  * 
  * Swipeable card for swipe-mode events with like/pass functionality.
- * Uses emerald/green theme.
+ * Uses campfire amber theme.
  */
 function EventSwipeCard({ events, onSwipe, onMatch, onEmpty }) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -288,7 +288,7 @@ function EventSwipeCard({ events, onSwipe, onMatch, onEmpty }) {
     return (
       <div className={`relative w-full h-full rounded-2xl overflow-hidden ${
         isBackground ? 'scale-95 opacity-50' : ''
-      } ring-emerald-500/20`}>
+      } ring-amber-500/20`}>
         {/* Event image */}
         <div className="absolute inset-0 bg-zinc-800">
           {event.image_url ? (
@@ -307,7 +307,7 @@ function EventSwipeCard({ events, onSwipe, onMatch, onEmpty }) {
         <div className="absolute bottom-0 left-0 right-0 p-4">
           {/* Event type badge */}
           <div className="flex items-center gap-2 mb-2">
-            <span className="px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded-full text-xs font-semibold">
+            <span className="px-2 py-1 bg-amber-500/20 text-amber-300 rounded-full text-xs font-semibold">
               {getEventTypeLabel(event.event_type)}
             </span>
             <span className="px-2 py-1 bg-zinc-800/80 text-zinc-300 rounded-full text-xs">
@@ -401,12 +401,12 @@ function EventSwipeCard({ events, onSwipe, onMatch, onEmpty }) {
         >
           {renderEventCard(currentEvent)}
           
-          {/* Like overlay - emerald theme */}
+          {/* Like overlay - campfire theme */}
           <div
-            className="absolute inset-0 flex items-center justify-center rounded-2xl border-4 border-emerald-500 bg-emerald-500/20"
+            className="absolute inset-0 flex items-center justify-center rounded-2xl border-4 border-amber-500 bg-amber-500/20"
             style={{ opacity: dragOffset.x > 0 ? getOverlayOpacity() : 0 }}
           >
-            <span className="text-4xl font-bold text-emerald-500">JOIN</span>
+            <span className="text-4xl font-bold text-amber-400">JOIN</span>
           </div>
           
           {/* Pass overlay */}
@@ -419,7 +419,7 @@ function EventSwipeCard({ events, onSwipe, onMatch, onEmpty }) {
         </div>
       </div>
 
-      {/* Action buttons - emerald theme */}
+      {/* Action buttons - campfire theme */}
       <div className="flex justify-center gap-6 mt-6">
         <button
           className="w-16 h-16 flex items-center justify-center rounded-full bg-zinc-900 border-2 border-zinc-700 text-zinc-400 text-2xl hover:border-zinc-500 hover:text-white transition-all disabled:opacity-50"
@@ -430,7 +430,7 @@ function EventSwipeCard({ events, onSwipe, onMatch, onEmpty }) {
           ✕
         </button>
         <button
-          className="w-16 h-16 flex items-center justify-center rounded-full bg-emerald-500 border-2 border-emerald-500 text-white text-2xl hover:bg-emerald-600 transition-all disabled:opacity-50"
+          className="w-16 h-16 flex items-center justify-center rounded-full bg-amber-500 border-2 border-amber-500 text-white text-2xl hover:bg-amber-600 transition-all disabled:opacity-50"
           onClick={handleLikeClick}
           disabled={isProcessing}
           aria-label="Join"
@@ -439,7 +439,7 @@ function EventSwipeCard({ events, onSwipe, onMatch, onEmpty }) {
         </button>
       </div>
 
-      {/* Match celebration modal - emerald theme */}
+      {/* Match celebration modal - campfire theme */}
       {showMatch && matchedEvent && (
         <div 
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm overflow-hidden"
@@ -465,21 +465,21 @@ function EventSwipeCard({ events, onSwipe, onMatch, onEmpty }) {
           </div>
           
           <div 
-            className="bg-zinc-900 rounded-2xl p-6 mx-4 max-w-sm w-full text-center relative border-2 border-emerald-500/50"
+            className="bg-zinc-900 rounded-2xl p-6 mx-4 max-w-sm w-full text-center relative border-2 border-amber-500/50"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Glow effect */}
-            <div className="absolute -inset-1 rounded-2xl blur-xl opacity-30 bg-emerald-500" />
+            <div className="absolute -inset-1 rounded-2xl blur-xl opacity-30 bg-amber-500" />
             
             <div className="relative">
               {/* Celebration header */}
               <div className="mb-4">
                 <div className="text-5xl mb-2">🎉</div>
-                <h1 className="text-3xl font-bold text-emerald-400">You&apos;re In!</h1>
+                <h1 className="text-3xl font-bold text-amber-300">You&apos;re In!</h1>
               </div>
               
               <p className="text-zinc-300 mb-6 text-lg">
-                You&apos;ve joined <span className="font-semibold text-emerald-300">{matchedEvent.title}</span>!
+                You&apos;ve joined <span className="font-semibold text-amber-200">{matchedEvent.title}</span>!
               </p>
               
               {/* Event details */}
@@ -498,7 +498,7 @@ function EventSwipeCard({ events, onSwipe, onMatch, onEmpty }) {
               <div className="space-y-3">
                 <Link 
                   to={`/events/${matchedEvent.id}/chat`}
-                  className="block w-full py-4 rounded-xl font-bold text-white text-lg bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-lg shadow-emerald-500/30 transition-all transform hover:scale-105"
+                  className="block w-full py-4 rounded-xl font-bold text-white text-lg bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-lg shadow-amber-500/30 transition-all transform hover:scale-105"
                 >
                   💬 Go to Group Chat
                 </Link>
@@ -667,7 +667,7 @@ function EventsPage() {
       <button
         className={`flex-1 py-3 text-center text-sm font-semibold transition-colors ${
           joinMode === 'direct'
-            ? 'text-blue-500 border-b-2 border-blue-500'
+            ? 'text-amber-300 border-b-2 border-amber-400'
             : 'text-zinc-500 hover:text-zinc-300'
         }`}
         onClick={() => setJoinMode('direct')}
@@ -680,7 +680,7 @@ function EventsPage() {
       <button
         className={`flex-1 py-3 text-center text-sm font-semibold transition-colors ${
           joinMode === 'swipe'
-            ? 'text-emerald-500 border-b-2 border-emerald-500'
+            ? 'text-amber-300 border-b-2 border-amber-400'
             : 'text-zinc-500 hover:text-zinc-300'
         }`}
         onClick={() => setJoinMode('swipe')}
@@ -699,7 +699,7 @@ function EventsPage() {
       <button
         className={`flex-1 py-2 text-center text-sm font-medium transition-colors ${
           directViewMode === 'browse'
-            ? 'text-blue-400 border-b-2 border-blue-400'
+            ? 'text-amber-300 border-b-2 border-amber-400'
             : 'text-zinc-500 hover:text-zinc-300'
         }`}
         onClick={() => setDirectViewMode('browse')}
@@ -709,7 +709,7 @@ function EventsPage() {
       <button
         className={`flex-1 py-2 text-center text-sm font-medium transition-colors ${
           directViewMode === 'my-events'
-            ? 'text-blue-400 border-b-2 border-blue-400'
+            ? 'text-amber-300 border-b-2 border-amber-400'
             : 'text-zinc-500 hover:text-zinc-300'
         }`}
         onClick={() => setDirectViewMode('my-events')}
@@ -725,7 +725,7 @@ function EventsPage() {
       <button
         className={`flex-1 py-2 text-center text-sm font-medium transition-colors ${
           swipeViewMode === 'discover'
-            ? 'text-emerald-400 border-b-2 border-emerald-400'
+            ? 'text-amber-300 border-b-2 border-amber-400'
             : 'text-zinc-500 hover:text-zinc-300'
         }`}
         onClick={() => setSwipeViewMode('discover')}
@@ -735,7 +735,7 @@ function EventsPage() {
       <button
         className={`flex-1 py-2 text-center text-sm font-medium transition-colors ${
           swipeViewMode === 'my-events'
-            ? 'text-emerald-400 border-b-2 border-emerald-400'
+            ? 'text-amber-300 border-b-2 border-amber-400'
             : 'text-zinc-500 hover:text-zinc-300'
         }`}
         onClick={() => setSwipeViewMode('my-events')}
@@ -745,7 +745,7 @@ function EventsPage() {
       <button
         className={`flex-1 py-2 text-center text-sm font-medium transition-colors ${
           swipeViewMode === 'my-matches'
-            ? 'text-emerald-400 border-b-2 border-emerald-400'
+            ? 'text-amber-300 border-b-2 border-amber-400'
             : 'text-zinc-500 hover:text-zinc-300'
         }`}
         onClick={() => setSwipeViewMode('my-matches')}
@@ -830,9 +830,7 @@ function EventsPage() {
             )}
             <Link
               to="/events/create"
-              className={`px-4 py-2 text-white text-sm font-semibold rounded-lg transition-colors ${
-                isDirectMode ? 'bg-blue-500 hover:bg-blue-600' : 'bg-emerald-500 hover:bg-emerald-600'
-              }`}
+              className="px-4 py-2 text-white text-sm font-semibold rounded-lg transition-colors bg-amber-500 hover:bg-amber-600"
             >
               Create Event
             </Link>
@@ -862,14 +860,14 @@ function EventsPage() {
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <span className={`px-2 py-1 rounded text-xs font-medium ${
-                    isSwipeMode 
-                      ? 'bg-emerald-500/20 text-emerald-400' 
-                      : 'bg-blue-500/20 text-blue-400'
+                    isSwipeMode
+                      ? 'bg-amber-500/20 text-amber-300'
+                      : 'bg-orange-500/20 text-orange-300'
                   }`}>
                     {typeInfo.emoji} {typeInfo.label}
                   </span>
                   {event.status === 'matched' && (
-                    <span className="px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded text-xs font-medium">
+                    <span className="px-2 py-1 bg-amber-500/20 text-amber-300 rounded text-xs font-medium">
                       Matched
                     </span>
                   )}
@@ -929,19 +927,17 @@ function EventsPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-black pb-20">
-        <div className="max-w-lg mx-auto">
+      <div className="app-shell pb-20">
+        <div className="max-w-lg mx-auto app-card overflow-hidden">
           {/* Header */}
           <header className="px-4 py-4 flex items-center justify-between border-b border-zinc-800">
             <h1 className="text-xl font-bold text-white flex items-center gap-2">
-              <span className={joinMode === 'swipe' ? 'text-emerald-500' : 'text-blue-500'}>📅</span>
-              Events
+              <span className="text-amber-300">🔥</span>
+              Campfire
             </h1>
             <Link
               to="/events/create"
-              className={`px-3 py-1.5 text-white text-sm font-semibold rounded-lg transition-colors ${
-                joinMode === 'swipe' ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-blue-500 hover:bg-blue-600'
-              }`}
+              className="px-3 py-1.5 text-white text-sm font-semibold rounded-lg transition-colors bg-amber-500 hover:bg-amber-600"
             >
               + Create
             </Link>
@@ -951,9 +947,7 @@ function EventsPage() {
           {joinMode === 'direct' ? renderDirectSubTabs() : renderSwipeSubTabs()}
           
           <div className="flex flex-col items-center justify-center py-20">
-            <div className={`w-8 h-8 border-2 border-t-transparent rounded-full animate-spin ${
-              joinMode === 'swipe' ? 'border-emerald-500' : 'border-blue-500'
-            }`}></div>
+            <div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
             <p className="mt-4 text-zinc-500">Loading events...</p>
           </div>
         </div>
@@ -964,19 +958,17 @@ function EventsPage() {
   // Error state (only show if no data at all)
   if (error && events.length === 0 && myEvents.length === 0 && myMatches.length === 0) {
     return (
-      <div className="min-h-screen bg-black pb-20">
-        <div className="max-w-lg mx-auto">
+      <div className="app-shell pb-20">
+        <div className="max-w-lg mx-auto app-card overflow-hidden">
           {/* Header */}
           <header className="px-4 py-4 flex items-center justify-between border-b border-zinc-800">
             <h1 className="text-xl font-bold text-white flex items-center gap-2">
-              <span className={joinMode === 'swipe' ? 'text-emerald-500' : 'text-blue-500'}>📅</span>
-              Events
+              <span className="text-amber-300">🔥</span>
+              Campfire
             </h1>
             <Link
               to="/events/create"
-              className={`px-3 py-1.5 text-white text-sm font-semibold rounded-lg transition-colors ${
-                joinMode === 'swipe' ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-blue-500 hover:bg-blue-600'
-              }`}
+              className="px-3 py-1.5 text-white text-sm font-semibold rounded-lg transition-colors bg-amber-500 hover:bg-amber-600"
             >
               + Create
             </Link>
@@ -988,9 +980,7 @@ function EventsPage() {
           <div className="flex flex-col items-center justify-center py-20 px-4">
             <p className="text-red-400 mb-4">{error}</p>
             <button 
-              className={`px-4 py-2 text-white text-sm font-semibold rounded-lg transition-colors ${
-                joinMode === 'swipe' ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-blue-500 hover:bg-blue-600'
-              }`}
+              className="px-4 py-2 text-white text-sm font-semibold rounded-lg transition-colors bg-amber-500 hover:bg-amber-600"
               onClick={() => {
                 if (joinMode === 'direct') {
                   directViewMode === 'browse' ? loadEvents() : loadMyEvents();
@@ -1011,18 +1001,18 @@ function EventsPage() {
 
   // Main render
   return (
-    <div className="min-h-screen bg-black pb-20">
-      <div className="max-w-lg mx-auto">
+    <div className="app-shell pb-20">
+      <div className="max-w-lg mx-auto app-card overflow-hidden">
         {/* Header */}
         <header className="px-4 py-4 flex items-center justify-between border-b border-zinc-800">
           <div>
             <h1 className="text-xl font-bold text-white flex items-center gap-2">
-              <span className={joinMode === 'swipe' ? 'text-emerald-500' : 'text-blue-500'}>📅</span>
-              Events
+              <span className="text-amber-300">🔥</span>
+              Campfire
             </h1>
             <p className="text-zinc-500 text-sm">
               {joinMode === 'direct' 
-                ? 'Browse and join meetups' 
+                ? 'Browse and join meetups'
                 : 'Swipe to find adventures'}
             </p>
           </div>
@@ -1033,9 +1023,7 @@ function EventsPage() {
               <button
                 className={`w-10 h-10 flex items-center justify-center rounded-lg border transition-colors ${
                   showFilters || hasActiveFilters
-                    ? joinMode === 'swipe'
-                      ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10'
-                      : 'border-blue-500 text-blue-400 bg-blue-500/10'
+                    ? 'border-amber-500 text-amber-300 bg-amber-500/10'
                     : 'border-zinc-700 text-zinc-400 hover:border-zinc-500'
                 }`}
                 onClick={() => setShowFilters(!showFilters)}
@@ -1048,9 +1036,7 @@ function EventsPage() {
             {/* Create button */}
             <Link
               to="/events/create"
-              className={`px-3 py-1.5 text-white text-sm font-semibold rounded-lg transition-colors ${
-                joinMode === 'swipe' ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-blue-500 hover:bg-blue-600'
-              }`}
+              className="px-3 py-1.5 text-white text-sm font-semibold rounded-lg transition-colors bg-amber-500 hover:bg-amber-600"
             >
               + Create
             </Link>
@@ -1116,7 +1102,7 @@ function EventsPage() {
                     )}
                     <Link
                       to="/events/create"
-                      className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg transition-colors"
+                      className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-lg transition-colors"
                     >
                       Create Event
                     </Link>

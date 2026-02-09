@@ -102,6 +102,9 @@ function ProfileEditPage() {
     looking_for_dating: false, looking_for_friends: true, travel_status: '',
     travel_companions: '', work_status: '', camping_preferences: [], travel_pace: '',
     now_in_city: '', next_week_in_city: '', next_month_in_city: '',
+    now_in_start_date: '', now_in_end_date: '',
+    next_week_in_start_date: '', next_week_in_end_date: '',
+    next_month_in_start_date: '', next_month_in_end_date: '',
     hobby_ids: [], profile_type: 'solo', group_description: '', rig_status: '',
     social_vibe: '', lifestyle_schedule: '', lifestyle_social: '', lifestyle_environment: '',
     has_pets: false, pet_type: '', pet_friendly_only: false,
@@ -118,11 +121,6 @@ function ProfileEditPage() {
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
   const [vehicleExpanded, setVehicleExpanded] = useState(false);
-  const [inTownWindows, setInTownWindows] = useState([]);
-  const [newWindow, setNewWindow] = useState({ city_area: '', start_date: '', end_date: '' });
-  const [windowError, setWindowError] = useState('');
-  const [addingWindow, setAddingWindow] = useState(false);
-  const [deletingWindowId, setDeletingWindowId] = useState(null);
   const [prompts, setPrompts] = useState([]);
   const [availablePrompts, setAvailablePrompts] = useState([]);
   const [newPrompt, setNewPrompt] = useState({ prompt_name: '', prompt_answer: '' });
@@ -138,14 +136,13 @@ function ProfileEditPage() {
     try {
       setLoading(true);
       setError('');
-      const [profileRes, hobbiesRes, windowsRes, promptsRes, availablePromptsRes] = await Promise.all([
+      const [profileRes, hobbiesRes, promptsRes, availablePromptsRes] = await Promise.all([
         profilesAPI.getMyProfile(), profilesAPI.getHobbyTags(),
-        profilesAPI.getInTownWindows(), profilesAPI.getPrompts(), profilesAPI.getAvailablePrompts(),
+        profilesAPI.getPrompts(), profilesAPI.getAvailablePrompts(),
       ]);
       
       const profile = profileRes.data.data || profileRes.data;
       setHobbyTags(hobbiesRes.data.data || hobbiesRes.data);
-      setInTownWindows(windowsRes.data.data || windowsRes.data || []);
       setPrompts(promptsRes.data.data || promptsRes.data || []);
       setAvailablePrompts(availablePromptsRes.data.data || availablePromptsRes.data || []);
       
@@ -162,6 +159,12 @@ function ProfileEditPage() {
         now_in_city: profile.now_in_city || '',
         next_week_in_city: profile.next_week_in_city || '',
         next_month_in_city: profile.next_month_in_city || '',
+        now_in_start_date: profile.now_in_start_date || '',
+        now_in_end_date: profile.now_in_end_date || '',
+        next_week_in_start_date: profile.next_week_in_start_date || '',
+        next_week_in_end_date: profile.next_week_in_end_date || '',
+        next_month_in_start_date: profile.next_month_in_start_date || '',
+        next_month_in_end_date: profile.next_month_in_end_date || '',
         hobby_ids: profile.hobbies?.map(h => h.id) || [], profile_type: profile.profile_type || 'solo',
         group_description: profile.group_description || '', rig_status: profile.rig_status || '',
         social_vibe: profile.social_vibe || '', lifestyle_schedule: profile.lifestyle_schedule || '',
@@ -214,52 +217,6 @@ function ProfileEditPage() {
       }
       return { ...prev, camping_preferences: [...currentPrefs, pref] };
     });
-  };
-
-  const handleNewWindowChange = (e) => {
-    const { name, value } = e.target;
-    setNewWindow(prev => ({ ...prev, [name]: value }));
-    if (windowError) setWindowError('');
-  };
-
-  const validateWindow = () => {
-    if (!newWindow.city_area.trim()) { setWindowError('City/area is required'); return false; }
-    if (newWindow.city_area.length > 100) { setWindowError('City/area must be 100 characters or less'); return false; }
-    if (!newWindow.start_date) { setWindowError('Start date is required'); return false; }
-    if (!newWindow.end_date) { setWindowError('End date is required'); return false; }
-    if (new Date(newWindow.start_date) > new Date(newWindow.end_date)) { setWindowError('Start date must be before or equal to end date'); return false; }
-    if (inTownWindows.length >= 3) { setWindowError('Maximum 3 in-town windows allowed'); return false; }
-    return true;
-  };
-
-  const handleAddWindow = async () => {
-    if (!validateWindow()) return;
-    try {
-      setAddingWindow(true);
-      setWindowError('');
-      const response = await profilesAPI.createInTownWindow({
-        city_area: newWindow.city_area.trim(), start_date: newWindow.start_date, end_date: newWindow.end_date,
-      });
-      const createdWindow = response.data.data || response.data;
-      setInTownWindows(prev => [...prev, createdWindow]);
-      setNewWindow({ city_area: '', start_date: '', end_date: '' });
-    } catch (err) {
-      setWindowError(err.message || 'Failed to add in-town window');
-    } finally {
-      setAddingWindow(false);
-    }
-  };
-
-  const handleDeleteWindow = async (windowId) => {
-    try {
-      setDeletingWindowId(windowId);
-      await profilesAPI.deleteInTownWindow(windowId);
-      setInTownWindows(prev => prev.filter(w => w.id !== windowId));
-    } catch (err) {
-      setWindowError(err.message || 'Failed to delete in-town window');
-    } finally {
-      setDeletingWindowId(null);
-    }
   };
 
   const handleNewPromptChange = (e) => {
@@ -368,6 +325,12 @@ function ProfileEditPage() {
         now_in_city: formData.now_in_city || null,
         next_week_in_city: formData.next_week_in_city === 'Open plans' ? null : (formData.next_week_in_city || null),
         next_month_in_city: formData.next_month_in_city === 'Open plans' ? null : (formData.next_month_in_city || null),
+        now_in_start_date: formData.now_in_start_date || null,
+        now_in_end_date: formData.now_in_end_date || null,
+        next_week_in_start_date: formData.next_week_in_start_date || null,
+        next_week_in_end_date: formData.next_week_in_end_date || null,
+        next_month_in_start_date: formData.next_month_in_start_date || null,
+        next_month_in_end_date: formData.next_month_in_end_date || null,
         hobby_ids: formData.hobby_ids, profile_type: formData.profile_type,
         group_description: (formData.profile_type === 'couple' || formData.profile_type === 'group') ? formData.group_description : '',
         rig_status: formData.rig_status || null, social_vibe: formData.social_vibe || null,
@@ -530,7 +493,7 @@ function ProfileEditPage() {
             <h2 className="text-lg font-semibold text-white mb-4">📍 Location</h2>
             <p className="text-zinc-500 text-sm mb-4">Let others know where you are and where you're heading</p>
             
-            <div className="mb-4">
+            <div className="mb-6">
               <h3 className="text-white text-sm font-medium mb-2">Now In</h3>
               <CityAutocomplete
                 value={formData.now_in_city}
@@ -539,9 +502,22 @@ function ProfileEditPage() {
                 placeholder="Search cities (e.g., Moab, UT)"
                 disabled={saving}
               />
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                <div>
+                  <label className="text-zinc-500 text-xs block mb-1">From</label>
+                  <input type="date" name="now_in_start_date" value={formData.now_in_start_date}
+                    onChange={handleChange} className={inputClass} disabled={saving || !formData.now_in_city} />
+                </div>
+                <div>
+                  <label className="text-zinc-500 text-xs block mb-1">Until</label>
+                  <input type="date" name="now_in_end_date" value={formData.now_in_end_date}
+                    onChange={handleChange} className={inputClass}
+                    min={formData.now_in_start_date || undefined} disabled={saving || !formData.now_in_city} />
+                </div>
+              </div>
             </div>
             
-            <div className="mb-4">
+            <div className="mb-6">
               <h3 className="text-white text-sm font-medium mb-2">Next Week In (Optional)</h3>
               <CityAutocomplete
                 value={formData.next_week_in_city}
@@ -550,6 +526,19 @@ function ProfileEditPage() {
                 placeholder="Search cities"
                 disabled={saving}
               />
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                <div>
+                  <label className="text-zinc-500 text-xs block mb-1">From</label>
+                  <input type="date" name="next_week_in_start_date" value={formData.next_week_in_start_date}
+                    onChange={handleChange} className={inputClass} disabled={saving || !formData.next_week_in_city} />
+                </div>
+                <div>
+                  <label className="text-zinc-500 text-xs block mb-1">Until</label>
+                  <input type="date" name="next_week_in_end_date" value={formData.next_week_in_end_date}
+                    onChange={handleChange} className={inputClass}
+                    min={formData.next_week_in_start_date || undefined} disabled={saving || !formData.next_week_in_city} />
+                </div>
+              </div>
             </div>
 
             <div>
@@ -561,59 +550,20 @@ function ProfileEditPage() {
                 placeholder="Search cities"
                 disabled={saving}
               />
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                <div>
+                  <label className="text-zinc-500 text-xs block mb-1">From</label>
+                  <input type="date" name="next_month_in_start_date" value={formData.next_month_in_start_date}
+                    onChange={handleChange} className={inputClass} disabled={saving || !formData.next_month_in_city} />
+                </div>
+                <div>
+                  <label className="text-zinc-500 text-xs block mb-1">Until</label>
+                  <input type="date" name="next_month_in_end_date" value={formData.next_month_in_end_date}
+                    onChange={handleChange} className={inputClass}
+                    min={formData.next_month_in_start_date || undefined} disabled={saving || !formData.next_month_in_city} />
+                </div>
+              </div>
             </div>
-          </div>
-
-          {/* In-Town Windows */}
-          <div className={sectionClass}>
-            <h2 className="text-lg font-semibold text-white mb-4">📅 In-Town Windows</h2>
-            <p className="text-zinc-500 text-sm mb-3">Let others know where you'll be and when. Add up to 3 windows.</p>
-            
-            {inTownWindows.length > 0 && (
-              <div className="space-y-2 mb-4">
-                {inTownWindows.map(window => (
-                  <div key={window.id} className="flex items-center justify-between p-3 bg-zinc-800 rounded-lg">
-                    <div>
-                      <span className="text-white font-medium">📍 {window.city_area}</span>
-                      <span className="text-zinc-500 text-sm block">{formatDate(window.start_date)} — {formatDate(window.end_date)}</span>
-                    </div>
-                    <button type="button" onClick={() => handleDeleteWindow(window.id)} disabled={deletingWindowId === window.id || saving}
-                      className="text-zinc-500 hover:text-red-400 transition-colors disabled:opacity-50">
-                      {deletingWindowId === window.id ? '...' : '✕'}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-            
-            {inTownWindows.length < 3 && (
-              <div className="p-3 bg-zinc-800/50 rounded-lg">
-                <h4 className="text-white text-sm font-medium mb-3">Add New Window</h4>
-                <div className="mb-3">
-                  <input type="text" name="city_area" value={newWindow.city_area} onChange={handleNewWindowChange}
-                    className={inputClass} placeholder="e.g., San Diego, CA" maxLength={100} disabled={addingWindow || saving} />
-                  <span className="text-zinc-500 text-xs">{newWindow.city_area.length}/100</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2 mb-3">
-                  <div>
-                    <label className="text-zinc-500 text-xs block mb-1">Start Date</label>
-                    <input type="date" name="start_date" value={newWindow.start_date} onChange={handleNewWindowChange}
-                      className={inputClass} disabled={addingWindow || saving} />
-                  </div>
-                  <div>
-                    <label className="text-zinc-500 text-xs block mb-1">End Date</label>
-                    <input type="date" name="end_date" value={newWindow.end_date} onChange={handleNewWindowChange}
-                      className={inputClass} min={newWindow.start_date || undefined} disabled={addingWindow || saving} />
-                  </div>
-                </div>
-                {windowError && <span className={errorClass}>{windowError}</span>}
-                <button type="button" onClick={handleAddWindow} disabled={addingWindow || saving}
-                  className="app-btn-secondary w-full py-2 text-sm disabled:opacity-50">
-                  {addingWindow ? 'Adding...' : '+ Add Window'}
-                </button>
-              </div>
-            )}
-            {inTownWindows.length >= 3 && <p className="text-emerald-400 text-sm">✓ Maximum 3 windows reached.</p>}
           </div>
 
           {/* Profile Prompts */}

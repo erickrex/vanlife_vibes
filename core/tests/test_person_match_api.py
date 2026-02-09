@@ -8,6 +8,7 @@ Tests the following endpoints:
 - GET /matches/{id}/messages/ - list messages
 - POST /matches/{id}/messages/ - send message
 - POST /matches/{id}/messages/mini-card/ - share mini-card
+- POST /matches/{id}/messages/icebreaker/ - send icebreaker
 """
 import pytest
 from django.test import TestCase
@@ -254,6 +255,22 @@ class TestPersonMatchViewSet(TestCase):
         )
         
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_send_icebreaker(self):
+        """Test POST /matches/{id}/messages/icebreaker/ sends an icebreaker message."""
+        response = self.client.post(
+            f'/api/v1/matches/{self.match.id}/messages/icebreaker/',
+            {'content': 'Want to explore downtown later this afternoon?'},
+            format='json'
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.json()['status'], 'success')
+        self.assertEqual(response.json()['data']['message_type'], 'icebreaker')
+        self.assertEqual(
+            response.json()['data']['content'],
+            'Want to explore downtown later this afternoon?'
+        )
     
     def test_inactive_matches_not_listed(self):
         """Test GET /matches/ excludes inactive matches."""

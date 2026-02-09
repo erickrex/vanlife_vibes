@@ -46,6 +46,7 @@ class PersonMatchViewSet(MessageMixin, viewsets.GenericViewSet):
     - GET /matches/{id}/messages/ - List messages in match
     - POST /matches/{id}/messages/ - Send a text message
     - POST /matches/{id}/messages/mini-card/ - Share a mini-card
+    - POST /matches/{id}/messages/icebreaker/ - Send an icebreaker prompt
     
     Uses MessageMixin for the messages endpoint (Requirements 1.1, 1.9).
     """
@@ -433,6 +434,56 @@ class PersonMatchViewSet(MessageMixin, viewsets.GenericViewSet):
         # Return the created message
         response_serializer = DirectMessageSerializer(message)
         
+        return Response({
+            'status': 'success',
+            'data': response_serializer.data
+        }, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['post'], url_path='messages/icebreaker')
+    def send_icebreaker(self, request, pk=None):
+        """
+        Send an icebreaker prompt in a match.
+
+        POST /matches/{id}/messages/icebreaker/
+
+        Request body:
+        {
+            "content": "Want to grab coffee while we're both in Austin?"
+        }
+        """
+        user_profile = self._get_user_profile(request)
+        if not user_profile:
+            return Response({
+                'status': 'error',
+                'message': 'Profile not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        match, error_response = self._get_match_or_404(pk, user_profile)
+        if error_response:
+            return error_response
+
+        if not match.is_active:
+            return Response({
+                'status': 'error',
+                'message': 'Cannot send messages to an inactive match'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        content = request.data.get('content')
+        payload = {
+            'content': content,
+            'message_type': 'icebreaker',
+        }
+        serializer = DirectMessageCreateSerializer(data=payload)
+        if not serializer.is_valid():
+            return Response({
+                'status': 'error',
+                'message': 'Invalid icebreaker message',
+                'errors': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        message = self.create_message(match, user_profile, serializer.validated_data)
+        response_serializer = DirectMessageSerializer(message)
+
         return Response({
             'status': 'success',
             'data': response_serializer.data

@@ -6,10 +6,11 @@ This module re-exports all serializers for backwards compatibility.
 Serializers are organized into domain-specific modules:
 - auth.py: Authentication serializers
 - profiles.py: Profile, vehicle, location, and prompt serializers
-- matches.py: Person match, swipe, and direct message serializers
+- matches.py: Person match, swipe, and direct message serializers (unified for dating + friends)
 - events.py: Event, attendee, swipe, and message serializers
-- friends.py: Friend request, friendship, and friend message serializers
 - analytics.py: Analytics event serializers
+
+Note: Friend messages now use the unified DirectMessage model from matches.py.
 
 Requirements: 2.2, 2.4, 2.6 (Backend File Organization)
 """
@@ -41,7 +42,7 @@ from .profiles import (
     ProfilePromptSerializer,
 )
 
-# Match serializers
+# Match serializers (unified for dating + friends messaging)
 from .matches import (
     PersonMatchSerializer,
     PersonSwipeSerializer,
@@ -62,13 +63,6 @@ from .events import (
     EventSwipeSerializer,
     EventSwipeCreateSerializer,
     EventMessageCreateSerializer,
-)
-
-# Friend serializers
-from .friends import (
-    FriendRequestSerializer,
-    FriendshipSerializer,
-    FriendMessageSerializer,
 )
 
 # Analytics serializers
@@ -99,7 +93,7 @@ __all__ = [
     'PromptListSerializer',
     'AvailablePromptSerializer',
     'ProfilePromptSerializer',
-    # Match
+    # Match (unified for dating + friends messaging)
     'PersonMatchSerializer',
     'PersonSwipeSerializer',
     'DirectMessageSerializer',
@@ -116,10 +110,6 @@ __all__ = [
     'EventSwipeSerializer',
     'EventSwipeCreateSerializer',
     'EventMessageCreateSerializer',
-    # Friend
-    'FriendRequestSerializer',
-    'FriendshipSerializer',
-    'FriendMessageSerializer',
     # Analytics
     'AnalyticsEventSerializer',
     'AnalyticsEventCreateSerializer',

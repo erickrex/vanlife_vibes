@@ -16,19 +16,17 @@ from rest_framework import status, viewsets, mixins
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from django.db import transaction, IntegrityError
 from django.db.models import Q
 from django.utils import timezone
 
 from core.models import (
-    Profile, Country, Follow, HobbyTag, Vehicle, VehiclePhoto,
-    InTownWindow, City, Prompt, ProfilePrompt, PersonSwipe, PersonMatch, DirectMessage,
-    AnalyticsEvent, FriendRequest, Friendship
+    Profile, Country, HobbyTag, Vehicle, VehiclePhoto,
+    InTownWindow, City, Prompt, ProfilePrompt, PersonSwipe,
+    AnalyticsEvent
 )
 from core.serializers import (
     ProfileSerializer,
     ProfileUpdateSerializer,
-    ProfileSummarySerializer,
     HobbyTagSerializer,
     VehicleSerializer,
     VehicleUpdateSerializer,
@@ -40,9 +38,6 @@ from core.serializers import (
     CitySerializer,
     ProfilePromptSerializer,
     PromptListSerializer,
-    DirectMessageCreateSerializer,
-    DirectMessageSerializer,
-    PersonMatchSerializer,
     PersonSwipeSerializer,
     AnalyticsEventCreateSerializer,
     AnalyticsEventSerializer,
@@ -129,8 +124,6 @@ class ProfileViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
             'user',
         ).prefetch_related(
             'hobbies',
-            'follower_set',
-            'following_set',
             'in_town_windows',
         )
     
@@ -217,112 +210,6 @@ class ProfileViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
             'data': serializer.data
         }, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['post'], url_path='chat')
-    def chat(self, request, pk=None):
-        """
-        Start a direct chat with a profile by sending an initial message.
-
-        POST /api/v1/profiles/{id}/chat/
-
-        Body:
-        - content: required message content
-        - message_type: optional (text, mini_card, icebreaker)
-        - mini_card_data: optional for mini_card messages
-
-        Creates a match if one does not already exist, then sends the message.
-        """
-        # Get the target profile
-        try:
-            target_profile = Profile.objects.get(pk=pk)
-        except Profile.DoesNotExist:
-            return Response({
-                'status': 'error',
-                'message': 'Profile not found'
-            }, status=status.HTTP_404_NOT_FOUND)
-        except Exception:
-            return Response({
-                'status': 'error',
-                'message': 'Invalid profile ID'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        # Get the sender profile
-        try:
-            sender_profile = request.user.profile
-        except Profile.DoesNotExist:
-            return Response({
-                'status': 'error',
-                'message': 'Your profile not found. Please contact support.'
-            }, status=status.HTTP_404_NOT_FOUND)
-
-        if sender_profile.id == target_profile.id:
-            return Response({
-                'status': 'error',
-                'message': 'You cannot message yourself'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        message_serializer = None
-        if request.data.get('content'):
-            message_serializer = DirectMessageCreateSerializer(data=request.data)
-            if not message_serializer.is_valid():
-                return Response({
-                    'status': 'error',
-                    'message': 'Invalid message data',
-                    'errors': message_serializer.errors
-                }, status=status.HTTP_400_BAD_REQUEST)
-
-        user1 = sender_profile
-        user2 = target_profile
-        if str(user1.id) > str(user2.id):
-            user1, user2 = user2, user1
-
-        created_match = False
-        match = PersonMatch.objects.filter(
-            user1=user1,
-            user2=user2,
-            mode='friends'
-        ).first()
-
-        if match:
-            if not match.is_active:
-                match.is_active = True
-                match.save(update_fields=['is_active'])
-        else:
-            try:
-                with transaction.atomic():
-                    match = PersonMatch.objects.create(
-                        user1=user1,
-                        user2=user2,
-                        mode='friends',
-                        is_active=True
-                    )
-                    created_match = True
-            except IntegrityError:
-                match = PersonMatch.objects.get(
-                    user1=user1,
-                    user2=user2,
-                    mode='friends'
-                )
-
-        message = None
-        if message_serializer:
-            message = DirectMessage.objects.create(
-                match=match,
-                sender=sender_profile,
-                content=message_serializer.validated_data['content'],
-                message_type=message_serializer.validated_data.get('message_type', 'text'),
-                mini_card_data=message_serializer.validated_data.get('mini_card_data'),
-            )
-
-        return Response({
-            'status': 'success',
-            'data': {
-                'match': PersonMatchSerializer(match, context={'request': request}).data,
-                'message': DirectMessageSerializer(message).data if message else None,
-                'match_created': created_match
-            }
-        }, status=status.HTTP_201_CREATED)
-
-
     @action(detail=False, methods=['get'], url_path='hobbies')
     def hobbies(self, request):
         """
@@ -340,177 +227,6 @@ class ProfileViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
             'status': 'success',
             'data': serializer.data
         }, status=status.HTTP_200_OK)
-
-    @action(detail=True, methods=['post', 'delete'], url_path='follow')
-    def follow(self, request, pk=None):
-        """
-        Follow or unfollow a user.
-        
-        POST /api/v1/profiles/{id}/follow/
-        Creates a follow relationship where the current user follows the target profile.
-        
-        DELETE /api/v1/profiles/{id}/follow/
-        Removes the follow relationship.
-        """
-        # Get the target profile
-        try:
-            target_profile = Profile.objects.get(pk=pk)
-        except Profile.DoesNotExist:
-            return Response({
-                'status': 'error',
-                'message': 'Profile not found'
-            }, status=status.HTTP_404_NOT_FOUND)
-        except Exception:
-            return Response({
-                'status': 'error',
-                'message': 'Invalid profile ID'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Get the current user's profile
-        try:
-            follower_profile = request.user.profile
-        except Profile.DoesNotExist:
-            return Response({
-                'status': 'error',
-                'message': 'Your profile not found. Please contact support.'
-            }, status=status.HTTP_404_NOT_FOUND)
-        
-        # Prevent self-follows
-        if follower_profile.id == target_profile.id:
-            return Response({
-                'status': 'error',
-                'message': 'You cannot follow yourself'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        if request.method == 'POST':
-            # Follow user - handle duplicate follows gracefully (idempotent)
-            follow_obj, created = Follow.objects.get_or_create(
-                follower=follower_profile,
-                following=target_profile
-            )
-            
-            # Get updated counts
-            follower_count = target_profile.follower_set.count()
-            following_count = target_profile.following_set.count()
-            
-            return Response({
-                'status': 'success',
-                'message': 'Successfully followed user' if created else 'Already following user',
-                'data': {
-                    'is_following': True,
-                    'follower_count': follower_count,
-                    'following_count': following_count
-                }
-            }, status=status.HTTP_200_OK if not created else status.HTTP_201_CREATED)
-        
-        elif request.method == 'DELETE':
-            # Unfollow user
-            try:
-                follow_obj = Follow.objects.get(
-                    follower=follower_profile,
-                    following=target_profile
-                )
-                follow_obj.delete()
-                
-                # Get updated counts
-                follower_count = target_profile.follower_set.count()
-                following_count = target_profile.following_set.count()
-                
-                return Response({
-                    'status': 'success',
-                    'message': 'Successfully unfollowed user',
-                    'data': {
-                        'is_following': False,
-                        'follower_count': follower_count,
-                        'following_count': following_count
-                    }
-                }, status=status.HTTP_200_OK)
-            except Follow.DoesNotExist:
-                # Not following - return success anyway (idempotent)
-                follower_count = target_profile.follower_set.count()
-                following_count = target_profile.following_set.count()
-                
-                return Response({
-                    'status': 'success',
-                    'message': 'Not following this user',
-                    'data': {
-                        'is_following': False,
-                        'follower_count': follower_count,
-                        'following_count': following_count
-                    }
-                }, status=status.HTTP_200_OK)
-
-
-    @action(detail=True, methods=['get'], url_path='followers')
-    def followers(self, request, pk=None):
-        """
-        List followers of a profile.
-        
-        GET /api/v1/profiles/{id}/followers/
-        
-        Returns a list of profile summaries for all users who follow the specified profile.
-        """
-        # Get the target profile
-        try:
-            target_profile = Profile.objects.get(pk=pk)
-        except Profile.DoesNotExist:
-            return Response({
-                'status': 'error',
-                'message': 'Profile not found'
-            }, status=status.HTTP_404_NOT_FOUND)
-        except Exception:
-            return Response({
-                'status': 'error',
-                'message': 'Invalid profile ID'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Get all followers
-        follower_profiles = Profile.objects.filter(
-            following_set__following=target_profile
-        ).order_by('display_name')
-        
-        serializer = ProfileSummarySerializer(follower_profiles, many=True)
-        
-        return Response({
-            'status': 'success',
-            'data': serializer.data
-        }, status=status.HTTP_200_OK)
-
-    @action(detail=True, methods=['get'], url_path='following')
-    def following(self, request, pk=None):
-        """
-        List profiles that a user is following.
-        
-        GET /api/v1/profiles/{id}/following/
-        
-        Returns a list of profile summaries for all profiles that the specified user follows.
-        """
-        # Get the target profile
-        try:
-            target_profile = Profile.objects.get(pk=pk)
-        except Profile.DoesNotExist:
-            return Response({
-                'status': 'error',
-                'message': 'Profile not found'
-            }, status=status.HTTP_404_NOT_FOUND)
-        except Exception:
-            return Response({
-                'status': 'error',
-                'message': 'Invalid profile ID'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Get all profiles this user is following
-        following_profiles = Profile.objects.filter(
-            follower_set__follower=target_profile
-        ).order_by('display_name')
-        
-        serializer = ProfileSummarySerializer(following_profiles, many=True)
-        
-        return Response({
-            'status': 'success',
-            'data': serializer.data
-        }, status=status.HTTP_200_OK)
-
 
     @action(detail=False, methods=['get', 'post'], url_path='me/in-town-windows')
     def in_town_windows(self, request):
@@ -1037,96 +753,6 @@ class FeedViewSet(viewsets.GenericViewSet):
     """
     permission_classes = [IsAuthenticated]
     
-    def _get_friend_status(self, user_profile, target_profile):
-        """
-        Compute the friend status between the current user and a target profile.
-        
-        Returns one of: 'none', 'request_sent', 'request_received', 'friends'.
-        """
-        # Check if they are friends
-        friendship_exists = Friendship.objects.filter(
-            Q(user1=user_profile, user2=target_profile) |
-            Q(user1=target_profile, user2=user_profile)
-        ).exists()
-        
-        if friendship_exists:
-            return 'friends'
-        
-        # Check for pending friend request from current user to target
-        request_sent = FriendRequest.objects.filter(
-            from_user=user_profile,
-            to_user=target_profile,
-            status='pending'
-        ).exists()
-        
-        if request_sent:
-            return 'request_sent'
-        
-        # Check for pending friend request from target to current user
-        request_received = FriendRequest.objects.filter(
-            from_user=target_profile,
-            to_user=user_profile,
-            status='pending'
-        ).exists()
-        
-        if request_received:
-            return 'request_received'
-        
-        return 'none'
-    
-    def _add_friend_status_to_profiles(self, user_profile, profiles):
-        """
-        Add friend_status to a list of profiles efficiently by batching queries.
-        """
-        if not profiles:
-            return profiles
-        
-        profile_ids = [p.id for p in profiles]
-        
-        # Get all friendships involving the current user and any of these profiles
-        friendships = Friendship.objects.filter(
-            Q(user1=user_profile, user2__in=profile_ids) |
-            Q(user1__in=profile_ids, user2=user_profile)
-        )
-        
-        # Build a set of friend profile IDs
-        friend_ids = set()
-        for friendship in friendships:
-            if friendship.user1_id == user_profile.id:
-                friend_ids.add(friendship.user2_id)
-            else:
-                friend_ids.add(friendship.user1_id)
-        
-        # Get pending requests sent by current user to these profiles
-        sent_requests = FriendRequest.objects.filter(
-            from_user=user_profile,
-            to_user__in=profile_ids,
-            status='pending'
-        ).values_list('to_user_id', flat=True)
-        sent_request_ids = set(sent_requests)
-        
-        # Get pending requests received by current user from these profiles
-        received_requests = FriendRequest.objects.filter(
-            from_user__in=profile_ids,
-            to_user=user_profile,
-            status='pending'
-        ).values_list('from_user_id', flat=True)
-        received_request_ids = set(received_requests)
-        
-        # Add friend_status to each profile
-        for profile in profiles:
-            if profile.id in friend_ids:
-                profile.friend_status = 'friends'
-            elif profile.id in sent_request_ids:
-                profile.friend_status = 'request_sent'
-            elif profile.id in received_request_ids:
-                profile.friend_status = 'request_received'
-            else:
-                profile.friend_status = 'none'
-        
-        return profiles
-
-    
     @action(detail=False, methods=['get'], url_path='nearby')
     def nearby(self, request):
         """
@@ -1264,11 +890,6 @@ class FeedViewSet(viewsets.GenericViewSet):
         for profile in here_next_month_sorted:
             profile.timing_label = "Here Next Month"
             here_next_month_data.append(profile)
-        
-        # Add friend_status to each profile
-        self._add_friend_status_to_profiles(user_profile, here_now_data)
-        self._add_friend_status_to_profiles(user_profile, here_next_week_data)
-        self._add_friend_status_to_profiles(user_profile, here_next_month_data)
         
         # Serialize the data
         here_now_serialized = FeedCardSerializer(here_now_data, many=True).data

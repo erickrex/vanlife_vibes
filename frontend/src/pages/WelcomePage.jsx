@@ -11,7 +11,7 @@ function getResponseList(response) {
 
 function getPrimaryRoute(profile) {
   if (profile?.looking_for_dating) return '/dating';
-  if (profile?.looking_for_friends) return '/discover?mode=friends';
+  if (profile?.looking_for_friends) return '/feed';
   return '/feed';
 }
 
@@ -194,7 +194,7 @@ function WelcomePage() {
 
   const primaryDiscoveryLabel = useMemo(() => {
     if (primaryRoute.startsWith('/dating')) return 'Open Dating';
-    if (primaryRoute.startsWith('/discover')) return 'Find Friends';
+    if (primaryRoute.startsWith('/feed')) return 'Find Friends';
     return 'Open Feed';
   }, [primaryRoute]);
 

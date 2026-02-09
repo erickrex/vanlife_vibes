@@ -613,10 +613,12 @@ class PersonMatch(models.Model):
 
 class DirectMessage(models.Model):
     """
-    Chat messages between matched users.
+    Unified chat messages between users.
     
-    Enables 1:1 chat between users with a PersonMatch.
+    Enables 1:1 chat between users with either a PersonMatch or Friendship.
     Supports text messages, mini-card sharing, and icebreaker prompts.
+    
+    One of `match` or `friendship` must be set (but not both).
     """
     MESSAGE_TYPE_CHOICES = [
         ('text', 'Text'),
@@ -628,7 +630,16 @@ class DirectMessage(models.Model):
     match = models.ForeignKey(
         PersonMatch,
         on_delete=models.CASCADE,
-        related_name='messages'
+        related_name='messages',
+        null=True,
+        blank=True
+    )
+    friendship = models.ForeignKey(
+        'Friendship',
+        on_delete=models.CASCADE,
+        related_name='direct_messages',
+        null=True,
+        blank=True
     )
     sender = models.ForeignKey(
         Profile,
@@ -650,11 +661,22 @@ class DirectMessage(models.Model):
         ordering = ['created_at']
         indexes = [
             models.Index(fields=['match', 'created_at']),
+            models.Index(fields=['friendship', 'created_at']),
             models.Index(fields=['sender']),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                check=(
+                    models.Q(match__isnull=False, friendship__isnull=True) |
+                    models.Q(match__isnull=True, friendship__isnull=False)
+                ),
+                name='direct_message_has_one_parent'
+            ),
         ]
 
     def __str__(self):
-        return f"Message from {self.sender.user.username} in match {self.match.id}"
+        parent = f"match {self.match_id}" if self.match_id else f"friendship {self.friendship_id}"
+        return f"Message from {self.sender.user.username} in {parent}"
 
 
 class UserReport(models.Model):
@@ -798,40 +820,6 @@ class Friendship(models.Model):
 
     def __str__(self):
         return f"Friendship: {self.user1.user.username} <-> {self.user2.user.username}"
-
-
-class FriendMessage(models.Model):
-    """
-    Chat message between friends.
-    
-    Enables 1:1 chat between users with a Friendship. Messages are displayed
-    in chronological order with read status for tracking unread messages.
-    """
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    friendship = models.ForeignKey(
-        Friendship,
-        on_delete=models.CASCADE,
-        related_name='messages'
-    )
-    sender = models.ForeignKey(
-        Profile,
-        on_delete=models.CASCADE,
-        related_name='sent_friend_messages'
-    )
-    content = models.TextField(max_length=1000)
-    created_at = models.DateTimeField(auto_now_add=True)
-    is_read = models.BooleanField(default=False)
-
-    class Meta:
-        db_table = 'friend_message'
-        ordering = ['created_at']
-        indexes = [
-            models.Index(fields=['friendship', 'created_at']),
-            models.Index(fields=['sender']),
-        ]
-
-    def __str__(self):
-        return f"Message from {self.sender.user.username} in friendship {self.friendship.id}"
 
 
 class AnalyticsEvent(models.Model):
