@@ -13,10 +13,11 @@ export default function OnboardingStackNavigator() {
         headerStyle: { backgroundColor: colors.bg },
         headerTitleStyle: { color: colors.text },
         headerTintColor: colors.text,
+        statusBarStyle: 'light',
+        statusBarTranslucent: false,
       }}
     >
       <Stack.Screen name="Onboarding" component={OnboardingScreen} options={{ title: 'Onboarding' }} />
     </Stack.Navigator>
   );
 }
-

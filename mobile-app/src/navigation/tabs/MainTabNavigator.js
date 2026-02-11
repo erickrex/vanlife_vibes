@@ -20,10 +20,9 @@ export default function MainTabNavigator() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        headerStyle: { backgroundColor: colors.bg },
-        headerTitleStyle: { color: colors.text },
-        headerTintColor: colors.text,
+        headerShown: false,
         tabBarStyle: { backgroundColor: colors.bg, borderTopColor: colors.border },
+        tabBarHideOnKeyboard: true,
         tabBarActiveTintColor: colors.text,
         tabBarInactiveTintColor: colors.muted,
         tabBarIcon: ({ focused, color }) => (
@@ -37,4 +36,3 @@ export default function MainTabNavigator() {
     </Tab.Navigator>
   );
 }
-

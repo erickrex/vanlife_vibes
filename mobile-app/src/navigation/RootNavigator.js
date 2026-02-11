@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 import { useAuth } from '../contexts/AuthContext';
 import AuthStackNavigator from './stacks/AuthStackNavigator';
+import AppStackNavigator from './stacks/AppStackNavigator';
 import OnboardingStackNavigator from './stacks/OnboardingStackNavigator';
-import MainTabNavigator from './tabs/MainTabNavigator';
 import { colors } from '../theme/colors';
 
 function FullScreenLoading({ label = 'Loading…' }) {
@@ -18,8 +18,34 @@ function FullScreenLoading({ label = 'Loading…' }) {
 
 export default function RootNavigator() {
   const { isAuthenticated, loading, profile, profileLoading } = useAuth();
+  const previousNeedsOnboardingRef = useRef(null);
+  const [showWelcomeAfterOnboarding, setShowWelcomeAfterOnboarding] = useState(false);
+  const needsOnboarding = !!profile && !profile.has_completed_onboarding;
 
-  if (loading || (isAuthenticated && profileLoading)) {
+  useEffect(() => {
+    if (isAuthenticated) return;
+    previousNeedsOnboardingRef.current = null;
+    setShowWelcomeAfterOnboarding(false);
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const previousNeedsOnboarding = previousNeedsOnboardingRef.current;
+    if (previousNeedsOnboarding === true && needsOnboarding === false) {
+      setShowWelcomeAfterOnboarding(true);
+    }
+    previousNeedsOnboardingRef.current = needsOnboarding;
+  }, [isAuthenticated, needsOnboarding]);
+
+  useEffect(() => {
+    if (!showWelcomeAfterOnboarding) return undefined;
+    const timeout = setTimeout(() => {
+      setShowWelcomeAfterOnboarding(false);
+    }, 0);
+    return () => clearTimeout(timeout);
+  }, [showWelcomeAfterOnboarding]);
+
+  if (loading || (isAuthenticated && profileLoading && !profile)) {
     return <FullScreenLoading label="Starting up…" />;
   }
 
@@ -27,12 +53,15 @@ export default function RootNavigator() {
     return <AuthStackNavigator />;
   }
 
-  const needsOnboarding = !!profile && !profile.has_completed_onboarding;
   if (needsOnboarding) {
     return <OnboardingStackNavigator />;
   }
 
-  return <MainTabNavigator />;
+  return (
+    <AppStackNavigator
+      initialRouteName={showWelcomeAfterOnboarding ? 'Welcome' : 'Tabs'}
+    />
+  );
 }
 
 const styles = StyleSheet.create({
@@ -48,4 +77,3 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 });
-

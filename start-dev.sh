@@ -48,7 +48,7 @@ cleanup() {
 trap cleanup SIGINT SIGTERM
 
 echo "🔧 Starting Backend Server..."
-uv run python manage.py runserver &
+uv run python manage.py runserver 0.0.0.0:8000 &
 BACKEND_PID=$!
 
 # Wait a moment for backend to start
@@ -64,8 +64,9 @@ echo "✅ Development servers started!"
 echo ""
 echo "📍 Access the application at:"
 echo "   Frontend:     http://localhost:5173"
-echo "   Backend API:  http://localhost:8000/api/v1"
-echo "   Django Admin: http://localhost:8000/admin"
+echo "   Backend API:  http://0.0.0.0:8000/api/v1"
+echo "   Django Admin: http://0.0.0.0:8000/admin"
+echo "   Mobile LAN:   http://<your-lan-ip>:8000/api/v1"
 echo ""
 echo "Press Ctrl+C to stop all servers"
 echo ""

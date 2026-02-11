@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   FlatList,
+  Image,
   Modal,
   Platform,
   Pressable,
@@ -11,6 +12,8 @@ import {
   Text,
   View,
 } from 'react-native';
+import { useHeaderHeight } from '@react-navigation/elements';
+import * as ImagePicker from 'expo-image-picker';
 
 import AppButton from '../components/AppButton';
 import CityAutocomplete from '../components/CityAutocomplete';
@@ -32,6 +35,11 @@ const STEPS = [
     subtitle: 'A few details that help others understand you.',
   },
   {
+    id: 'photo',
+    title: 'Your photo',
+    subtitle: 'Add a photo to make your profile feel real. You can skip for now.',
+  },
+  {
     id: 'prefs',
     title: 'Preferences',
     subtitle: 'Set the vibe for who you’ll see first.',
@@ -46,6 +54,11 @@ const STEPS = [
     title: 'Your location',
     subtitle: 'Where are you now, next week, and next month?',
   },
+];
+const PET_TYPES = [
+  { value: 'dog', label: 'Dog' },
+  { value: 'cat', label: 'Cat' },
+  { value: 'other', label: 'Other' },
 ];
 
 function PromptPicker({ label, prompts, value, onChange }) {
@@ -126,6 +139,7 @@ function SegmentedOption({ label, selected, onPress }) {
 
 export default function OnboardingScreen() {
   const { profile, refreshProfile } = useAuth();
+  const headerHeight = useHeaderHeight();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -152,6 +166,11 @@ export default function OnboardingScreen() {
   const [prompt1Answer, setPrompt1Answer] = useState('');
   const [prompt2, setPrompt2] = useState('');
   const [prompt2Answer, setPrompt2Answer] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [coverUrl, setCoverUrl] = useState('');
+  const [uploadingPhotoType, setUploadingPhotoType] = useState('');
+  const [photoError, setPhotoError] = useState('');
+  const [showPhotoUrlFallback, setShowPhotoUrlFallback] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -174,6 +193,8 @@ export default function OnboardingScreen() {
         setDisplayName(profileData.display_name || '');
         setBio(profileData.bio || '');
         setGender(profileData.gender || '');
+        setAvatarUrl(profileData.avatar_url || '');
+        setCoverUrl(profileData.cover_url || '');
         setNowInCity(profileData.now_in_city || '');
         setNextWeekInCity(profileData.next_week_in_city || '');
         setNextMonthInCity(profileData.next_month_in_city || '');
@@ -201,31 +222,71 @@ export default function OnboardingScreen() {
 
   const stepData = STEPS[step];
   const isLastStep = step === STEPS.length - 1;
+  const travelPrompts = useMemo(
+    () => prompts.filter((prompt) => prompt?.prompt_type === 'travel'),
+    [prompts],
+  );
+  const relationshipPrompts = useMemo(
+    () =>
+      prompts.filter((prompt) =>
+        lookingForDating ? prompt?.prompt_type === 'dating' : prompt?.prompt_type === 'friendship',
+      ),
+    [lookingForDating, prompts],
+  );
+  const selectedPromptOne = useMemo(
+    () => travelPrompts.find((prompt) => prompt?.prompt_name === prompt1) || null,
+    [prompt1, travelPrompts],
+  );
+  const selectedPromptTwo = useMemo(
+    () => relationshipPrompts.find((prompt) => prompt?.prompt_name === prompt2) || null,
+    [prompt2, relationshipPrompts],
+  );
+
+  const getStepValidationError = (stepId) => {
+    if (stepId === 'intent') {
+      if (!lookingForDating && !lookingForFriends) return 'Choose at least one intent (Friends or Dating).';
+      return '';
+    }
+    if (stepId === 'basics') {
+      if (!displayName.trim()) return 'Display name is required.';
+      if (!gender) return 'Please choose your gender.';
+      return '';
+    }
+    if (stepId === 'photo') return '';
+    if (stepId === 'prefs') {
+      if (hasPets && !petType) return 'Select a pet type.';
+      return '';
+    }
+    if (stepId === 'polish') {
+      if (travelPrompts.length === 0 || relationshipPrompts.length === 0) {
+        return 'Prompt options are unavailable right now. Try again in a moment.';
+      }
+      if (!prompt1) return 'Choose Prompt 1.';
+      if (!prompt1Answer.trim()) return 'Add an answer for Prompt 1.';
+      if (!prompt2) return 'Choose Prompt 2.';
+      if (!prompt2Answer.trim()) return 'Add an answer for Prompt 2.';
+      if (prompt1 === prompt2) return 'Choose two different prompts.';
+      return '';
+    }
+    if (stepId === 'location') {
+      if (!nowInCity.trim()) return 'Your current location is required.';
+      return '';
+    }
+    return '';
+  };
 
   const canContinue = useMemo(() => {
     if (!stepData) return false;
-    if (stepData.id === 'intent') {
-      return lookingForDating || lookingForFriends;
-    }
-    if (stepData.id === 'basics') {
-      return !!displayName.trim() && !!gender;
-    }
-    if (stepData.id === 'polish') {
-      if (!prompt1 || !prompt1Answer.trim()) return false;
-      if (!prompt2 || !prompt2Answer.trim()) return false;
-      if (prompt1 === prompt2) return false;
-      return true;
-    }
-    if (stepData.id === 'location') {
-      return !!nowInCity.trim();
-    }
-    return true;
+    return !getStepValidationError(stepData.id);
   }, [
+    getStepValidationError,
     displayName,
     gender,
+    hasPets,
     lookingForDating,
     lookingForFriends,
     nowInCity,
+    petType,
     prompt1,
     prompt1Answer,
     prompt2,
@@ -233,11 +294,76 @@ export default function OnboardingScreen() {
     stepData,
   ]);
 
+  const pickAndUploadPhoto = async (photoType) => {
+    if (!photoType || saving || uploadingPhotoType) return;
+
+    try {
+      setUploadingPhotoType(photoType);
+      setPhotoError('');
+
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        setPhotoError('Photo library permission is required to upload photos.');
+        return;
+      }
+
+      const pickerResult = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: photoType === 'cover' ? [2, 1] : [1, 1],
+        quality: 0.85,
+      });
+
+      if (pickerResult.canceled || !pickerResult.assets?.length) return;
+
+      const asset = pickerResult.assets[0];
+      if (!asset?.uri) {
+        setPhotoError('Unable to read selected photo.');
+        return;
+      }
+
+      const uriParts = asset.uri.split('.');
+      const fallbackExt = uriParts.length > 1 ? uriParts[uriParts.length - 1] : 'jpg';
+      const extension = (asset.mimeType?.split('/')?.[1] || fallbackExt || 'jpg').toLowerCase();
+      const fileName = asset.fileName || `${photoType}-${Date.now()}.${extension}`;
+
+      let contentType = 'image/jpeg';
+      if (extension === 'png') contentType = 'image/png';
+      if (extension === 'webp') contentType = 'image/webp';
+      if (asset.mimeType?.startsWith('image/')) contentType = asset.mimeType;
+
+      const formData = new FormData();
+      formData.append('photo_type', photoType);
+      formData.append('image', {
+        uri: asset.uri,
+        name: fileName,
+        type: contentType,
+      });
+
+      const response = await profilesAPI.uploadPhoto(formData);
+      const uploadedPhoto = response?.data?.data ?? response?.data ?? null;
+      const uploadedUrl = uploadedPhoto?.image || '';
+
+      if (photoType === 'avatar') {
+        setAvatarUrl(uploadedUrl || asset.uri);
+      } else if (photoType === 'cover') {
+        setCoverUrl(uploadedUrl || asset.uri);
+      }
+
+      await refreshProfile();
+    } catch (err) {
+      setPhotoError(err.message || 'Failed to upload photo');
+    } finally {
+      setUploadingPhotoType('');
+    }
+  };
+
   const handleNext = () => {
     setError('');
     if (!stepData) return;
-    if (!canContinue) {
-      setError('Please complete the required fields to continue.');
+    const stepError = getStepValidationError(stepData.id);
+    if (stepError) {
+      setError(stepError);
       return;
     }
     setStep((prev) => Math.min(prev + 1, STEPS.length - 1));
@@ -250,8 +376,12 @@ export default function OnboardingScreen() {
 
   const handleFinish = async () => {
     setError('');
-    if (!canContinue || !isLastStep) {
-      setError('Please complete this step before finishing.');
+    const firstInvalidStep = STEPS.find((item) => getStepValidationError(item.id));
+    if (firstInvalidStep || !isLastStep) {
+      const targetStepId = firstInvalidStep?.id || stepData?.id;
+      const targetStepIndex = STEPS.findIndex((item) => item.id === targetStepId);
+      setError(getStepValidationError(targetStepId) || 'Please complete this step before finishing.');
+      if (targetStepIndex >= 0) setStep(targetStepIndex);
       return;
     }
 
@@ -260,6 +390,8 @@ export default function OnboardingScreen() {
       const payload = {
         display_name: displayName.trim(),
         bio: bio.trim(),
+        avatar_url: avatarUrl.trim() || null,
+        cover_url: coverUrl.trim() || null,
         gender,
         now_in_city: nowInCity.trim(),
         next_week_in_city: nextWeekInCity.trim(),
@@ -315,10 +447,14 @@ export default function OnboardingScreen() {
     <Screen>
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? headerHeight : 0}
       >
-        <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+        >
           <View style={styles.stepHeader}>
             <Text style={styles.stepCount}>{`Step ${step + 1} of ${STEPS.length}`}</Text>
             <Text style={styles.title}>{stepData?.title || 'Onboarding'}</Text>
@@ -337,7 +473,7 @@ export default function OnboardingScreen() {
               <Text style={styles.sectionSubtitle}>Tell us what you’re here for.</Text>
               <View style={{ gap: 10 }}>
                 <Toggle label="Friends" value={lookingForFriends} onChange={setLookingForFriends} color={colors.blue} />
-                <Toggle label="Dating" value={lookingForDating} onChange={setLookingForDating} color={colors.rose} />
+                <Toggle label="Dating" value={lookingForDating} onChange={setLookingForDating} color={colors.blue} />
               </View>
             </View>
           ) : null}
@@ -400,6 +536,78 @@ export default function OnboardingScreen() {
             </View>
           ) : null}
 
+          {stepData?.id === 'photo' ? (
+            <View style={styles.card}>
+              <Text style={styles.sectionTitle}>Photos (optional)</Text>
+              <Text style={styles.sectionSubtitle}>A photo increases trust and match quality.</Text>
+
+              <View style={styles.photoPreviewRow}>
+                <View style={styles.avatarPreviewWrap}>
+                  {avatarUrl ? (
+                    <Image source={{ uri: avatarUrl }} style={styles.avatarPreview} resizeMode="cover" />
+                  ) : (
+                    <View style={styles.photoFallback}>
+                      <Text style={styles.photoFallbackText}>
+                        {displayName ? displayName.slice(0, 1).toUpperCase() : 'V'}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
+                <View style={styles.coverPreviewWrap}>
+                  {coverUrl ? (
+                    <Image source={{ uri: coverUrl }} style={styles.coverPreview} resizeMode="cover" />
+                  ) : (
+                    <View style={styles.coverFallback}>
+                      <Text style={styles.photoFallbackText}>Cover preview</Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+
+              <View style={styles.photoUploadActions}>
+                <AppButton
+                  title={uploadingPhotoType === 'avatar' ? 'Uploading avatar…' : 'Upload Avatar'}
+                  onPress={() => pickAndUploadPhoto('avatar')}
+                  disabled={!!uploadingPhotoType || saving}
+                  variant="secondary"
+                  style={styles.photoUploadButton}
+                />
+                <AppButton
+                  title={uploadingPhotoType === 'cover' ? 'Uploading cover…' : 'Upload Cover'}
+                  onPress={() => pickAndUploadPhoto('cover')}
+                  disabled={!!uploadingPhotoType || saving}
+                  variant="secondary"
+                  style={styles.photoUploadButton}
+                />
+              </View>
+
+              {photoError ? <Text style={styles.inlineError}>{photoError}</Text> : null}
+              <Pressable
+                onPress={() => setShowPhotoUrlFallback((prev) => !prev)}
+                style={({ pressed }) => [styles.linkRow, pressed ? styles.segmentPressed : null]}
+              >
+                <Text style={styles.linkText}>
+                  {showPhotoUrlFallback ? 'Hide URL fallback' : 'Or add a photo URL instead'}
+                </Text>
+              </Pressable>
+
+              {showPhotoUrlFallback ? (
+                <FormTextInput
+                  label="Avatar URL"
+                  value={avatarUrl}
+                  onChangeText={(value) => {
+                    setAvatarUrl(value);
+                    if (photoError) setPhotoError('');
+                  }}
+                  placeholder="https://"
+                  autoCapitalize="none"
+                />
+              ) : null}
+              <Text style={styles.smallMuted}>You can add gallery photos later from Profile Edit.</Text>
+            </View>
+          ) : null}
+
           {stepData?.id === 'prefs' ? (
             <View style={styles.card}>
               <Text style={styles.sectionTitle}>Preferences</Text>
@@ -431,15 +639,29 @@ export default function OnboardingScreen() {
               </View>
 
               <View style={{ marginTop: 12, gap: 10 }}>
-                <Toggle label="I have pets" value={hasPets} onChange={setHasPets} color={colors.emerald} />
+                <Toggle
+                  label="I have pets"
+                  value={hasPets}
+                  onChange={(value) => {
+                    setHasPets(value);
+                    if (!value) setPetType('');
+                  }}
+                  color={colors.emerald}
+                />
                 {hasPets ? (
-                  <FormTextInput
-                    label="Pet type (optional)"
-                    value={petType}
-                    onChangeText={setPetType}
-                    placeholder="e.g. dog, cat"
-                    autoCapitalize="words"
-                  />
+                  <>
+                    <Text style={styles.label}>Pet type</Text>
+                    <View style={styles.segmentRow}>
+                      {PET_TYPES.map((option) => (
+                        <SegmentedOption
+                          key={option.value}
+                          label={option.label}
+                          selected={petType === option.value}
+                          onPress={() => setPetType(option.value)}
+                        />
+                      ))}
+                    </View>
+                  </>
                 ) : null}
               </View>
             </View>
@@ -450,28 +672,38 @@ export default function OnboardingScreen() {
               <Text style={styles.sectionTitle}>Prompts</Text>
               <Text style={styles.sectionSubtitle}>Pick two prompts to stand out.</Text>
 
-              <PromptPicker label="Prompt 1" prompts={prompts} value={prompt1} onChange={setPrompt1} />
+              <PromptPicker label="Prompt 1 (Travel)" prompts={travelPrompts} value={prompt1} onChange={setPrompt1} />
               <FormTextInput
                 label="Answer 1"
                 value={prompt1Answer}
                 onChangeText={setPrompt1Answer}
-                placeholder="Your answer"
+                placeholder={selectedPromptOne?.prompt_placeholder || 'Your answer'}
                 autoCapitalize="sentences"
               />
 
               <View style={{ height: 10 }} />
 
-              <PromptPicker label="Prompt 2" prompts={prompts} value={prompt2} onChange={setPrompt2} />
+              <PromptPicker
+                label={lookingForDating ? 'Prompt 2 (Dating)' : 'Prompt 2 (Friendship)'}
+                prompts={relationshipPrompts}
+                value={prompt2}
+                onChange={setPrompt2}
+              />
               <FormTextInput
                 label="Answer 2"
                 value={prompt2Answer}
                 onChangeText={setPrompt2Answer}
-                placeholder="Your answer"
+                placeholder={selectedPromptTwo?.prompt_placeholder || 'Your answer'}
                 autoCapitalize="sentences"
               />
 
               {prompt1 && prompt2 && prompt1 === prompt2 ? (
                 <Text style={styles.inlineError}>Choose two different prompts.</Text>
+              ) : null}
+              {travelPrompts.length === 0 || relationshipPrompts.length === 0 ? (
+                <Text style={styles.inlineError}>
+                  Prompt options are unavailable right now. Try again in a moment.
+                </Text>
               ) : null}
             </View>
           ) : null}
@@ -631,6 +863,76 @@ const styles = StyleSheet.create({
   segmentTextSelected: {
     color: colors.text,
   },
+  photoPreviewRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  avatarPreviewWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 18,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.panel,
+  },
+  avatarPreview: {
+    width: '100%',
+    height: '100%',
+  },
+  photoFallback: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.panel,
+  },
+  photoFallbackText: {
+    color: colors.muted,
+    fontWeight: '700',
+    fontSize: 12,
+  },
+  coverPreviewWrap: {
+    flex: 1,
+    height: 72,
+    borderRadius: 14,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.panel,
+  },
+  coverPreview: {
+    width: '100%',
+    height: '100%',
+  },
+  coverFallback: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.panel,
+  },
+  photoUploadActions: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 2,
+  },
+  photoUploadButton: {
+    flex: 1,
+  },
+  linkRow: {
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.panel,
+    borderRadius: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+  },
+  linkText: {
+    color: colors.muted,
+    fontSize: 12,
+    fontWeight: '700',
+  },
   toggle: {
     borderWidth: 1,
     borderRadius: 16,
@@ -728,6 +1030,10 @@ const styles = StyleSheet.create({
     color: colors.danger,
     fontSize: 12,
     fontWeight: '700',
+  },
+  smallMuted: {
+    color: colors.muted,
+    fontSize: 12,
   },
   smallPrint: {
     color: colors.muted,

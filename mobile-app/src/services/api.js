@@ -1,4 +1,5 @@
 import axios from 'axios';
+import Constants from 'expo-constants';
 import { clearAuthToken, getAuthToken } from '../storage/authToken';
 
 let unauthorizedHandler = null;
@@ -9,12 +10,32 @@ export function setUnauthorizedHandler(handler) {
 
 function getApiBaseUrl() {
   const configured = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
-  return configured.replace(/\/$/, '');
+  const hostUri =
+    Constants?.expoConfig?.hostUri ||
+    Constants?.expoGoConfig?.debuggerHost ||
+    Constants?.manifest?.debuggerHost ||
+    '';
+  const expoHost = typeof hostUri === 'string' ? hostUri.split(':')[0] : '';
+  const isPrivateIpv4 = (host) =>
+    /^(10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3})$/.test(
+      host
+    );
+  const shouldRewriteLocalhost = isPrivateIpv4(expoHost);
+  const resolved = expoHost
+    ? configured.replace(
+        /\/\/(?:localhost|127\.0\.0\.1)(?::(\d+))?/i,
+        (_, port) => (shouldRewriteLocalhost ? `//${expoHost}${port ? `:${port}` : ''}` : _)
+      )
+    : configured;
+  return resolved.replace(/\/$/, '');
 }
+
+const apiBaseUrl = getApiBaseUrl();
+export const API_BASE_URL = apiBaseUrl;
 
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: getApiBaseUrl(),
+  baseURL: apiBaseUrl,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -98,7 +119,11 @@ api.interceptors.response.use(
     }
 
     // Network error
-    return Promise.reject(new Error('Network error. Please check your connection.'));
+    return Promise.reject(
+      new Error(
+        `Network error. Could not reach API at ${apiBaseUrl}. Ensure Django is running with: uv run python manage.py runserver 0.0.0.0:8000`
+      )
+    );
   }
 );
 
@@ -143,7 +168,7 @@ export const profilesAPI = {
   getPhotos: () => api.get('/profiles/me/photos/'),
   deletePhoto: (id) => api.delete(`/profiles/me/photos/${id}/`),
   updatePhotoOrder: (id, displayOrder) =>
-    api.patch(`/profiles/me/photos/${id}/`, { display_order: displayOrder }),
+    api.patch(`/profiles/me/photos/${id}/update/`, { display_order: displayOrder }),
 };
 
 // Locations API

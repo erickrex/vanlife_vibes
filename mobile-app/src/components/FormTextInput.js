@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { colors } from '../theme/colors';
 
@@ -13,9 +13,17 @@ export default function FormTextInput({
   secureTextEntry,
   editable = true,
   error,
+  returnKeyType,
+  onSubmitEditing,
+  autoComplete,
+  textContentType,
+  style,
+  containerStyle,
+  ...rest
 }) {
+  const [focused, setFocused] = useState(false);
   return (
-    <View style={styles.wrapper}>
+    <View style={[styles.wrapper, containerStyle]}>
       {label ? <Text style={styles.label}>{label}</Text> : null}
       <TextInput
         value={value}
@@ -27,7 +35,15 @@ export default function FormTextInput({
         keyboardType={keyboardType}
         secureTextEntry={secureTextEntry}
         editable={editable}
-        style={[styles.input, error ? styles.inputError : null]}
+        returnKeyType={returnKeyType}
+        onSubmitEditing={onSubmitEditing}
+        autoComplete={autoComplete}
+        textContentType={textContentType}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        style={[styles.input, focused ? styles.inputFocused : null, error ? styles.inputError : null, style]}
+        selectionColor={colors.primary}
+        {...rest}
       />
       {error ? <Text style={styles.error}>{error}</Text> : null}
     </View>
@@ -46,12 +62,21 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: colors.panel,
+    backgroundColor: '#14161d',
     color: colors.text,
-    borderRadius: 14,
+    borderRadius: 16,
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingVertical: 13,
     fontSize: 15,
+    shadowColor: '#000',
+    shadowOpacity: 0.14,
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  inputFocused: {
+    borderColor: `${colors.primary}bb`,
+    shadowOpacity: 0.24,
   },
   inputError: {
     borderColor: colors.danger,
@@ -61,4 +86,3 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
 });
-

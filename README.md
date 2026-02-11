@@ -81,7 +81,7 @@ uv run python manage.py createsuperuser
 
 # Option 2: Start manually
 # Terminal 1 - Backend
-uv run python manage.py runserver
+uv run python manage.py runserver 0.0.0.0:8000
 
 # Terminal 2 - Frontend
 cd frontend && npm run dev
@@ -92,6 +92,7 @@ cd frontend && npm run dev
 - **Frontend**: http://localhost:5173
 - **API**: http://localhost:8000/api/v1
 - **Admin Panel**: http://localhost:8000/admin
+- **Mobile over LAN**: http://<your-lan-ip>:8000/api/v1
 
 ## Tech Stack
 
@@ -221,6 +222,45 @@ npm install
 # Clear Vite cache
 rm -rf .vite
 ```
+
+### Mobile App (Expo + Android) Network/Auth Issues
+
+If Sign Up / Log In shows a network error on Android device:
+
+1. Start Django bound to LAN, not localhost:
+
+```bash
+uv run python manage.py runserver 0.0.0.0:8000
+```
+
+If logs show `Starting development server at http://127.0.0.1:8000/`, phones on LAN cannot reach the API.
+
+2. Set mobile API URL to your Mac LAN IP in `mobile-app/.env`:
+
+```bash
+EXPO_PUBLIC_API_BASE_URL=http://<your-lan-ip>:8000/api/v1
+EXPO_PUBLIC_WS_BASE_URL=ws://<your-lan-ip>:8000/ws
+```
+
+3. Restart Expo with cleared cache:
+
+```bash
+cd mobile-app
+npx expo start --lan -c
+```
+
+4. Force refresh phones:
+- Close Expo Go fully and reopen it.
+- Re-scan the QR code from the new Expo session.
+
+5. Validate LAN reachability from the phone browser:
+- Open `http://<your-lan-ip>:8000/api/v1/auth/login/`.
+- A `404` or `405` response still confirms network connectivity to Django.
+- If it does not load at all, backend is not reachable from phone (binding/firewall/network issue).
+
+6. If backend is still unreachable:
+- Confirm phone and laptop are on the same Wi-Fi/LAN.
+- Allow incoming connections for Terminal/Python in macOS Firewall settings.
 
 ## Notes
 

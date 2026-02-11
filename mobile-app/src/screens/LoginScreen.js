@@ -1,14 +1,17 @@
 import React, { useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useHeaderHeight } from '@react-navigation/elements';
 
 import AppButton from '../components/AppButton';
 import FormTextInput from '../components/FormTextInput';
 import Screen from '../components/Screen';
 import { useAuth } from '../contexts/AuthContext';
+import { API_BASE_URL } from '../services/api';
 import { colors } from '../theme/colors';
 
 export default function LoginScreen({ navigation }) {
   const { login } = useAuth();
+  const headerHeight = useHeaderHeight();
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -40,8 +43,8 @@ export default function LoginScreen({ navigation }) {
     <Screen>
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? headerHeight : 0}
       >
         <ScrollView
           contentContainerStyle={styles.scrollContainer}
@@ -50,6 +53,7 @@ export default function LoginScreen({ navigation }) {
         >
           <Text style={styles.title}>Welcome Back</Text>
           <Text style={styles.subtitle}>Sign in to continue your journey</Text>
+          {__DEV__ ? <Text style={styles.debugText}>API: {API_BASE_URL}</Text> : null}
 
           <View style={styles.form}>
             <FormTextInput
@@ -61,6 +65,9 @@ export default function LoginScreen({ navigation }) {
               }}
               placeholder="Enter your username"
               autoCapitalize="none"
+              autoComplete="username"
+              textContentType="username"
+              returnKeyType="next"
               error={errors.username}
               editable={!submitting}
             />
@@ -74,6 +81,10 @@ export default function LoginScreen({ navigation }) {
               }}
               placeholder="Enter your password"
               secureTextEntry={!showPassword}
+              autoComplete="password"
+              textContentType="password"
+              returnKeyType="go"
+              onSubmitEditing={onSubmit}
               error={errors.password}
               editable={!submitting}
             />
@@ -129,6 +140,11 @@ const styles = StyleSheet.create({
     color: colors.muted,
     marginTop: 6,
     marginBottom: 18,
+  },
+  debugText: {
+    color: colors.muted,
+    fontSize: 12,
+    marginBottom: 10,
   },
   form: {
     gap: 14,
