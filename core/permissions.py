@@ -6,12 +6,7 @@ from core.models import GroupMembership, SessionSharedGroup
 
 
 class IsGroupMember(permissions.BasePermission):
-    """
-    Permission class to check if user is a confirmed member of a group.
-    
-    This permission expects the view to have a 'get_group' method that returns
-    the group to check membership for, or it will look for 'group_id' in view kwargs.
-    """
+    """Check if user is a confirmed member of a group."""
     
     def has_permission(self, request, view):
         """Check if user is authenticated"""
@@ -41,13 +36,7 @@ class IsGroupMember(permissions.BasePermission):
 
 
 class IsSessionParticipant(permissions.BasePermission):
-    """
-    Permission class to check if user can participate in a session.
-    
-    User must be a confirmed member of either:
-    - The session's owning group, OR
-    - A group the session is shared with
-    """
+    """Check if user can participate in a session (owning or shared group member)."""
     
     def has_permission(self, request, view):
         """Check if user is authenticated"""
@@ -93,11 +82,7 @@ class IsSessionParticipant(permissions.BasePermission):
 
 
 class IsGroupAdmin(permissions.BasePermission):
-    """
-    Permission class to check if user is an admin of a group.
-    
-    This permission checks if the user is a confirmed member with 'admin' role.
-    """
+    """Check if user is an admin of a group."""
     
     def has_permission(self, request, view):
         """Check if user is authenticated"""

@@ -1,13 +1,4 @@
-"""
-Authentication serializers for user registration, login, and account management.
-
-This module contains serializers for authentication-related operations:
-- UserAccountSerializer: Basic user account data
-- UserRegistrationSerializer: User registration with password validation
-- UserLoginSerializer: User login credentials
-
-Requirements: 2.2 (Backend File Organization)
-"""
+"""Authentication serializers for registration, login, and account management."""
 
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password

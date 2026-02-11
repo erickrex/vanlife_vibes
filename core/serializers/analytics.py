@@ -1,13 +1,5 @@
 # core/serializers/analytics.py
-"""
-Analytics-related serializers for event tracking.
-
-This module contains serializers for:
-- AnalyticsEventCreateSerializer: Creating analytics events from authenticated clients
-- AnalyticsEventSerializer: Returning stored analytics events
-
-Requirements: 2.2 (Backend File Organization)
-"""
+"""Analytics serializers for event tracking."""
 
 from rest_framework import serializers
 
@@ -15,9 +7,7 @@ from core.models import AnalyticsEvent
 
 
 class AnalyticsEventCreateSerializer(serializers.Serializer):
-    """
-    Serializer for analytics event ingestion from authenticated clients.
-    """
+    """Serializer for analytics event ingestion."""
 
     event_name = serializers.CharField(max_length=80)
     metadata = serializers.JSONField(required=False, default=dict)
@@ -37,9 +27,7 @@ class AnalyticsEventCreateSerializer(serializers.Serializer):
 
 
 class AnalyticsEventSerializer(serializers.ModelSerializer):
-    """
-    Serializer for returning stored analytics events.
-    """
+    """Serializer for returning stored analytics events."""
 
     class Meta:
         model = AnalyticsEvent

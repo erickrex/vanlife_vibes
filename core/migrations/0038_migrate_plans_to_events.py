@@ -13,8 +13,6 @@ def migrate_plans_to_events(apps, schema_editor):
     - plan.meetup_area → event.location
     - plan.max_attendees → event.spots
     - Set join_mode='direct'
-    
-    Validates: Requirements 6.1
     """
     Plan = apps.get_model('core', 'Plan')
     Event = apps.get_model('core', 'Event')

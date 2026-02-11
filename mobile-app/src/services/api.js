@@ -221,6 +221,11 @@ export const eventsAPI = {
 // Subscription API
 export const subscriptionAPI = {
   getStatus: () => api.get('/subscription/status/'),
+  sync: (customerInfo, entitlementId = 'premium') =>
+    api.post('/subscription/sync/', {
+      customer_info: customerInfo,
+      entitlement_id: entitlementId,
+    }),
 };
 
 // Analytics API

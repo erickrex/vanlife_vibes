@@ -73,6 +73,16 @@ export default function MatchesScreen() {
     return () => realtimeSocket.disconnect();
   }, [loadMatches]);
 
+  useEffect(() => {
+    // Fallback sync keeps match cards and unread counts up to date.
+    const intervalMs = socketConnected ? 5000 : 2000;
+    const interval = setInterval(() => {
+      loadMatches({ silent: true });
+    }, intervalMs);
+
+    return () => clearInterval(interval);
+  }, [loadMatches, socketConnected]);
+
   const sortedMatches = useMemo(() => {
     return [...matches].sort((a, b) => {
       const unreadDifference = (b.unread_count || 0) - (a.unread_count || 0);

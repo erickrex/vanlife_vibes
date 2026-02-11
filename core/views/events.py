@@ -1,14 +1,5 @@
 # core/views/events.py
-"""
-ViewSets for event management.
-
-This module contains the EventViewSet which handles:
-- Creating, listing, and retrieving events
-- Updating and cancelling events (creator only)
-- Join, leave, and confirm actions for direct mode events
-- Swipe action for swipe mode events
-- Messages endpoint for event group chat
-"""
+"""ViewSets for event management."""
 
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -39,24 +30,7 @@ from .mixins import MessageMixin
 
 
 class EventViewSet(MessageMixin, viewsets.ModelViewSet):
-    """
-    ViewSet for managing unified events (direct-join and swipe-to-join).
-    
-    Provides endpoints for:
-    - GET /events/ - List available events
-    - POST /events/ - Create a new event
-    - GET /events/{id}/ - Get event details
-    - PATCH /events/{id}/ - Update event (creator only)
-    - DELETE /events/{id}/ - Cancel event (creator only)
-    - POST /events/{id}/join/ - Join event (direct mode only)
-    - POST /events/{id}/leave/ - Leave event
-    - POST /events/{id}/confirm/ - Confirm attendance (direct mode only)
-    - POST /events/{id}/swipe/ - Swipe on event (swipe mode only)
-    - GET /events/{id}/messages/ - List messages in event chat
-    - POST /events/{id}/messages/ - Send a message to event chat
-    
-    Uses MessageMixin for the messages endpoint.
-    """
+    """Manage unified events (direct-join and swipe-to-join)."""
     permission_classes = [IsAuthenticated]
     
     # MessageMixin configuration
@@ -65,17 +39,7 @@ class EventViewSet(MessageMixin, viewsets.ModelViewSet):
     message_create_serializer_class = EventMessageCreateSerializer
     
     def get_queryset(self):
-        """
-        Return events filtered by query parameters.
-        
-        Query parameters:
-        - join_mode: 'direct' or 'swipe'
-        - event_type: Filter by event type
-        - location: Partial match on location
-        - from_date: Events on or after date (YYYY-MM-DD)
-        - to_date: Events on or before date (YYYY-MM-DD)
-        - status: Filter by status (default: exclude cancelled and completed)
-        """
+        """Return events filtered by query parameters."""
         queryset = Event.objects.all()
         
         # Filter by status (default: show open, full, and matched events)
@@ -138,11 +102,7 @@ class EventViewSet(MessageMixin, viewsets.ModelViewSet):
     # -------------------------------------------------------------------------
     
     def get_message_parent(self, pk):
-        """
-        Look up the Event by ID.
-        
-        Returns (event, None) on success or (None, error_response) on failure.
-        """
+        """Look up the Event by ID."""
         try:
             event = Event.objects.get(pk=pk)
             return event, None
@@ -153,19 +113,11 @@ class EventViewSet(MessageMixin, viewsets.ModelViewSet):
             }, status=status.HTTP_404_NOT_FOUND)
     
     def get_message_queryset(self, parent):
-        """
-        Return messages for this event, ordered by created_at ascending.
-        """
+        """Return messages for this event, ordered by created_at."""
         return EventMessage.objects.filter(event=parent).order_by('created_at')
     
     def check_message_access(self, parent, profile):
-        """
-        Verify the user is an attendee of the event (not declined).
-        
-        For swipe mode events, also verify the event is matched.
-        
-        Returns (True, None) if allowed, (False, error_response) if not.
-        """
+        """Verify user is an attendee (not declined). For swipe events, require matched status."""
         # For swipe mode events, only matched events allow messaging
         if parent.join_mode == 'swipe' and parent.status != 'matched':
             return False, Response({
@@ -187,11 +139,7 @@ class EventViewSet(MessageMixin, viewsets.ModelViewSet):
         return True, None
     
     def check_can_send_message(self, parent):
-        """
-        Verify the event is not cancelled or completed before allowing message sending.
-        
-        Returns (True, None) if allowed, (False, error_response) if not.
-        """
+        """Verify event is not cancelled or completed."""
         if parent.status == 'cancelled':
             return False, Response({
                 'status': 'error',
@@ -207,17 +155,7 @@ class EventViewSet(MessageMixin, viewsets.ModelViewSet):
         return True, None
     
     def create_message(self, parent, profile, validated_data):
-        """
-        Create an EventMessage for this event.
-        
-        Args:
-            parent: The Event instance
-            profile: The sender's profile
-            validated_data: Validated data from the serializer
-        
-        Returns:
-            The created EventMessage instance
-        """
+        """Create an EventMessage for this event."""
         return EventMessage.objects.create(
             event=parent,
             sender=profile,
@@ -229,19 +167,7 @@ class EventViewSet(MessageMixin, viewsets.ModelViewSet):
     # -------------------------------------------------------------------------
     
     def list(self, request):
-        """
-        List available events.
-        
-        GET /events/
-        
-        Query parameters:
-        - join_mode: 'direct' or 'swipe'
-        - event_type: Filter by event type
-        - location: Filter by location (partial match)
-        - from_date: Filter events on or after this date (YYYY-MM-DD)
-        - to_date: Filter events on or before this date (YYYY-MM-DD)
-        - status: Filter by status (open, full, matched, cancelled, completed)
-        """
+        """List available events."""
         user_profile = self._get_user_profile(request)
         if not user_profile:
             return Response({
@@ -262,13 +188,7 @@ class EventViewSet(MessageMixin, viewsets.ModelViewSet):
         }, status=status.HTTP_200_OK)
     
     def retrieve(self, request, pk=None):
-        """
-        Get event details.
-        
-        GET /events/{id}/
-        
-        Returns event details including attendees and computed fields.
-        """
+        """Get event details."""
         user_profile = self._get_user_profile(request)
         if not user_profile:
             return Response({
@@ -292,27 +212,7 @@ class EventViewSet(MessageMixin, viewsets.ModelViewSet):
         }, status=status.HTTP_200_OK)
     
     def create(self, request):
-        """
-        Create a new event.
-        
-        POST /events/
-        
-        Request body:
-        {
-            "title": "Morning Coffee",
-            "event_type": "coffee",
-            "join_mode": "direct",
-            "event_date": "2024-02-15",
-            "time_window": "morning",
-            "location": "Austin, TX",
-            "description": "Optional description",
-            "spots": 6,
-            "image_url": "Optional URL"
-        }
-        
-        The creator is automatically added as an attendee with 'confirmed' status
-        for direct mode events.
-        """
+        """Create a new event. Creator is auto-added as confirmed attendee for direct mode."""
         user_profile = self._get_user_profile(request)
         if not user_profile:
             return Response({
@@ -358,24 +258,11 @@ class EventViewSet(MessageMixin, viewsets.ModelViewSet):
         }, status=status.HTTP_201_CREATED)
     
     def update(self, request, pk=None):
-        """
-        Update an event (full update).
-        
-        PUT /events/{id}/
-        
-        Only the event creator can update the event.
-        """
+        """Update an event (creator only)."""
         return self._update_event(request, pk, partial=False)
     
     def partial_update(self, request, pk=None):
-        """
-        Partially update an event.
-        
-        PATCH /events/{id}/
-        
-        Only the event creator can update the event.
-        Updatable fields: title, description, time_window, location, spots, image_url
-        """
+        """Partially update an event (creator only)."""
         return self._update_event(request, pk, partial=True)
     
     def _update_event(self, request, pk, partial=False):
@@ -436,14 +323,7 @@ class EventViewSet(MessageMixin, viewsets.ModelViewSet):
         }, status=status.HTTP_200_OK)
     
     def destroy(self, request, pk=None):
-        """
-        Cancel an event.
-        
-        DELETE /events/{id}/
-        
-        Only the event creator can cancel the event.
-        Sets status to 'cancelled' rather than deleting the record.
-        """
+        """Cancel an event (creator only). Sets status to 'cancelled'."""
         user_profile = self._get_user_profile(request)
         if not user_profile:
             return Response({
@@ -494,21 +374,7 @@ class EventViewSet(MessageMixin, viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'], url_path='join')
     def join(self, request, pk=None):
-        """
-        Join an event (direct mode only).
-        
-        POST /events/{id}/join/
-        
-        Adds the current user as an attendee with 'joined' status.
-        
-        Validations:
-        - Event must be direct mode (join_mode='direct')
-        - Event must be open (not full, cancelled, or completed)
-        - User cannot already be an attendee
-        - Event cannot be at max capacity
-        
-        When joining causes the event to reach max capacity, status changes to 'full'.
-        """
+        """Join a direct-mode event. Validates mode, status, capacity, and duplicates."""
         user_profile = self._get_user_profile(request)
         if not user_profile:
             return Response({
@@ -601,16 +467,7 @@ class EventViewSet(MessageMixin, viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'], url_path='leave')
     def leave(self, request, pk=None):
-        """
-        Leave an event.
-        
-        POST /events/{id}/leave/
-        
-        Sets the attendee status to 'declined'.
-        The event creator cannot leave their own event.
-        
-        If leaving causes the event to go below max capacity, status changes back to 'open'.
-        """
+        """Leave an event. Sets attendee status to 'declined'. Creator cannot leave."""
         user_profile = self._get_user_profile(request)
         if not user_profile:
             return Response({
@@ -670,15 +527,7 @@ class EventViewSet(MessageMixin, viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'], url_path='confirm')
     def confirm(self, request, pk=None):
-        """
-        Confirm attendance for an event (direct mode only).
-        
-        POST /events/{id}/confirm/
-        
-        Changes attendee status from 'joined' to 'confirmed'.
-        Only attendees who have joined can confirm.
-        Sets the confirmed_at timestamp.
-        """
+        """Confirm attendance for a direct-mode event."""
         user_profile = self._get_user_profile(request)
         if not user_profile:
             return Response({
@@ -758,52 +607,7 @@ class EventViewSet(MessageMixin, viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'], url_path='swipe')
     def swipe(self, request, pk=None):
-        """
-        Swipe on an event (swipe mode only).
-        
-        POST /events/{id}/swipe/
-        
-        Request body:
-        {
-            "is_like": boolean (true = like/right swipe, false = pass/left swipe)
-        }
-        
-        Matching Logic:
-        - When the number of users who swiped right (liked) equals (spots - 1),
-          the event is matched
-        - The creator automatically occupies 1 spot, so we need (spots - 1) likes
-        - When match is created:
-          - Event status changes from 'open' to 'matched'
-          - All likers are added as EventAttendees with status='confirmed'
-          - The creator is also added as an EventAttendee with status='confirmed'
-          - Additional swipes are prevented
-        
-        Response format (no match):
-        {
-            "status": "success",
-            "data": {
-                "swipe": { ... swipe object ... },
-                "matched": false
-            }
-        }
-        
-        Response format (match created):
-        {
-            "status": "success",
-            "data": {
-                "swipe": { ... swipe object ... },
-                "matched": true,
-                "event": { ... event object with attendees ... }
-            }
-        }
-        
-        Error responses:
-        - 404: Event not found
-        - 400: Event is not a swipe mode event
-        - 400: Event is no longer accepting swipes (already matched/cancelled/completed)
-        - 400: You have already swiped on this event
-        - 400: You cannot swipe on your own event
-        """
+        """Swipe on a swipe-mode event. Matches when likes reach (spots - 1)."""
         user_profile = self._get_user_profile(request)
         if not user_profile:
             return Response({
@@ -943,21 +747,7 @@ class EventViewSet(MessageMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='my-events')
     def my_events(self, request):
-        """
-        Get events the user created or is attending.
-
-        GET /events/my-events/
-
-        Query parameters:
-        - join_mode: 'direct' or 'swipe' (optional filter)
-        - include_past: 'true' to include cancelled/completed events (default: false)
-
-        Returns events where:
-        - User is the creator (created_by), OR
-        - User is an attendee with status != 'declined'
-
-        By default, excludes cancelled and completed events.
-        """
+        """Get events the user created or is attending."""
         user_profile = self._get_user_profile(request)
         if not user_profile:
             return Response({
@@ -998,19 +788,7 @@ class EventViewSet(MessageMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='my-matches')
     def my_matches(self, request):
-        """
-        Get swipe mode events where the user is an attendee and the event is matched.
-
-        GET /events/my-matches/
-
-        Returns swipe mode events where:
-        - Event join_mode is 'swipe'
-        - Event status is 'matched'
-        - User is a confirmed attendee (either as creator or through swiping)
-
-        This endpoint is specifically for swipe-to-join events that have reached
-        their match threshold and the user is part of the matched group.
-        """
+        """Get matched swipe-mode events where the user is a confirmed attendee."""
         user_profile = self._get_user_profile(request)
         if not user_profile:
             return Response({

@@ -1,17 +1,5 @@
 # core/serializers/events.py
-"""
-Event-related serializers for events, attendees, swipes, and messages.
-
-This module contains serializers for:
-- EventCreatedBySerializer: Minimal profile serializer for event created_by field
-- EventAttendeeSerializer: Event attendee with profile information
-- EventMessageSerializer: Event chat messages with sender profile
-- EventSerializer: Event model with nested attendees and computed fields
-- EventCreateSerializer: Creating events with validation
-- EventUpdateSerializer: Updating events
-- EventSwipeSerializer: Recording swipe direction on events
-- EventMessageCreateSerializer: Simplified serializer for creating event messages
-"""
+"""Event serializers for events, attendees, swipes, and messages."""
 
 from datetime import date
 
@@ -21,10 +9,7 @@ from core.models import Event, EventAttendee, EventSwipe, EventMessage, Profile
 
 
 class EventCreatedBySerializer(serializers.ModelSerializer):
-    """
-    Minimal profile serializer for event created_by field.
-    Includes id, display_name, and avatar_url.
-    """
+    """Minimal profile serializer for event created_by field."""
     
     class Meta:
         model = Profile
@@ -33,9 +18,7 @@ class EventCreatedBySerializer(serializers.ModelSerializer):
 
 
 class EventAttendeeSerializer(serializers.ModelSerializer):
-    """
-    Serializer for EventAttendee model with profile information.
-    """
+    """EventAttendee with profile information."""
     user_profile = serializers.SerializerMethodField()
     
     class Meta:
@@ -53,9 +36,7 @@ class EventAttendeeSerializer(serializers.ModelSerializer):
 
 
 class EventMessageSerializer(serializers.ModelSerializer):
-    """
-    Serializer for EventMessage model with sender profile data.
-    """
+    """EventMessage with sender profile data."""
     sender_profile = serializers.SerializerMethodField()
     
     class Meta:
@@ -83,18 +64,7 @@ class EventMessageSerializer(serializers.ModelSerializer):
 
 
 class EventSerializer(serializers.ModelSerializer):
-    """
-    Serializer for Event model with nested attendees and computed fields.
-    
-    Includes:
-    - created_by as nested profile serializer
-    - attendees list with profile information
-    - attendee_count (excluding declined)
-    - spots_remaining (for swipe mode: spots - 1 - likes_count)
-    - user_has_swiped (for swipe mode: whether current user has swiped)
-    - user_swipe_direction (for swipe mode: 'like', 'pass', or null)
-    - is_attendee (whether current user is an attendee)
-    """
+    """Event model with nested attendees and computed fields."""
     created_by = EventCreatedBySerializer(read_only=True)
     attendees = EventAttendeeSerializer(many=True, read_only=True)
     attendee_count = serializers.SerializerMethodField()
@@ -133,15 +103,7 @@ class EventSerializer(serializers.ModelSerializer):
         return obj.attendees.exclude(status='declined').count()
     
     def get_spots_remaining(self, obj):
-        """
-        Calculate remaining spots for the event.
-        
-        For direct mode: spots - 1 (creator) - attendee_count
-        For swipe mode: spots - 1 (creator) - likes_count
-        
-        Returns:
-            int: Number of remaining spots available (minimum 0)
-        """
+        """Calculate remaining spots (spots - 1 for creator - current fills)."""
         if obj.join_mode == 'swipe':
             # For swipe mode, count likes (right swipes)
             likes_count = obj.swipes.filter(is_like=True).count()
@@ -154,10 +116,7 @@ class EventSerializer(serializers.ModelSerializer):
         return max(0, remaining)
     
     def get_user_has_swiped(self, obj):
-        """
-        Return True if the current user has swiped on this event.
-        Only relevant for swipe mode events.
-        """
+        """Return True if the current user has swiped on this event (swipe mode only)."""
         if obj.join_mode != 'swipe':
             return None
         
@@ -172,11 +131,7 @@ class EventSerializer(serializers.ModelSerializer):
             return False
     
     def get_user_swipe_direction(self, obj):
-        """
-        Return the current user's swipe direction on this event.
-        Returns 'like', 'pass', or None.
-        Only relevant for swipe mode events.
-        """
+        """Return 'like', 'pass', or None for the current user (swipe mode only)."""
         if obj.join_mode != 'swipe':
             return None
         
@@ -194,9 +149,7 @@ class EventSerializer(serializers.ModelSerializer):
             return None
     
     def get_is_attendee(self, obj):
-        """
-        Return True if the current user is an attendee of this event.
-        """
+        """Return True if the current user is an attendee of this event."""
         request = self.context.get('request')
         if not request or not request.user or not request.user.is_authenticated:
             return False
@@ -209,19 +162,7 @@ class EventSerializer(serializers.ModelSerializer):
 
 
 class EventCreateSerializer(serializers.ModelSerializer):
-    """
-    Serializer for creating events with validation.
-    
-    Validates:
-    - title: not empty, max 100 chars
-    - event_type: valid choice
-    - join_mode: valid choice
-    - spots: between 2 and 20
-    - event_date: not in the past
-    - time_window: valid choice
-    - location: not empty, max 100 chars
-    - description: max 500 chars
-    """
+    """Serializer for creating events with validation."""
     
     class Meta:
         model = Event
@@ -314,11 +255,7 @@ class EventCreateSerializer(serializers.ModelSerializer):
         return value
     
     def create(self, validated_data):
-        """
-        Create an Event with the current user as the creator.
-        
-        The status is automatically set to 'open' by the model default.
-        """
+        """Create an Event with the current user as creator."""
         # Get the user's profile from the request context
         request = self.context.get('request')
         if request and hasattr(request.user, 'profile'):
@@ -328,12 +265,7 @@ class EventCreateSerializer(serializers.ModelSerializer):
 
 
 class EventUpdateSerializer(serializers.ModelSerializer):
-    """
-    Serializer for updating events.
-    
-    Allows updating title, description, time_window, location, and spots.
-    Validates spots cannot be reduced below current attendee count.
-    """
+    """Serializer for updating events. Validates spots can't go below current attendees."""
     
     class Meta:
         model = Event
@@ -369,10 +301,7 @@ class EventUpdateSerializer(serializers.ModelSerializer):
         return value
     
     def validate_spots(self, value):
-        """
-        Validate spots is between 2 and 20.
-        Also ensure it's not less than current attendee count + 1 (for creator).
-        """
+        """Validate spots is 2-20 and not below current attendee count."""
         if value < 2:
             raise serializers.ValidationError(
                 "Number of spots must be at least 2."
@@ -404,11 +333,7 @@ class EventUpdateSerializer(serializers.ModelSerializer):
 
 
 class EventSwipeSerializer(serializers.ModelSerializer):
-    """
-    Serializer for EventSwipe model - recording swipe direction on events.
-    
-    Used for swipe mode events only.
-    """
+    """Serializer for EventSwipe model."""
     
     class Meta:
         model = EventSwipe
@@ -423,18 +348,12 @@ class EventSwipeSerializer(serializers.ModelSerializer):
 
 
 class EventSwipeCreateSerializer(serializers.Serializer):
-    """
-    Simplified serializer for creating EventSwipes via API.
-    Only requires is_like field, event and user are set by the view.
-    """
+    """Create serializer for EventSwipes (is_like only, event/user set by view)."""
     is_like = serializers.BooleanField()
 
 
 class EventMessageCreateSerializer(serializers.Serializer):
-    """
-    Simplified serializer for creating EventMessages via API.
-    Only requires content field, event and sender are set by the view.
-    """
+    """Create serializer for EventMessages (content only, event/sender set by view)."""
     content = serializers.CharField(max_length=500)
     
     def validate_content(self, value):

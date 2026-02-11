@@ -99,9 +99,7 @@ class FriendAPITestCase(TestCase):
         self.assertEqual(response.data['data']['to_user']['id'], str(self.profile2.id))
 
     def test_send_friend_request_sender_intent_disabled(self):
-        """
-        Test that sending a friend request fails when sender has looking_for_friends=False.
-        """
+        """Sending a friend request fails when sender has looking_for_friends=False."""
         # Disable friend intent for sender
         self.profile1.looking_for_friends = False
         self.profile1.looking_for_dating = True  # Keep at least one intent enabled
@@ -118,9 +116,7 @@ class FriendAPITestCase(TestCase):
         )
 
     def test_send_friend_request_target_intent_disabled(self):
-        """
-        Test that sending a friend request fails when target has looking_for_friends=False.
-        """
+        """Sending a friend request fails when target has looking_for_friends=False."""
         # Disable friend intent for target
         self.profile2.looking_for_friends = False
         self.profile2.looking_for_dating = True  # Keep at least one intent enabled

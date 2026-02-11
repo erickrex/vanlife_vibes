@@ -40,5 +40,6 @@ Edit `mobile-app/.env`:
 - iOS Simulator: `EXPO_PUBLIC_API_BASE_URL=http://localhost:8000/api/v1`
 - Android Emulator: `EXPO_PUBLIC_API_BASE_URL=http://10.0.2.2:8000/api/v1`
 - Physical device: use your machine LAN IP (e.g. `http://192.168.1.50:8000/api/v1`)
+- Optional websocket override: `EXPO_PUBLIC_WS_BASE_URL=ws://192.168.1.50:8000` (do not add `/ws` to this value)
 - For physical devices, backend must run with `uv run python manage.py runserver 0.0.0.0:8000`
 - After changing `.env`, restart Expo with cache clear: `npx expo start -c`

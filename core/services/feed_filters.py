@@ -1,10 +1,4 @@
-"""
-Feed filter service for the nearby feed.
-
-Validates and applies filter parameters for FeedViewSet.nearby endpoint.
-Supports filtering by pets, rig status, travel pace, social vibe, hobbies,
-and lifestyle preferences.
-"""
+"""Feed filter service for the nearby feed."""
 from typing import Dict, List, Optional, Any
 
 from django.db.models import QuerySet

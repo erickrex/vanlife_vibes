@@ -18,8 +18,6 @@ def migrate_plan_messages_to_event_messages(apps, schema_editor):
     
     Since created_at has auto_now_add=True, we need to update it after creation
     to preserve the original timestamp.
-    
-    Validates: Requirements 6.6
     """
     PlanMessage = apps.get_model('core', 'PlanMessage')
     Event = apps.get_model('core', 'Event')

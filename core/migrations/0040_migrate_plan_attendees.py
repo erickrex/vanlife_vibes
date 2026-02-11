@@ -16,8 +16,6 @@ def migrate_plan_attendees_to_event_attendees(apps, schema_editor):
     
     Note: The Event ID matches the original Plan ID (from migration 0038),
     so we use plan.id to find the corresponding Event.
-    
-    Validates: Requirements 6.3
     """
     PlanAttendee = apps.get_model('core', 'PlanAttendee')
     Event = apps.get_model('core', 'Event')

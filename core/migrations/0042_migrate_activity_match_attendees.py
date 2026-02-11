@@ -18,8 +18,6 @@ def migrate_activity_match_attendees_to_event_attendees(apps, schema_editor):
     
     Since joined_at has auto_now_add=True, we need to update it after creation
     to preserve the original matched_at timestamp.
-    
-    Validates: Requirements 6.5
     """
     ActivityMatch = apps.get_model('core', 'ActivityMatch')
     Event = apps.get_model('core', 'Event')

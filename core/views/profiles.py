@@ -1,16 +1,4 @@
-"""
-Profile-related ViewSets for user profiles, vehicles, locations, feed, and discovery.
-
-This module contains ViewSets for:
-- AnalyticsViewSet: Analytics event ingestion
-- ProfileViewSet: Profile CRUD operations
-- VehicleViewSet: Vehicle CRUD operations
-- LocationViewSet: Location data (countries and regions)
-- FeedViewSet: Nearby users feed
-- DiscoveryViewSet: Discovery and swiping functionality
-
-Requirements: 2.1 (Backend File Organization)
-"""
+"""Profile ViewSets for profiles, vehicles, locations, feed, and discovery."""
 
 from rest_framework import status, viewsets, mixins
 from rest_framework.decorators import action
@@ -59,26 +47,13 @@ from core.services.relevance import RelevanceScorer
 # ============================================================================
 
 class AnalyticsViewSet(viewsets.GenericViewSet):
-    """
-    ViewSet for lightweight analytics event ingestion.
-
-    Provides endpoint:
-    - POST /api/v1/analytics/events/ - Track an analytics event
-    """
+    """Lightweight analytics event ingestion."""
 
     permission_classes = [IsAuthenticated]
 
     @action(detail=False, methods=['post'], url_path='events')
     def events(self, request):
-        """
-        Track an analytics event for the authenticated user.
-
-        Request body:
-        {
-            "event_name": "welcome_viewed",
-            "metadata": { ... optional JSON object ... }
-        }
-        """
+        """Track an analytics event for the authenticated user."""
         serializer = AnalyticsEventCreateSerializer(data=request.data)
         if not serializer.is_valid():
             return Response({
@@ -110,14 +85,7 @@ class AnalyticsViewSet(viewsets.GenericViewSet):
 # ============================================================================
 
 class ProfileViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
-    """
-    ViewSet for profile operations.
-    
-    Provides endpoints for:
-    - GET /profiles/me/ - Get current user's profile
-    - PATCH /profiles/me/ - Update current user's profile
-    - GET /profiles/{id}/ - Get profile by ID
-    """
+    """Profile CRUD operations."""
     permission_classes = [IsAuthenticated]
     
     def get_serializer_class(self):
@@ -137,16 +105,7 @@ class ProfileViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     
     @action(detail=False, methods=['get', 'patch'], url_path='me')
     def me(self, request):
-        """
-        Get or update current user's profile.
-        
-        GET /api/v1/profiles/me/
-        Returns the current authenticated user's full profile.
-        
-        PATCH /api/v1/profiles/me/
-        Updates the current authenticated user's profile.
-        Automatically updates location timestamps when location fields change.
-        """
+        """GET or PATCH the current user's profile."""
         try:
             profile = self.get_queryset().get(user=request.user)
         except Profile.DoesNotExist:
@@ -194,11 +153,7 @@ class ProfileViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
 
     
     def retrieve(self, request, pk=None):
-        """
-        Get profile by ID.
-        
-        GET /api/v1/profiles/{id}/
-        """
+        """Get profile by ID."""
         try:
             profile = self.get_queryset().get(pk=pk)
         except Profile.DoesNotExist:
@@ -220,14 +175,7 @@ class ProfileViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
 
     @action(detail=False, methods=['get'], url_path='hobbies')
     def hobbies(self, request):
-        """
-        List all available hobby tags.
-        
-        GET /api/v1/profiles/hobbies/
-        
-        Returns all HobbyTag records for users to select from when
-        setting up their profile hobbies.
-        """
+        """GET /api/v1/profiles/hobbies/ — List all available hobby tags."""
         hobby_tags = HobbyTag.objects.all().order_by('name')
         serializer = HobbyTagSerializer(hobby_tags, many=True)
         
@@ -238,16 +186,7 @@ class ProfileViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
 
     @action(detail=False, methods=['get', 'post'], url_path='me/in-town-windows')
     def in_town_windows(self, request):
-        """
-        List or create in-town windows for the current user.
-        
-        GET /api/v1/profiles/me/in-town-windows/
-        Returns all in-town windows for the current user's profile.
-        
-        POST /api/v1/profiles/me/in-town-windows/
-        Creates a new in-town window for the current user's profile.
-        Maximum of 3 windows per profile.
-        """
+        """GET: List in-town windows. POST: Create one (max 3)."""
         # Get the current user's profile
         try:
             profile = Profile.objects.get(user=request.user)
@@ -290,12 +229,7 @@ class ProfileViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
 
     @action(detail=False, methods=['delete'], url_path='me/in-town-windows/(?P<window_id>[^/.]+)')
     def delete_in_town_window(self, request, window_id=None):
-        """
-        Delete an in-town window by ID.
-        
-        DELETE /api/v1/profiles/me/in-town-windows/{id}/
-        Deletes the specified in-town window if it belongs to the current user.
-        """
+        """DELETE /api/v1/profiles/me/in-town-windows/{id}/"""
         # Get the current user's profile
         try:
             profile = Profile.objects.get(user=request.user)
@@ -330,16 +264,7 @@ class ProfileViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
 
     @action(detail=False, methods=['get', 'post'], url_path='me/prompts')
     def prompts(self, request):
-        """
-        List or create profile prompts for the current user.
-        
-        GET /api/v1/profiles/me/prompts/
-        Returns all prompts for the current user's profile.
-        
-        POST /api/v1/profiles/me/prompts/
-        Creates a new prompt for the current user's profile.
-        Maximum of 3 prompts per profile.
-        """
+        """GET: List profile prompts. POST: Create one (max 3)."""
         # Get the current user's profile
         try:
             profile = Profile.objects.get(user=request.user)
@@ -382,12 +307,7 @@ class ProfileViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
 
     @action(detail=False, methods=['delete'], url_path='me/prompts/(?P<prompt_id>[^/.]+)')
     def delete_prompt(self, request, prompt_id=None):
-        """
-        Delete a profile prompt by ID.
-        
-        DELETE /api/v1/profiles/me/prompts/{id}/
-        Deletes the specified prompt if it belongs to the current user.
-        """
+        """DELETE /api/v1/profiles/me/prompts/{id}/"""
         # Get the current user's profile
         try:
             profile = Profile.objects.get(user=request.user)
@@ -421,13 +341,7 @@ class ProfileViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
 
     @action(detail=False, methods=['get'], url_path='prompts/available')
     def available_prompts(self, request):
-        """
-        List all available prompt questions.
-        
-        GET /api/v1/profiles/prompts/available/
-        Returns the list of predefined nomad-themed prompts that users can select
-        and answer for their profile.
-        """
+        """GET /api/v1/profiles/prompts/available/ — List predefined prompt questions."""
         prompt_type = request.query_params.get('type')
         queryset = Prompt.objects.all()
         if prompt_type:
@@ -442,20 +356,7 @@ class ProfileViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
 
     @action(detail=False, methods=['get', 'post'], url_path='me/photos')
     def photos(self, request):
-        """
-        List or upload profile photos for the current user.
-
-        GET /api/v1/profiles/me/photos/
-        Returns all ProfilePhoto records for the authenticated user's profile,
-        ordered by display_order ascending, then created_at descending.
-
-        POST /api/v1/profiles/me/photos/
-        Upload a new profile photo. Accepts multipart/form-data with:
-        - image (file, required): The photo file (JPEG, PNG, or WebP, max 10MB)
-        - photo_type (string, required): One of 'avatar', 'cover', or 'gallery'
-
-        Requirements: 4.1, 4.2
-        """
+        """GET: List profile photos. POST: Upload a new photo (multipart/form-data)."""
         try:
             profile = Profile.objects.get(user=request.user)
         except Profile.DoesNotExist:
@@ -525,15 +426,7 @@ class ProfileViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
 
     @action(detail=False, methods=['delete'], url_path='me/photos/(?P<photo_id>[^/.]+)')
     def delete_photo(self, request, photo_id=None):
-        """
-        Delete a profile photo by ID.
-
-        DELETE /api/v1/profiles/me/photos/{photo_id}/
-        Deletes the specified photo if it belongs to the authenticated user.
-        Returns 403 if the photo belongs to another user.
-
-        Requirements: 4.3, 4.6
-        """
+        """Delete a profile photo by ID."""
         try:
             profile = Profile.objects.get(user=request.user)
         except Profile.DoesNotExist:
@@ -571,15 +464,7 @@ class ProfileViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
 
     @action(detail=False, methods=['patch'], url_path='me/photos/(?P<photo_id>[^/.]+)/update')
     def update_photo(self, request, photo_id=None):
-        """
-        Update a profile photo's display_order.
-
-        PATCH /api/v1/profiles/me/photos/{photo_id}/update/
-        Accepts JSON with an optional 'display_order' field.
-        Returns 403 if the photo belongs to another user.
-
-        Requirements: 4.4, 4.6
-        """
+        """Update a profile photo's display_order."""
         try:
             profile = Profile.objects.get(user=request.user)
         except Profile.DoesNotExist:
@@ -638,14 +523,7 @@ class ProfileViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
 # ============================================================================
 
 class VehicleViewSet(viewsets.GenericViewSet):
-    """
-    ViewSet for vehicle CRUD operations.
-    
-    Provides endpoints for managing the current user's vehicle:
-    - GET /profiles/me/vehicle/ - Get current user's vehicle
-    - PUT /profiles/me/vehicle/ - Create or update vehicle
-    - DELETE /profiles/me/vehicle/ - Remove vehicle
-    """
+    """Vehicle CRUD operations for the current user."""
     permission_classes = [IsAuthenticated]
     
     def get_serializer_class(self):
@@ -663,18 +541,7 @@ class VehicleViewSet(viewsets.GenericViewSet):
     
     @action(detail=False, methods=['get', 'put', 'delete'], url_path='me/vehicle')
     def vehicle(self, request):
-        """
-        Get, create/update, or delete the current user's vehicle.
-        
-        GET /api/v1/profiles/me/vehicle/
-        Returns the current user's vehicle if it exists.
-        
-        PUT /api/v1/profiles/me/vehicle/
-        Creates a new vehicle or updates the existing one.
-        
-        DELETE /api/v1/profiles/me/vehicle/
-        Removes the current user's vehicle.
-        """
+        """Get, create/update, or delete the current user's vehicle."""
         profile = self._get_user_profile(request)
         if not profile:
             return Response({
@@ -792,19 +659,7 @@ class VehicleViewSet(viewsets.GenericViewSet):
 
     @action(detail=False, methods=['post'], url_path='me/vehicle/photos')
     def upload_photo(self, request):
-        """
-        Upload a photo for the current user's vehicle.
-        
-        POST /api/v1/profiles/me/vehicle/photos/
-        
-        Request body:
-        {
-            "image_url": "https://example.com/photo.jpg",
-            "display_order": 1  (optional)
-        }
-        
-        Enforces max 10 photos per vehicle.
-        """
+        """Upload a photo for the current user's vehicle."""
         profile = self._get_user_profile(request)
         if not profile:
             return Response({
@@ -843,13 +698,7 @@ class VehicleViewSet(viewsets.GenericViewSet):
 
     @action(detail=False, methods=['delete'], url_path='me/vehicle/photos/(?P<photo_id>[^/.]+)')
     def delete_photo(self, request, photo_id=None):
-        """
-        Delete a photo from the current user's vehicle.
-        
-        DELETE /api/v1/profiles/me/vehicle/photos/{id}/
-        
-        Only allows users to delete their own vehicle photos.
-        """
+        """Delete a photo from the current user's vehicle."""
         profile = self._get_user_profile(request)
         if not profile:
             return Response({
@@ -894,24 +743,12 @@ class VehicleViewSet(viewsets.GenericViewSet):
 # ============================================================================
 
 class LocationViewSet(viewsets.GenericViewSet):
-    """
-    ViewSet for location data.
-    
-    Provides endpoints for:
-    - GET /locations/countries/ - List all countries
-    - GET /locations/cities/ - List cities for autocomplete
-    """
+    """Location data (countries and cities)."""
     permission_classes = [IsAuthenticated]
     
     @action(detail=False, methods=['get'], url_path='countries')
     def countries(self, request):
-        """
-        List all countries.
-        
-        GET /api/v1/locations/countries/
-        
-        Returns all Country records ordered alphabetically by name.
-        """
+        """List all countries."""
         countries = Country.objects.all().order_by('name')
         serializer = CountrySerializer(countries, many=True)
         
@@ -922,11 +759,7 @@ class LocationViewSet(viewsets.GenericViewSet):
 
     @action(detail=False, methods=['get'], url_path='cities')
     def cities(self, request):
-        """
-        List cities for autocomplete.
-
-        GET /api/v1/locations/cities/?q={query}
-        """
+        """List cities for autocomplete."""
         query = request.query_params.get('q', '').strip()
         queryset = City.objects.all()
         if query:
@@ -945,26 +778,12 @@ class LocationViewSet(viewsets.GenericViewSet):
 # ============================================================================
 
 class FeedViewSet(viewsets.GenericViewSet):
-    """
-    ViewSet for the nearby users feed.
-    
-    Provides endpoints for:
-    - GET /feed/nearby/ - Get nearby users based on current user's "Now In" location
-    """
+    """Nearby users feed."""
     permission_classes = [IsAuthenticated]
     
     @action(detail=False, methods=['get'], url_path='nearby')
     def nearby(self, request):
-        """
-        Get nearby users feed based on current user's "Now In" location.
-        
-        GET /api/v1/feed/nearby/
-        
-        Returns profiles grouped by timing category based on InTownWindow overlap:
-        - here_now: Users with an InTownWindow overlapping today in the same city
-        - here_next_week: Users with an InTownWindow starting in the next 7-13 days in the same city
-        - here_next_month: Users with an InTownWindow starting in the next 14-44 days in the same city
-        """
+        """Get nearby users grouped by timing (here_now, here_next_week, here_next_month)."""
         from datetime import timedelta
         
         # Get the current user's profile
@@ -1111,14 +930,7 @@ class FeedViewSet(viewsets.GenericViewSet):
 # ============================================================================
 
 class DiscoveryViewSet(viewsets.GenericViewSet):
-    """
-    ViewSet for discovery and swiping functionality.
-    
-    Provides endpoints for:
-    - GET /discovery/dating/ - Get profiles with dating intent
-    - GET /discovery/friends/ - Get profiles with friends intent
-    - POST /discovery/swipe/ - Record a swipe (like/pass)
-    """
+    """Discovery and swiping for dating/friends modes."""
     permission_classes = [IsAuthenticated]
     
     def _get_user_profile(self, request):
@@ -1136,10 +948,7 @@ class DiscoveryViewSet(viewsets.GenericViewSet):
         ).values_list('swiped_on_id', flat=True)
     
     def _calculate_overlap_score(self, user_windows, profile_windows):
-        """
-        Calculate overlap score between two sets of in-town windows.
-        Higher score = more overlap = should appear earlier in results.
-        """
+        """Calculate overlap days between two sets of in-town windows."""
         if not user_windows or not profile_windows:
             return 0
         
@@ -1161,14 +970,7 @@ class DiscoveryViewSet(viewsets.GenericViewSet):
 
     
     def _apply_filters(self, queryset, request, user_profile):
-        """
-        Apply discovery filters to the queryset.
-        
-        Filters:
-        - travel_pace: Filter by travel pace (slow, mixed, fast)
-        - profile_type: Filter by profile type (solo, couple, group)
-        - pet_compatible: Filter by pet compatibility
-        """
+        """Apply discovery filters (travel_pace, profile_type, pet_compatible)."""
         # Filter by travel_pace
         travel_pace = request.query_params.get('travel_pace')
         if travel_pace:
@@ -1198,15 +1000,7 @@ class DiscoveryViewSet(viewsets.GenericViewSet):
         return queryset
     
     def _get_discovery_profiles(self, request, mode):
-        """
-        Get profiles for discovery based on mode (dating/friends).
-        
-        - Filters by intent (looking_for_dating or looking_for_friends)
-        - Excludes already-swiped profiles
-        - Excludes current user
-        - Applies additional filters
-        - Boosts profiles with overlapping in-town windows
-        """
+        """Get filtered and sorted profiles for discovery by mode."""
         user_profile = self._get_user_profile(request)
         if not user_profile:
             return None, Response({
@@ -1256,19 +1050,7 @@ class DiscoveryViewSet(viewsets.GenericViewSet):
     
     @action(detail=False, methods=['get'])
     def dating(self, request):
-        """
-        Get profiles for dating mode discovery.
-
-        GET /discovery/dating/
-
-        Query Parameters:
-        - travel_pace: Filter by travel pace (slow, mixed, fast)
-        - profile_type: Filter by profile type (solo, couple, group)
-        - pet_compatible: Filter by pet compatibility (true/false)
-
-        Returns profiles with looking_for_dating=True, excluding already-swiped
-        profiles and the current user. Results are boosted by in-town window overlap.
-        """
+        """Get profiles for dating mode discovery."""
         profiles, error_response = self._get_discovery_profiles(request, 'dating')
 
         if error_response:
@@ -1288,19 +1070,7 @@ class DiscoveryViewSet(viewsets.GenericViewSet):
     
     @action(detail=False, methods=['get'])
     def friends(self, request):
-        """
-        Get profiles for friends mode discovery.
-
-        GET /discovery/friends/
-
-        Query Parameters:
-        - travel_pace: Filter by travel pace (slow, mixed, fast)
-        - profile_type: Filter by profile type (solo, couple, group)
-        - pet_compatible: Filter by pet compatibility (true/false)
-
-        Returns profiles with looking_for_friends=True, excluding already-swiped
-        profiles and the current user. Results are boosted by in-town window overlap.
-        """
+        """Get profiles for friends mode discovery."""
         profiles, error_response = self._get_discovery_profiles(request, 'friends')
 
         if error_response:
@@ -1321,22 +1091,7 @@ class DiscoveryViewSet(viewsets.GenericViewSet):
     
     @action(detail=False, methods=['post'], url_path='swipe')
     def swipe(self, request):
-        """
-        Record a swipe (like/pass) on a profile.
-        
-        POST /discovery/swipe/
-        
-        Request Body:
-        {
-            "swiped_on": "<profile_id>",
-            "is_like": true/false,
-            "mode": "dating" or "friends"
-        }
-        
-        Returns:
-        - Success response with swipe data
-        - If mutual match, includes match notification
-        """
+        """Record a swipe (like/pass) on a profile."""
         user_profile = self._get_user_profile(request)
         if not user_profile:
             return Response({

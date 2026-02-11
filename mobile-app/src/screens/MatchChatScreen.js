@@ -156,16 +156,16 @@ export default function MatchChatScreen() {
     }
   }, [matchId]);
 
-  const loadMessages = useCallback(async () => {
+  const loadMessages = useCallback(async ({ silent = false } = {}) => {
     if (!matchId) return;
     try {
-      setError('');
+      if (!silent) setError('');
       const response = await matchesAPI.getMessages(matchId);
       setMessages(normalizeListResponse(response));
     } catch (err) {
-      setError(err.message || 'Failed to load messages');
+      if (!silent) setError(err.message || 'Failed to load messages');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [matchId]);
 
@@ -181,7 +181,10 @@ export default function MatchChatScreen() {
 
     const realtimeSocket = createRealtimeSocket({
       path: `/ws/matches/${matchId}/`,
-      onOpen: () => setSocketConnected(true),
+      onOpen: () => {
+        setSocketConnected(true);
+        loadMessages({ silent: true });
+      },
       onClose: () => setSocketConnected(false),
       onMessage: (payload) => {
         if (payload?.type !== 'chat_message') return;
@@ -196,7 +199,19 @@ export default function MatchChatScreen() {
 
     realtimeSocket.connect();
     return () => realtimeSocket.disconnect();
-  }, [matchId]);
+  }, [loadMessages, matchId]);
+
+  useEffect(() => {
+    if (!matchId) return undefined;
+
+    // Fallback sync keeps chat fresh even when websocket transport is degraded.
+    const intervalMs = 1000;
+    const interval = setInterval(() => {
+      loadMessages({ silent: true });
+    }, intervalMs);
+
+    return () => clearInterval(interval);
+  }, [loadMessages, matchId]);
 
   const timeline = useMemo(() => buildTimeline(messages), [messages]);
   const androidWindowShrink = Math.max(0, baseWindowHeightRef.current - windowHeight);

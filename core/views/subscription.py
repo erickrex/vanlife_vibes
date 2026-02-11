@@ -1,10 +1,4 @@
-"""
-Subscription views for RevenueCat webhook handling and subscription status.
-
-Provides:
-- RevenueCatWebhookView: Receives and processes RevenueCat webhook events
-- SubscriptionViewSet: Returns user subscription status
-"""
+"""Subscription views for RevenueCat webhooks and subscription status."""
 
 import logging
 
@@ -22,17 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class RevenueCatWebhookView(APIView):
-    """
-    Receives webhook events from RevenueCat to sync subscription status.
-
-    POST /webhooks/revenuecat/
-
-    Validates the Authorization header against REVENUECAT_WEBHOOK_SECRET,
-    parses the event payload, and delegates to SubscriptionService.
-
-    Returns 401 for invalid/missing auth, 200 for all valid requests
-    (including unknown users — to prevent RevenueCat retries).
-    """
+    """Receives webhook events from RevenueCat to sync subscription status."""
 
     authentication_classes = []  # Webhook uses its own auth
     permission_classes = [AllowAny]
@@ -92,11 +76,7 @@ class RevenueCatWebhookView(APIView):
         return parts[1] == expected_secret
 
 class SubscriptionViewSet(ViewSet):
-    """
-    ViewSet for subscription status.
-
-    GET /subscription/status/ — Return the authenticated user's subscription info.
-    """
+    """Subscription status endpoint."""
 
     permission_classes = [IsAuthenticated]
 
@@ -110,3 +90,54 @@ class SubscriptionViewSet(ViewSet):
             status=status.HTTP_200_OK,
         )
 
+    @action(detail=False, methods=['post'], url_path='sync')
+    def sync(self, request):
+        """
+        Trigger a client-side fallback sync using RevenueCat customerInfo payload.
+
+        Expected body:
+        {
+          "customer_info": { ...Purchases customerInfo... },
+          "entitlement_id": "premium"  // optional
+        }
+        """
+        profile = request.user.profile
+        customer_info = request.data.get('customer_info')
+        entitlement_id = request.data.get('entitlement_id', 'premium')
+
+        if not isinstance(customer_info, dict):
+            return Response(
+                {
+                    'status': 'error',
+                    'message': 'Invalid sync payload',
+                    'errors': {'customer_info': ['customer_info must be a JSON object']},
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not isinstance(entitlement_id, str) or not entitlement_id.strip():
+            return Response(
+                {
+                    'status': 'error',
+                    'message': 'Invalid sync payload',
+                    'errors': {'entitlement_id': ['entitlement_id must be a non-empty string']},
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            data = SubscriptionService.sync_from_client(
+                profile=profile,
+                customer_info=customer_info,
+                entitlement_id=entitlement_id.strip(),
+            )
+        except ValueError as exc:
+            return Response(
+                {'status': 'error', 'message': str(exc)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(
+            {'status': 'success', 'data': data},
+            status=status.HTTP_200_OK,
+        )

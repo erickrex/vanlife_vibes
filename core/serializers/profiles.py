@@ -1,15 +1,4 @@
-"""
-Profile-related serializers for user profiles, vehicles, locations, and prompts.
-
-This module contains serializers for:
-- ProfileSerializer, ProfileUpdateSerializer, ProfileSummarySerializer
-- VehicleSerializer, VehicleUpdateSerializer, VehiclePhotoSerializer
-- CountrySerializer, RegionSerializer, CitySerializer
-- HobbyTagSerializer, FeedCardSerializer
-- InTownWindowSerializer, ProfilePromptSerializer
-
-Requirements: 2.2 (Backend File Organization)
-"""
+"""Profile serializers for user profiles, vehicles, locations, and prompts."""
 
 from rest_framework import serializers
 from django.db import models
@@ -22,12 +11,7 @@ from core.models import (
 
 
 class ProfileCardDataSerializer(serializers.ModelSerializer):
-    """
-    Compact profile serializer for displaying profile cards in lists.
-    
-    Includes only the essential fields needed for ProfileCard display:
-    id, display_name, avatar_url, has_van, vehicle, travel_status.
-    """
+    """Compact profile serializer for profile card display."""
     vehicle = serializers.SerializerMethodField()
     
     class Meta:
@@ -89,15 +73,7 @@ class VehicleSerializer(serializers.ModelSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    """
-    Full profile serializer with all nested data.
-    
-    Includes user info, profile fields, vehicle, location timing,
-    in_town_windows, prompts, hobbies, and social indicators.
-    
-    Location fields (now_in_city, next_week_in_city, next_month_in_city) are
-    derived from InTownWindow records based on date ranges.
-    """
+    """Full profile serializer with nested data and derived location fields."""
     user_id = serializers.UUIDField(source='user.id', read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)
     
@@ -183,10 +159,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     
     def get_vehicle(self, obj):
-        """
-        Return vehicle data if has_van is true and vehicle exists.
-        Returns None if has_van is false or no vehicle exists.
-        """
+        """Return vehicle data if has_van is true."""
         if not obj.has_van:
             return None
         
@@ -197,10 +170,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             return None
     
     def get_in_town_windows(self, obj):
-        """
-        Return list of in-town windows for this profile.
-        Only returns active (non-expired) windows, ordered by start_date.
-        """
+        """Return active (non-expired) in-town windows ordered by start_date."""
         from django.utils import timezone
         today = timezone.now().date()
         
@@ -220,10 +190,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         ]
     
     def get_prompts(self, obj):
-        """
-        Return list of profile prompts for this profile.
-        Returns prompts ordered by display_order.
-        """
+        """Return profile prompts ordered by display_order."""
         prompts = obj.prompts.all().order_by('display_order')
         
         # Use a simplified serializer to avoid circular import issues
@@ -240,10 +207,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     
     def get_now_in_city(self, obj):
-        """
-        Derive now_in_city from InTownWindow records.
-        Returns the city_area of a window where today falls within the date range.
-        """
+        """Return city_area of a window containing today."""
         from django.utils import timezone
         today = timezone.now().date()
         
@@ -255,10 +219,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         return window.city_area if window else None
     
     def get_next_week_in_city(self, obj):
-        """
-        Derive next_week_in_city from InTownWindow records.
-        Returns the city_area of a window that starts on next Monday through next Sunday.
-        """
+        """Return city_area of a window starting next week."""
         from django.utils import timezone
         from datetime import timedelta
         today = timezone.now().date()
@@ -277,10 +238,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         return window.city_area if window else None
     
     def get_next_month_in_city(self, obj):
-        """
-        Derive next_month_in_city from InTownWindow records.
-        Returns the city_area of a window starting the Monday after next week.
-        """
+        """Return city_area of a window starting the Monday after next week."""
         from django.utils import timezone
         from datetime import timedelta
         today = timezone.now().date()
@@ -401,16 +359,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         return window.end_date.isoformat() if window else None
     
 class ProfileUpdateSerializer(serializers.ModelSerializer):
-    """
-    Serializer for updating user profiles with comprehensive validation.
-    
-    Validates character limits, enum fields, and camping preferences.
-    Location fields (now_in_city, next_week_in_city, next_month_in_city) are
-    converted to InTownWindow records on save.
-    
-    Date fields allow users to specify precise date ranges for each location.
-    If dates are not provided, week-aligned defaults are used.
-    """
+    """Profile update serializer with validation and InTownWindow management."""
     
     # City name fields - these create/update InTownWindow records
     now_in_city = serializers.CharField(max_length=100, required=False, allow_null=True, allow_blank=True)
@@ -759,12 +708,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         return value
     
     def validate(self, attrs):
-        """
-        Cross-field validation.
-        
-        Validates:
-        - At least one of looking_for_dating or looking_for_friends must be true
-        """
+        """Cross-field validation for intents, pet_type, and group_description."""
         # =========================================================================
         # Validate looking_for_dating / looking_for_friends
         # At least one intent must be selected
@@ -842,19 +786,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
 
     
     def update(self, instance, validated_data):
-        """
-        Update profile with validated data.
-        
-        Handles special fields:
-        - City name fields create/update InTownWindow records
-        - Date fields allow precise date ranges (if not provided, week-aligned defaults are used)
-        - Hobby IDs are used to update the many-to-many relationship
-        
-        Week alignment logic (when dates not provided):
-        - now_in_city: today → Sunday of this week
-        - next_week_in_city: Monday of next week → Sunday of next week
-        - next_month_in_city: Monday after next week → 4 weeks later (Sunday)
-        """
+        """Update profile, handling city→InTownWindow conversion and hobby updates."""
         from datetime import timedelta
         
         hobby_ids = validated_data.pop('hobby_ids', None)
@@ -947,11 +879,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
 
 
 class VehicleUpdateSerializer(serializers.ModelSerializer):
-    """
-    Serializer for creating/updating vehicles with validation.
-    
-    Validates vehicle_type, make, model, year, build_status, and nickname.
-    """
+    """Serializer for creating/updating vehicles."""
     
     class Meta:
         model = Vehicle
@@ -983,9 +911,7 @@ class VehicleUpdateSerializer(serializers.ModelSerializer):
         return value
     
     def validate_year(self, value):
-        """
-        Validate vehicle year range (1900 to current year + 1).
-        """
+        """Validate vehicle year range (1900 to current year + 1)."""
         if value is None:
             return value
         
@@ -1022,11 +948,7 @@ class VehicleUpdateSerializer(serializers.ModelSerializer):
 
 
 class VehiclePhotoCreateSerializer(serializers.ModelSerializer):
-    """
-    Serializer for uploading vehicle photos with validation.
-    
-    Validates image_url, display_order, and max 10 photos per vehicle.
-    """
+    """Serializer for uploading vehicle photos (max 10 per vehicle)."""
     
     MAX_PHOTOS_PER_VEHICLE = 10
     
@@ -1051,10 +973,7 @@ class VehiclePhotoCreateSerializer(serializers.ModelSerializer):
         return value
     
     def validate(self, attrs):
-        """
-        Cross-field validation.
-        Validates that adding this photo won't exceed the max 10 photos per vehicle limit.
-        """
+        """Validate max 10 photos per vehicle."""
         # Get the vehicle from context (should be set by the view)
         vehicle = self.context.get('vehicle')
         
@@ -1088,9 +1007,7 @@ class VehiclePhotoCreateSerializer(serializers.ModelSerializer):
 
 
 class FeedCardSerializer(serializers.ModelSerializer):
-    """
-    Serializer for displaying profile cards in the nearby feed.
-    """
+    """Profile card for the nearby feed."""
     timing_label = serializers.CharField(read_only=True)
     
     class Meta:
@@ -1100,9 +1017,7 @@ class FeedCardSerializer(serializers.ModelSerializer):
 
 
 class ProfileSummarySerializer(serializers.ModelSerializer):
-    """
-    Compact profile serializer for followers/following lists.
-    """
+    """Compact profile for followers/following lists."""
     
     class Meta:
         model = Profile
@@ -1115,11 +1030,7 @@ class ProfileSummarySerializer(serializers.ModelSerializer):
 # ============================================================================
 
 class InTownWindowSerializer(serializers.ModelSerializer):
-    """
-    Serializer for InTownWindow model with comprehensive validation.
-    
-    Validates city_area length, date range, and max 3 windows per profile.
-    """
+    """Serializer for InTownWindow with date range and limit validation."""
     
     MAX_WINDOWS_PER_PROFILE = 3
     
@@ -1141,9 +1052,7 @@ class InTownWindowSerializer(serializers.ModelSerializer):
 
     
     def validate(self, attrs):
-        """
-        Cross-field validation for date range and max windows per profile.
-        """
+        """Validate date range and max windows per profile."""
         start_date = attrs.get('start_date')
         end_date = attrs.get('end_date')
         
@@ -1206,20 +1115,14 @@ class PromptListSerializer(serializers.ModelSerializer):
 # ============================================================================
 
 class AvailablePromptSerializer(serializers.ModelSerializer):
-    """
-    Serializer for listing available prompt questions.
-    """
+    """Serializer for listing available prompt questions."""
     class Meta:
         model = Prompt
         fields = ['prompt_name', 'prompt_question', 'prompt_placeholder', 'prompt_type']
 
 
 class ProfilePromptSerializer(serializers.ModelSerializer):
-    """
-    Serializer for ProfilePrompt model with comprehensive validation.
-    
-    Validates prompt_answer length, prompt_name existence, and max 3 prompts per profile.
-    """
+    """Serializer for ProfilePrompt with answer validation and prompt limits."""
     
     MAX_PROMPTS_PER_PROFILE = 3
     MAX_ANSWER_LENGTH = 200
@@ -1236,11 +1139,7 @@ class ProfilePromptSerializer(serializers.ModelSerializer):
         }
     
     def get_validators(self):
-        """
-        Override to remove the automatic UniqueTogetherValidator.
-        We handle unique_together validation manually in validate() to support
-        profile being passed via context.
-        """
+        """Override to remove automatic UniqueTogetherValidator (handled manually)."""
         validators = super().get_validators()
         # Filter out UniqueTogetherValidator - we handle it manually
         return [v for v in validators if not isinstance(v, serializers.UniqueTogetherValidator)]
@@ -1251,9 +1150,7 @@ class ProfilePromptSerializer(serializers.ModelSerializer):
 
     
     def validate_prompt_answer(self, value):
-        """
-        Validate prompt_answer character limit (≤ 200 characters).
-        """
+        """Validate prompt_answer length (≤ 200 characters) and non-empty."""
         if value and len(value) > self.MAX_ANSWER_LENGTH:
             raise serializers.ValidationError(
                 f"Prompt answer must be {self.MAX_ANSWER_LENGTH} characters or fewer."
@@ -1265,13 +1162,7 @@ class ProfilePromptSerializer(serializers.ModelSerializer):
         return value
     
     def validate(self, attrs):
-        """
-        Cross-field validation.
-        
-        Validates:
-        - Max 3 prompts per profile
-        - Unique prompt_question per profile (enforced by model, but provide better error)
-        """
+        """Validate max prompts per profile and unique prompt per profile."""
         prompt_name = attrs.pop('prompt_name', None)
         profile = attrs.get('profile') or self.context.get('profile')
 
@@ -1354,14 +1245,7 @@ class ProfilePromptSerializer(serializers.ModelSerializer):
 
 
 class ProfilePhotoSerializer(serializers.ModelSerializer):
-    """
-    Read serializer for ProfilePhoto responses.
-    
-    Returns photo metadata including the full image URL.
-    Used for GET list and POST response payloads.
-    
-    Requirements: 6.1 (Photo Serialization)
-    """
+    """Read serializer for ProfilePhoto responses."""
     
     class Meta:
         model = ProfilePhoto
@@ -1370,14 +1254,7 @@ class ProfilePhotoSerializer(serializers.ModelSerializer):
 
 
 class ProfilePhotoUploadSerializer(serializers.Serializer):
-    """
-    Write serializer for photo upload validation.
-    
-    Accepts multipart/form-data with an image file and photo_type.
-    Used for POST upload requests.
-    
-    Requirements: 6.2 (Upload Deserialization)
-    """
+    """Write serializer for photo upload validation."""
     image = serializers.ImageField(required=True)
     photo_type = serializers.ChoiceField(
         choices=ProfilePhoto.PHOTO_TYPE_CHOICES,

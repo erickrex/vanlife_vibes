@@ -1,17 +1,5 @@
 # core/serializers/matches.py
-"""
-Match-related serializers for person matches, swipes, direct messages, and user reports.
-
-This module contains serializers for:
-- PersonMatchSerializer: Match information with both users and metadata
-- PersonSwipeSerializer: Swipe records with mutual match detection
-- DirectMessageSerializer: 1:1 chat messages between matched users
-- DirectMessageCreateSerializer: Simplified serializer for creating messages
-- UserReportSerializer: User reports for policy violations
-- UserReportCreateSerializer: Creating user reports from match context
-
-Requirements: 2.2 (Backend File Organization)
-"""
+"""Match serializers for person matches, swipes, direct messages, and reports."""
 
 from rest_framework import serializers
 from django.db import models, transaction, IntegrityError
@@ -22,11 +10,7 @@ from core.models import (
 
 
 class PersonMatchSerializer(serializers.ModelSerializer):
-    """
-    Serializer for PersonMatch model.
-    
-    Returns match information including both users and match metadata.
-    """
+    """Match information including both users and metadata."""
     user1_profile = serializers.SerializerMethodField()
     user2_profile = serializers.SerializerMethodField()
     other_user = serializers.SerializerMethodField()
@@ -59,11 +43,7 @@ class PersonMatchSerializer(serializers.ModelSerializer):
         }
     
     def get_other_user(self, obj):
-        """
-        Return the other user in the match (relative to the request user).
-        
-        This is useful for displaying "who you matched with" in the UI.
-        """
+        """Return the other user in the match relative to the request user."""
         request = self.context.get('request')
         if not request or not request.user or not request.user.is_authenticated:
             return None
@@ -100,10 +80,7 @@ class PersonMatchSerializer(serializers.ModelSerializer):
         }
 
     def get_unread_count(self, obj):
-        """
-        Return unread message count for the request user in this match.
-        Unread means messages sent by the other user with is_read=False.
-        """
+        """Return unread message count for the request user in this match."""
         request = self.context.get('request')
         if not request or not request.user or not request.user.is_authenticated:
             return 0
@@ -121,11 +98,7 @@ class PersonMatchSerializer(serializers.ModelSerializer):
 
 
 class PersonSwipeSerializer(serializers.ModelSerializer):
-    """
-    Serializer for PersonSwipe model with mutual match detection.
-    
-    Creates swipe records and auto-creates PersonMatch on mutual likes.
-    """
+    """Swipe records with mutual match detection."""
     swiper = serializers.PrimaryKeyRelatedField(
         queryset=Profile.objects.all(),
         required=False,
@@ -197,14 +170,7 @@ class PersonSwipeSerializer(serializers.ModelSerializer):
         return value
     
     def validate(self, attrs):
-        """
-        Cross-field validation.
-        
-        Validates:
-        - swiper cannot swipe on themselves
-        - No duplicate swipes (same swiper, swiped_on, mode)
-        - swiped_on must opt in to dating for dating mode
-        """
+        """Cross-field validation: no self-swipe, no duplicates, dating opt-in check."""
         swiper = attrs.get('swiper') or self.context.get('swiper')
         swiped_on = attrs.get('swiped_on')
         mode = attrs.get('mode')
@@ -236,14 +202,7 @@ class PersonSwipeSerializer(serializers.ModelSerializer):
         return attrs
     
     def create(self, validated_data):
-        """
-        Create a new PersonSwipe and check for mutual match.
-        
-        If the swipe is a like (is_like=True), check if the other user has also
-        liked the swiper in the same mode. If so, create a PersonMatch.
-        
-        Property 7: Mutual Match Creation
-        """
+        """Create a PersonSwipe and check for mutual match."""
         # Set swiper from context if not provided
         if 'swiper' not in validated_data or validated_data['swiper'] is None:
             swiper = self.context.get('swiper')
@@ -266,20 +225,7 @@ class PersonSwipeSerializer(serializers.ModelSerializer):
         return swipe
     
     def _check_and_create_match(self, swipe):
-        """
-        Check if there's a mutual like and create a PersonMatch if so.
-        
-        A mutual match occurs when:
-        1. User A likes User B in mode X
-        2. User B has already liked User A in mode X
-        
-        When mutual match is detected, create a PersonMatch with:
-        - user1: The user who swiped first (chronologically)
-        - user2: The user who swiped second (the current swiper)
-        - mode: The mode of the swipes
-        
-        Returns the created PersonMatch or None if no mutual match.
-        """
+        """Check for a reciprocal like and create a PersonMatch if found."""
         # Look for a reciprocal like from the swiped_on user
         reciprocal_swipe = PersonSwipe.objects.filter(
             swiper=swipe.swiped_on,
@@ -340,12 +286,7 @@ class PersonSwipeSerializer(serializers.ModelSerializer):
 # ============================================================================
 
 class DirectMessageSerializer(serializers.ModelSerializer):
-    """
-    Serializer for DirectMessage model with comprehensive validation.
-    
-    Enables 1:1 chat between matched users with support for text messages,
-    mini-card sharing, and icebreaker prompts.
-    """
+    """1:1 chat messages between matched users."""
     
     MAX_CONTENT_LENGTH = 1000
     
@@ -394,11 +335,7 @@ class DirectMessageSerializer(serializers.ModelSerializer):
         return value
     
     def validate_mini_card_data(self, value):
-        """
-        Validate mini_card_data structure when provided.
-        
-        Mini-card data should contain: current_location, in_town_until, meet_preference.
-        """
+        """Validate mini_card_data structure (current_location, in_town_until, meet_preference)."""
         if value is None:
             return value
         
@@ -458,16 +395,7 @@ class DirectMessageSerializer(serializers.ModelSerializer):
         return value
     
     def validate(self, attrs):
-        """
-        Cross-field validation.
-        
-        Validates:
-        - Sender must be one of the two users in the match (Property 10: Chat Access Control)
-        - mini_card_data is required when message_type is 'mini_card'
-        - Match must be active
-        
-        Property 10: Chat Access Control
-        """
+        """Cross-field validation: sender must be in match, match must be active, mini_card rules."""
         # Get match and sender from attrs or context
         match = attrs.get('match') or self.context.get('match')
         sender = attrs.get('sender') or self.context.get('sender')
@@ -515,11 +443,7 @@ class DirectMessageSerializer(serializers.ModelSerializer):
         return attrs
     
     def create(self, validated_data):
-        """
-        Create a new DirectMessage.
-        
-        Sets match and sender from context if not provided in validated_data.
-        """
+        """Create a DirectMessage, setting match and sender from context if needed."""
         # Set match from context if not provided
         if 'match' not in validated_data or validated_data['match'] is None:
             match = self.context.get('match')
@@ -542,12 +466,7 @@ class DirectMessageSerializer(serializers.ModelSerializer):
 
 
 class DirectMessageCreateSerializer(serializers.Serializer):
-    """
-    Simplified serializer for creating DirectMessages via API.
-    
-    Accepts content, message_type, and mini_card_data. Match and sender
-    are set from the URL and authenticated user.
-    """
+    """Simplified serializer for creating DirectMessages via API."""
     content = serializers.CharField(
         max_length=1000,
         required=True,
@@ -574,11 +493,7 @@ class DirectMessageCreateSerializer(serializers.Serializer):
         return value
     
     def validate_mini_card_data(self, value):
-        """
-        Validate mini_card_data structure.
-        
-        Delegates to DirectMessageSerializer for consistent validation.
-        """
+        """Validate mini_card_data via DirectMessageSerializer."""
         if value is None:
             return value
         
@@ -587,11 +502,7 @@ class DirectMessageCreateSerializer(serializers.Serializer):
         return temp_serializer.validate_mini_card_data(value)
     
     def validate(self, attrs):
-        """
-        Cross-field validation.
-        
-        Validates mini_card_data is provided when message_type is 'mini_card'.
-        """
+        """Ensure mini_card_data is provided when message_type is 'mini_card'."""
         message_type = attrs.get('message_type', 'text')
         mini_card_data = attrs.get('mini_card_data')
         
@@ -615,11 +526,7 @@ class DirectMessageCreateSerializer(serializers.Serializer):
 # ============================================================================
 
 class UserReportSerializer(serializers.ModelSerializer):
-    """
-    Serializer for UserReport model.
-    
-    Used for creating user reports for policy violations.
-    """
+    """Serializer for user reports."""
     reporter_profile = serializers.SerializerMethodField()
     reported_profile = serializers.SerializerMethodField()
     
@@ -666,9 +573,7 @@ class UserReportSerializer(serializers.ModelSerializer):
 
 
 class UserReportCreateSerializer(serializers.Serializer):
-    """
-    Serializer for creating a user report from a match context.
-    """
+    """Serializer for creating a user report from a match context."""
     reason = serializers.ChoiceField(choices=UserReport.REASON_CHOICES)
     description = serializers.CharField(max_length=500, required=False, allow_blank=True)
     

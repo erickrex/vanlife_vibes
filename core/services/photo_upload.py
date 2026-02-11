@@ -1,10 +1,4 @@
-"""
-Photo upload service for VanlifeVibes.
-
-Handles validation, upload, and deletion of profile photos (avatar, cover, gallery).
-Enforces business rules: avatar/cover uniqueness, gallery limit of 6,
-file size/type validation, and Profile URL synchronization.
-"""
+"""Photo upload service for profile photos (avatar, cover, gallery)."""
 import logging
 from io import BytesIO
 
@@ -26,20 +20,7 @@ MAX_GALLERY_PHOTOS = 6
 
 
 def validate_photo_file(file):
-    """
-    Validate an uploaded photo file.
-
-    Checks:
-    - File size does not exceed 10MB
-    - Content type is JPEG, PNG, or WebP
-    - File is a valid image (verified via Pillow)
-
-    Args:
-        file: An uploaded file object (e.g., InMemoryUploadedFile or SimpleUploadedFile).
-
-    Raises:
-        ValidationError: If any validation check fails.
-    """
+    """Validate file size, content type, and image integrity."""
     # Check file size
     if file.size > MAX_FILE_SIZE:
         raise ValidationError("File size exceeds the 10MB limit.")
@@ -62,26 +43,7 @@ def validate_photo_file(file):
 
 
 def handle_photo_upload(profile, image_file, photo_type, display_order=None):
-    """
-    Handle uploading a profile photo.
-
-    For avatar/cover types: deletes any existing photo of that type (enforcing uniqueness),
-    creates the new ProfilePhoto, and updates Profile.avatar_url or cover_url.
-
-    For gallery type: enforces a maximum of 6 gallery photos per profile.
-
-    Args:
-        profile: The Profile instance to attach the photo to.
-        image_file: The validated uploaded image file.
-        photo_type: One of 'avatar', 'cover', or 'gallery'.
-        display_order: Optional display order (PositiveIntegerField). Defaults to 0.
-
-    Returns:
-        The created ProfilePhoto instance.
-
-    Raises:
-        ValidationError: If gallery limit would be exceeded.
-    """
+    """Upload a profile photo, enforcing uniqueness for avatar/cover and gallery limit."""
     if photo_type in ('avatar', 'cover'):
         # Delete any existing photo of this type for the profile
         existing_photos = ProfilePhoto.objects.filter(
@@ -125,16 +87,7 @@ def handle_photo_upload(profile, image_file, photo_type, display_order=None):
 
 
 def handle_photo_delete(profile, photo):
-    """
-    Handle deleting a profile photo.
-
-    Deletes the ProfilePhoto record and its associated file from storage.
-    If the photo is an avatar or cover, clears the corresponding URL field on the Profile.
-
-    Args:
-        profile: The Profile instance that owns the photo.
-        photo: The ProfilePhoto instance to delete.
-    """
+    """Delete a profile photo and clear avatar/cover URL if applicable."""
     photo_type = photo.photo_type
 
     # Delete the image file from storage

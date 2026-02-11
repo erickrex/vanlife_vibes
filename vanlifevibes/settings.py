@@ -58,6 +58,8 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+    # Ensures manage.py runserver serves ASGI (HTTP + WebSocket) via Daphne.
+    "daphne",
     "django.contrib.staticfiles",
     "django.contrib.sites",
     # Third-party apps

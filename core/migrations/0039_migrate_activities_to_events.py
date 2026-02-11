@@ -14,8 +14,6 @@ def migrate_activities_to_events(apps, schema_editor):
     - activity.spots → event.spots
     - activity.image_url → event.image_url
     - Set join_mode='swipe'
-    
-    Validates: Requirements 6.2
     """
     Activity = apps.get_model('core', 'Activity')
     Event = apps.get_model('core', 'Event')

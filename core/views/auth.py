@@ -1,11 +1,4 @@
-"""
-Authentication ViewSet for user registration, login, logout, and current user retrieval.
-
-This module contains the AuthViewSet which handles all authentication-related
-API endpoints.
-
-Requirements: 2.1 (Backend File Organization)
-"""
+"""Authentication ViewSet for registration, login, logout, and current user retrieval."""
 
 from rest_framework import status, viewsets
 from rest_framework.decorators import action, throttle_classes
@@ -29,10 +22,7 @@ class AuthViewSet(viewsets.GenericViewSet):
     
     @action(detail=False, methods=['post'], url_path='signup')
     def signup(self, request):
-        """
-        Create new user account
-        POST /api/v1/auth/signup
-        """
+        """Create new user account."""
         serializer = UserRegistrationSerializer(data=request.data)
         
         if serializer.is_valid():
@@ -61,11 +51,7 @@ class AuthViewSet(viewsets.GenericViewSet):
     @action(detail=False, methods=['post'], url_path='login')
     @throttle_classes([LoginRateThrottle])
     def login(self, request):
-        """
-        Authenticate user and return token
-        POST /api/v1/auth/login
-        Rate limited to 5 attempts per 15 minutes
-        """
+        """Authenticate user and return token."""
         serializer = UserLoginSerializer(data=request.data)
         
         if not serializer.is_valid():
@@ -104,10 +90,7 @@ class AuthViewSet(viewsets.GenericViewSet):
     
     @action(detail=False, methods=['get'], url_path='me', permission_classes=[IsAuthenticated])
     def me(self, request):
-        """
-        Get current authenticated user
-        GET /api/v1/auth/me
-        """
+        """Get current authenticated user."""
         serializer = UserAccountSerializer(request.user)
         
         return Response({
@@ -117,10 +100,7 @@ class AuthViewSet(viewsets.GenericViewSet):
     
     @action(detail=False, methods=['post'], url_path='logout', permission_classes=[IsAuthenticated])
     def logout(self, request):
-        """
-        Invalidate user token
-        POST /api/v1/auth/logout
-        """
+        """Invalidate user token."""
         try:
             # Delete the user's token
             request.user.auth_token.delete()

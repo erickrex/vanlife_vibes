@@ -9,10 +9,7 @@ from core.models import PersonMatch, Profile, DirectMessage
 
 
 class TokenAuthConsumer(AsyncJsonWebsocketConsumer):
-    """
-    Base consumer that authenticates using DRF token query param.
-    Expected query format: ?token=<auth_token>
-    """
+    """Base consumer with DRF token auth via ?token= query param."""
 
     profile = None
 
@@ -34,9 +31,7 @@ class TokenAuthConsumer(AsyncJsonWebsocketConsumer):
 
 
 class MatchListConsumer(TokenAuthConsumer):
-    """
-    WebSocket consumer for live updates in the matches list.
-    """
+    """WebSocket consumer for live updates in the matches list."""
 
     async def connect(self):
         self.profile = await self.authenticate_profile()
@@ -67,10 +62,7 @@ class MatchListConsumer(TokenAuthConsumer):
 
 
 class MatchChatConsumer(TokenAuthConsumer):
-    """
-    WebSocket consumer for a single match thread.
-    URL must include match_id.
-    """
+    """WebSocket consumer for a single match thread."""
 
     async def connect(self):
         self.profile = await self.authenticate_profile()

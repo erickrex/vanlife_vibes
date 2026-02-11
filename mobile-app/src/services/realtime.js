@@ -1,12 +1,17 @@
 import { getAuthToken } from '../storage/authToken';
+import { API_BASE_URL } from './api';
 
 const getWsBaseUrl = () => {
   const configured = process.env.EXPO_PUBLIC_WS_BASE_URL;
   if (configured) {
-    return configured.replace(/\/$/, '');
+    return configured
+      .trim()
+      .replace(/\/$/, '')
+      .replace(/^http:\/\//i, 'ws://')
+      .replace(/^https:\/\//i, 'wss://');
   }
 
-  const apiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
+  const apiBaseUrl = API_BASE_URL || process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
   const match = apiBaseUrl.match(/^(https?):\/\/([^/]+)/i);
   if (!match) {
     return 'ws://localhost:8000';
@@ -18,9 +23,14 @@ const getWsBaseUrl = () => {
 
 export const buildWsUrl = async (path) => {
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  const wsBaseUrl = getWsBaseUrl().replace(/\/$/, '');
+  const deDuplicatedPath =
+    wsBaseUrl.toLowerCase().endsWith('/ws') && normalizedPath.startsWith('/ws/')
+      ? normalizedPath.slice(3)
+      : normalizedPath;
   const token = await getAuthToken();
   const query = token ? `?token=${encodeURIComponent(token)}` : '';
-  return `${getWsBaseUrl()}${normalizedPath}${query}`;
+  return `${wsBaseUrl}${deDuplicatedPath}${query}`;
 };
 
 export const createRealtimeSocket = ({

@@ -1,16 +1,4 @@
-"""
-Relevance scoring service for friend matching in the nearby feed.
-
-Calculates relevance scores between profiles to sort feed results by compatibility.
-Higher scores indicate more relevant matches.
-
-Scoring factors:
-- Shared hobbies: +10 per hobby
-- Meetup interest: actively_looking=+20, open_to_it=+10, selective=+5
-- Lifestyle compatibility: +5 per matching field
-- Pet compatibility: +10 if both have pets or no pet requirement
-- Travel pace match: +10 if same pace
-"""
+"""Relevance scoring for friend matching in the nearby feed."""
 from typing import List
 
 from core.models import Profile

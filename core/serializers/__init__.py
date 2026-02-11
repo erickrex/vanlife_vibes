@@ -1,19 +1,5 @@
 # core/serializers/__init__.py
-"""
-Serializers package for the core app.
-
-This module re-exports all serializers for backwards compatibility.
-Serializers are organized into domain-specific modules:
-- auth.py: Authentication serializers
-- profiles.py: Profile, vehicle, location, and prompt serializers
-- matches.py: Person match, swipe, and direct message serializers (unified for dating + friends)
-- events.py: Event, attendee, swipe, and message serializers
-- analytics.py: Analytics event serializers
-
-Note: Friend messages now use the unified DirectMessage model from matches.py.
-
-Requirements: 2.2, 2.4, 2.6 (Backend File Organization)
-"""
+"""Serializers package — re-exports all serializers for backwards compatibility."""
 
 # Auth serializers
 from .auth import (

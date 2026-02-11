@@ -4,12 +4,7 @@ from core.models import PersonSwipe, UserSubscription
 
 
 class SwipeLimitService:
-    """
-    Enforces the daily swipe limit for free users.
-
-    Free users are limited to 3 person-swipes (dating + friends combined) per UTC day.
-    Premium users have unlimited swipes.
-    """
+    """Enforces daily swipe limits (3/day for free users, unlimited for premium)."""
 
     FREE_DAILY_LIMIT = 3
 

@@ -97,6 +97,11 @@ export default function SubscriptionScreen() {
     try {
       const result = await revenueCatClient.purchase(pkg);
       if (result.success) {
+        try {
+          await subscriptionAPI.sync(result.customerInfo);
+        } catch {
+          // Non-blocking fallback: webhook may still update shortly after purchase.
+        }
         fetchStatus();
       } else if (result.error === 'cancelled') {
         // User cancelled — do nothing

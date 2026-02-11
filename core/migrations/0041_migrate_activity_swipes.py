@@ -18,8 +18,6 @@ def migrate_activity_swipes_to_event_swipes(apps, schema_editor):
     
     We use bulk_create with update_fields to preserve the original swiped_at timestamps.
     Since swiped_at has auto_now_add=True, we need to update it after creation.
-    
-    Validates: Requirements 6.4
     """
     ActivitySwipe = apps.get_model('core', 'ActivitySwipe')
     Event = apps.get_model('core', 'Event')

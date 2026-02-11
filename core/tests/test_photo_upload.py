@@ -73,8 +73,6 @@ _tmp_media = tempfile.mkdtemp()
 @settings(max_examples=100)
 def test_avatar_cover_uniqueness_invariant(upload_sequence):
     """
-    **Validates: Requirements 1.3, 1.4**
-
     For any profile and any sequence of avatar/cover photo uploads, the
     profile SHALL have at most one avatar photo and at most one cover photo
     at any point in time.  After uploading a new avatar, querying the
@@ -148,8 +146,6 @@ gallery_upload_attempts = st.integers(min_value=1, max_value=15)
 @settings(max_examples=100, deadline=None)
 def test_gallery_photo_count_invariant(num_attempts):
     """
-    **Validates: Requirements 1.5, 1.6**
-
     For any profile, the number of gallery photos SHALL never exceed 6.
     After any sequence of gallery uploads (including rejected ones),
     ProfilePhoto.objects.filter(profile=p, photo_type='gallery').count() <= 6.
@@ -221,8 +217,6 @@ valid_file_sizes = st.integers(
 @settings(max_examples=100)
 def test_file_size_validation_rejects_oversized(file_size):
     """
-    **Validates: Requirements 3.1, 3.2**
-
     For any file with size greater than 10MB, the validate_photo_file function
     SHALL raise a validation error with the message about the size limit.
     """
@@ -245,8 +239,6 @@ def test_file_size_validation_rejects_oversized(file_size):
 @settings(max_examples=100)
 def test_file_size_validation_accepts_valid_sizes(file_size):
     """
-    **Validates: Requirements 3.1, 3.2**
-
     For any file with size less than or equal to 10MB (and valid content type),
     the validate_photo_file function SHALL not raise a size-related error.
     """
@@ -305,8 +297,6 @@ invalid_content_types = st.sampled_from([
 @settings(max_examples=100)
 def test_content_type_validation_accepts_valid_types(content_type):
     """
-    **Validates: Requirements 3.3, 3.4**
-
     For any file with a content type in {image/jpeg, image/png, image/webp},
     the validate_photo_file function SHALL accept the file without raising
     a validation error.
@@ -327,8 +317,6 @@ def test_content_type_validation_accepts_valid_types(content_type):
 @settings(max_examples=100)
 def test_content_type_validation_rejects_invalid_types(content_type):
     """
-    **Validates: Requirements 3.3, 3.4**
-
     For any file with a content type NOT in {image/jpeg, image/png, image/webp},
     the validate_photo_file function SHALL raise a ValidationError with a message
     about unsupported file types.
@@ -371,8 +359,6 @@ image_format_strategy = st.sampled_from(["JPEG", "PNG", "WEBP"])
 @settings(max_examples=100, deadline=None)
 def test_upload_creates_retrievable_record(photo_type, image_format):
     """
-    **Validates: Requirements 4.1, 6.1**
-
     For any valid image file and valid photo_type, POSTing to the upload
     endpoint SHALL create a ProfilePhoto that is subsequently retrievable
     via the GET list endpoint, with matching photo_type and a non-empty
@@ -467,8 +453,6 @@ distinct_display_orders = st.lists(
 @settings(max_examples=100, deadline=None)
 def test_photo_list_ordering(display_orders):
     """
-    **Validates: Requirements 4.2**
-
     For any profile with multiple photos having distinct display_order values,
     the GET list endpoint SHALL return photos sorted by display_order in
     ascending order.
@@ -544,8 +528,6 @@ extra_gallery_count = st.integers(min_value=0, max_value=4)
 @settings(max_examples=100, deadline=None)
 def test_delete_removes_photo(photo_type, num_extra):
     """
-    **Validates: Requirements 4.3**
-
     For any ProfilePhoto belonging to the authenticated user, sending a
     DELETE request SHALL result in that photo no longer appearing in the
     GET list response.
@@ -647,8 +629,6 @@ display_order_values = st.integers(min_value=0, max_value=1000)
 @settings(max_examples=100, deadline=None)
 def test_patch_updates_display_order(new_display_order):
     """
-    **Validates: Requirements 4.4**
-
     For any ProfilePhoto and any non-negative integer value, PATCHing with
     that display_order SHALL result in the photo's display_order being
     updated to the new value when subsequently retrieved.
@@ -744,8 +724,6 @@ cross_user_action_strategy = st.sampled_from(["delete", "patch"])
 @settings(max_examples=100, deadline=None)
 def test_cross_user_photo_isolation(action_type):
     """
-    **Validates: Requirements 4.6**
-
     For any two distinct users A and B, user A SHALL not be able to delete
     or update photos belonging to user B. Such attempts SHALL return a 403
     status code and leave user B's photos unchanged.
@@ -855,8 +833,6 @@ avatar_cover_type_strategy = st.sampled_from(["avatar", "cover"])
 @settings(max_examples=100, deadline=None)
 def test_avatar_cover_url_sync_on_upload(photo_type):
     """
-    **Validates: Requirements 5.1, 5.2**
-
     For any profile, after uploading an avatar photo, Profile.avatar_url
     SHALL equal the uploaded photo's image URL. After uploading a cover
     photo, Profile.cover_url SHALL equal the uploaded photo's image URL.
@@ -940,8 +916,6 @@ def test_avatar_cover_url_sync_on_upload(photo_type):
 @settings(max_examples=100, deadline=None)
 def test_avatar_cover_url_cleared_on_delete(photo_type):
     """
-    **Validates: Requirements 5.3, 5.4**
-
     For any profile with an avatar (or cover) photo, deleting that photo
     SHALL set Profile.avatar_url (or cover_url) to null.
     """
@@ -1017,7 +991,6 @@ def test_avatar_cover_url_cleared_on_delete(photo_type):
 
 # ---------------------------------------------------------------------------
 # Unit Tests: Edge Cases and Error Conditions
-# Task 4.10 — Requirements: 3.2, 3.4, 4.5, 6.2
 # ---------------------------------------------------------------------------
 
 
@@ -1026,8 +999,6 @@ def test_avatar_cover_url_cleared_on_delete(photo_type):
 def test_unauthenticated_request_returns_401():
     """
     An unauthenticated request to any photo endpoint SHALL return 401.
-
-    Validates: Requirement 4.5
     """
     from rest_framework.test import APIClient
 
@@ -1074,8 +1045,6 @@ def test_unauthenticated_request_returns_401():
 def test_upload_missing_image_field_returns_400():
     """
     A POST upload with a missing 'image' field SHALL return 400.
-
-    Validates: Requirement 6.2
     """
     from rest_framework.authtoken.models import Token
     from rest_framework.test import APIClient
@@ -1103,8 +1072,6 @@ def test_upload_missing_image_field_returns_400():
 def test_upload_missing_photo_type_returns_400():
     """
     A POST upload with a missing 'photo_type' field SHALL return 400.
-
-    Validates: Requirement 6.2
     """
     from rest_framework.authtoken.models import Token
     from rest_framework.test import APIClient
@@ -1133,8 +1100,6 @@ def test_upload_missing_photo_type_returns_400():
 def test_upload_invalid_photo_type_returns_400():
     """
     A POST upload with an invalid 'photo_type' value SHALL return 400.
-
-    Validates: Requirement 6.2
     """
     from rest_framework.authtoken.models import Token
     from rest_framework.test import APIClient
@@ -1163,8 +1128,6 @@ def test_upload_invalid_photo_type_returns_400():
 def test_upload_corrupt_file_returns_400():
     """
     A POST upload with a corrupt (non-image) file SHALL return 400.
-
-    Validates: Requirements 3.2, 3.4
     """
     from rest_framework.authtoken.models import Token
     from rest_framework.test import APIClient
@@ -1199,8 +1162,6 @@ def test_upload_corrupt_file_returns_400():
 def test_delete_nonexistent_photo_returns_404():
     """
     A DELETE request for a non-existent photo ID SHALL return 404.
-
-    Validates: Requirement 4.5
     """
     import uuid
 
@@ -1228,8 +1189,6 @@ def test_delete_nonexistent_photo_returns_404():
 def test_patch_nonexistent_photo_returns_404():
     """
     A PATCH request for a non-existent photo ID SHALL return 404.
-
-    Validates: Requirement 4.5
     """
     import uuid
 

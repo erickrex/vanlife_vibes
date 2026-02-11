@@ -1,15 +1,5 @@
 # core/views/matches.py
-"""
-ViewSets for person matches and direct messaging.
-
-This module contains the PersonMatchViewSet which handles:
-- Listing and retrieving matches
-- Unmatching (deactivating matches)
-- Sending messages and mini-cards
-- Reporting users
-
-Requirements: 2.1 (Backend File Organization)
-"""
+"""ViewSets for person matches and direct messaging."""
 
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -36,20 +26,7 @@ from .mixins import MessageMixin
 
 
 class PersonMatchViewSet(MessageMixin, viewsets.GenericViewSet):
-    """
-    ViewSet for managing matches and chat between matched users.
-    
-    Provides endpoints for:
-    - GET /matches/ - List user's matches
-    - GET /matches/{id}/ - Get match details
-    - DELETE /matches/{id}/ - Unmatch (set is_active=False)
-    - GET /matches/{id}/messages/ - List messages in match
-    - POST /matches/{id}/messages/ - Send a text message
-    - POST /matches/{id}/messages/mini-card/ - Share a mini-card
-    - POST /matches/{id}/messages/icebreaker/ - Send an icebreaker prompt
-    
-    Uses MessageMixin for the messages endpoint.
-    """
+    """ViewSet for managing matches and chat between matched users."""
     permission_classes = [IsAuthenticated]
     
     # MessageMixin configuration
@@ -58,10 +35,7 @@ class PersonMatchViewSet(MessageMixin, viewsets.GenericViewSet):
     message_create_serializer_class = DirectMessageCreateSerializer
     
     def get_queryset(self):
-        """
-        Return matches where the current user is either user1 or user2.
-        Only returns active matches by default.
-        """
+        """Return active matches where the current user is user1 or user2."""
         try:
             user_profile = self.request.user.profile
         except Profile.DoesNotExist:
@@ -83,10 +57,7 @@ class PersonMatchViewSet(MessageMixin, viewsets.GenericViewSet):
             return None
     
     def _get_match_or_404(self, pk, user_profile):
-        """
-        Get a match by ID, ensuring the user is part of the match.
-        Returns (match, None) on success or (None, error_response) on failure.
-        """
+        """Get a match by ID, ensuring the user is part of it."""
         try:
             match = PersonMatch.objects.get(
                 Q(user1=user_profile) | Q(user2=user_profile),
@@ -104,11 +75,7 @@ class PersonMatchViewSet(MessageMixin, viewsets.GenericViewSet):
     # -------------------------------------------------------------------------
     
     def get_message_parent(self, pk):
-        """
-        Look up the PersonMatch by ID.
-        
-        Returns (match, None) on success or (None, error_response) on failure.
-        """
+        """Look up the PersonMatch by ID."""
         try:
             match = PersonMatch.objects.get(pk=pk)
             return match, None
@@ -119,16 +86,11 @@ class PersonMatchViewSet(MessageMixin, viewsets.GenericViewSet):
             }, status=status.HTTP_404_NOT_FOUND)
     
     def get_message_queryset(self, parent):
-        """
-        Return messages for this match, ordered by created_at ascending.
-        """
+        """Return messages for this match, ordered by created_at."""
         return DirectMessage.objects.filter(match=parent).order_by('created_at')
 
     def _list_messages(self, parent):
-        """
-        List messages and mark incoming unread messages as read for the
-        current user so unread counters stay accurate.
-        """
+        """List messages and mark incoming unread messages as read."""
         try:
             profile = self.request.user.profile
         except Exception:
@@ -151,11 +113,7 @@ class PersonMatchViewSet(MessageMixin, viewsets.GenericViewSet):
         }, status=status.HTTP_200_OK)
     
     def check_message_access(self, parent, profile):
-        """
-        Verify the user is one of the two users in the match.
-        
-        Returns (True, None) if allowed, (False, error_response) if not.
-        """
+        """Verify the user is one of the two users in the match."""
         if parent.user1 != profile and parent.user2 != profile:
             return False, Response({
                 'status': 'error',
@@ -164,11 +122,7 @@ class PersonMatchViewSet(MessageMixin, viewsets.GenericViewSet):
         return True, None
     
     def check_can_send_message(self, parent):
-        """
-        Verify the match is active before allowing message sending.
-        
-        Returns (True, None) if allowed, (False, error_response) if not.
-        """
+        """Verify the match is active before allowing messages."""
         if not parent.is_active:
             return False, Response({
                 'status': 'error',
@@ -177,17 +131,7 @@ class PersonMatchViewSet(MessageMixin, viewsets.GenericViewSet):
         return True, None
     
     def create_message(self, parent, profile, validated_data):
-        """
-        Create a DirectMessage for this match.
-        
-        Args:
-            parent: The PersonMatch instance
-            profile: The sender's profile
-            validated_data: Validated data from the serializer
-        
-        Returns:
-            The created DirectMessage instance
-        """
+        """Create a DirectMessage for this match."""
         message = DirectMessage.objects.create(
             match=parent,
             sender=profile,
@@ -211,9 +155,7 @@ class PersonMatchViewSet(MessageMixin, viewsets.GenericViewSet):
             )
 
     def _broadcast_message_created(self, message):
-        """
-        Push a newly created message to the chat room and notify match lists.
-        """
+        """Push a new message to the chat room and notify match lists."""
         channel_layer = get_channel_layer()
         if not channel_layer:
             return
@@ -248,14 +190,7 @@ class PersonMatchViewSet(MessageMixin, viewsets.GenericViewSet):
     # -------------------------------------------------------------------------
     
     def list(self, request):
-        """
-        List all matches for the authenticated user.
-        
-        GET /matches/
-        
-        Returns active matches where the user is either user1 or user2,
-        ordered by most recent match first.
-        """
+        """GET /matches/ — List active matches for the authenticated user."""
         user_profile = self._get_user_profile(request)
         if not user_profile:
             return Response({
@@ -277,13 +212,7 @@ class PersonMatchViewSet(MessageMixin, viewsets.GenericViewSet):
         }, status=status.HTTP_200_OK)
     
     def retrieve(self, request, pk=None):
-        """
-        Get details of a specific match.
-        
-        GET /matches/{id}/
-        
-        Returns match details including both user profiles.
-        """
+        """GET /matches/{id}/ — Get match details."""
         user_profile = self._get_user_profile(request)
         if not user_profile:
             return Response({
@@ -303,14 +232,7 @@ class PersonMatchViewSet(MessageMixin, viewsets.GenericViewSet):
         }, status=status.HTTP_200_OK)
     
     def destroy(self, request, pk=None):
-        """
-        Unmatch - deactivate a match.
-        
-        DELETE /matches/{id}/
-        
-        Sets is_active=False on the match, preventing further messages.
-        Does not delete the match record.
-        """
+        """DELETE /matches/{id}/ — Deactivate a match."""
         user_profile = self._get_user_profile(request)
         if not user_profile:
             return Response({
@@ -341,20 +263,7 @@ class PersonMatchViewSet(MessageMixin, viewsets.GenericViewSet):
     
     @action(detail=True, methods=['post'], url_path='messages/mini-card')
     def send_mini_card(self, request, pk=None):
-        """
-        Share a mini-card in a match.
-        
-        POST /matches/{id}/messages/mini-card/
-        
-        Request body:
-        {
-            "current_location": "Austin, TX",  // optional
-            "in_town_until": "2024-02-15",     // optional, YYYY-MM-DD format
-            "meet_preference": "Coffee or hike"  // optional
-        }
-        
-        At least one of the fields must be provided.
-        """
+        """POST /matches/{id}/messages/mini-card/ — Share a mini-card."""
         user_profile = self._get_user_profile(request)
         if not user_profile:
             return Response({
@@ -437,16 +346,7 @@ class PersonMatchViewSet(MessageMixin, viewsets.GenericViewSet):
 
     @action(detail=True, methods=['post'], url_path='messages/icebreaker')
     def send_icebreaker(self, request, pk=None):
-        """
-        Send an icebreaker prompt in a match.
-
-        POST /matches/{id}/messages/icebreaker/
-
-        Request body:
-        {
-            "content": "Want to grab coffee while we're both in Austin?"
-        }
-        """
+        """POST /matches/{id}/messages/icebreaker/ — Send an icebreaker prompt."""
         user_profile = self._get_user_profile(request)
         if not user_profile:
             return Response({
@@ -487,17 +387,7 @@ class PersonMatchViewSet(MessageMixin, viewsets.GenericViewSet):
     
     @action(detail=True, methods=['post'], url_path='report')
     def report(self, request, pk=None):
-        """
-        Report the other user in a match for policy violations.
-        
-        POST /matches/{id}/report/
-        
-        Request body:
-        {
-            "reason": "harassment|spam|inappropriate_content|fake_profile|scam|other",
-            "description": "Optional description of the issue (max 500 chars)"
-        }
-        """
+        """POST /matches/{id}/report/ — Report the other user."""
         user_profile = self._get_user_profile(request)
         if not user_profile:
             return Response({

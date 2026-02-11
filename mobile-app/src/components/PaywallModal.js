@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 
 import { revenueCatClient } from '../services/revenuecat';
+import { subscriptionAPI } from '../services/api';
 import { colors } from '../theme/colors';
 
 const BENEFITS = [
@@ -51,6 +52,11 @@ export default function PaywallModal({ visible, onClose, onSubscribed }) {
     try {
       const result = await revenueCatClient.purchase(pkg);
       if (result.success) {
+        try {
+          await subscriptionAPI.sync(result.customerInfo);
+        } catch {
+          // Non-blocking fallback: webhook may still update shortly after purchase.
+        }
         onSubscribed?.();
         onClose?.();
       } else if (result.error === 'cancelled') {

@@ -466,10 +466,7 @@ class ProfileHobby(models.Model):
 
 
 class InTownWindow(models.Model):
-    """
-    Lightweight location + date range for matching boost.
-    Users can set up to 3 in-town windows (current + upcoming).
-    """
+    """Location + date range for matching boost (max 3 per user)."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     profile = models.ForeignKey(
         Profile,
@@ -499,10 +496,7 @@ class InTownWindow(models.Model):
 
 
 class Prompt(models.Model):
-    """
-    Canonical prompt definitions used across the app.
-    Stores the prompt identifier and full question text.
-    """
+    """Canonical prompt definitions (identifier + question text)."""
     PROMPT_TYPE_CHOICES = [
         ('travel', 'Travel'),
         ('dating', 'Dating'),
@@ -523,10 +517,7 @@ class Prompt(models.Model):
 
 
 class ProfilePrompt(models.Model):
-    """
-    User's prompt answers for their profile.
-    Users can select and answer up to 3 prompts from predefined questions.
-    """
+    """User's prompt answers (up to 3 per profile)."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     profile = models.ForeignKey(
         Profile,
@@ -551,12 +542,7 @@ class ProfilePrompt(models.Model):
 
 
 class PersonSwipe(models.Model):
-    """
-    Tracks swipes between users for person-to-person matching (like/pass).
-    
-    Used for dating/friends discovery where users swipe on profiles.
-    A mutual like (both users swipe right in the same mode) creates a PersonMatch.
-    """
+    """Tracks like/pass swipes between users for dating/friends discovery."""
     MODE_CHOICES = [
         ('dating', 'Dating'),
         ('friends', 'Friends'),
@@ -592,12 +578,7 @@ class PersonSwipe(models.Model):
 
 
 class PersonMatch(models.Model):
-    """
-    Represents a mutual match between two users.
-    
-    Created when two users mutually swipe right in the same mode (dating or friends).
-    Enables chat access between matched users.
-    """
+    """Mutual match between two users, enabling chat access."""
     MODE_CHOICES = [
         ('dating', 'Dating'),
         ('friends', 'Friends'),
@@ -640,14 +621,7 @@ class PersonMatch(models.Model):
 
 
 class DirectMessage(models.Model):
-    """
-    Unified chat messages between users.
-    
-    Enables 1:1 chat between users with either a PersonMatch or Friendship.
-    Supports text messages, mini-card sharing, and icebreaker prompts.
-    
-    One of `match` or `friendship` must be set (but not both).
-    """
+    """Chat message between matched/friended users (text, icebreaker, or mini_card)."""
     MESSAGE_TYPE_CHOICES = [
         ('text', 'Text'),
         ('mini_card', 'Mini Card'),
@@ -708,12 +682,7 @@ class DirectMessage(models.Model):
 
 
 class UserReport(models.Model):
-    """
-    Tracks when a user reports another user for policy violations.
-    
-    Reports are stored for moderation review. Multiple reports can be made
-    against the same user by different reporters.
-    """
+    """User report for policy violations, stored for moderation review."""
     REASON_CHOICES = [
         ('harassment', 'Harassment'),
         ('spam', 'Spam'),
@@ -766,12 +735,7 @@ class UserReport(models.Model):
 
 
 class FriendRequest(models.Model):
-    """
-    Friend request between two users.
-    
-    Tracks when one user sends a friend request to another. When accepted,
-    a Friendship is created enabling chat between the users.
-    """
+    """Friend request between two users. Accepted requests create a Friendship."""
     STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('accepted', 'Accepted'),
@@ -806,12 +770,7 @@ class FriendRequest(models.Model):
 
 
 class Friendship(models.Model):
-    """
-    Bidirectional friendship between two users.
-    
-    Created when a FriendRequest is accepted. Enables chat between users.
-    Enforces user1.id < user2.id to prevent duplicate friendships.
-    """
+    """Bidirectional friendship (user1.id < user2.id to prevent duplicates)."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user1 = models.ForeignKey(
         Profile,
@@ -851,12 +810,7 @@ class Friendship(models.Model):
 
 
 class AnalyticsEvent(models.Model):
-    """
-    Lightweight product analytics event captured from authenticated clients.
-
-    Stores a normalized event name plus optional metadata payload so event
-    visibility and filtering can happen directly in Django admin.
-    """
+    """Lightweight product analytics event from authenticated clients."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(
@@ -892,14 +846,7 @@ class AnalyticsEvent(models.Model):
 
 
 class Event(models.Model):
-    """
-    Unified event model combining Plan and Activity functionality.
-    
-    Events can be either direct-join (like Plans) or swipe-to-join (like Activities).
-    The join_mode field determines the participation mechanism:
-    - 'direct': Users can directly join the event (like Plans)
-    - 'swipe': Users swipe to express interest, match when threshold reached (like Activities)
-    """
+    """Unified event model with direct-join and swipe-to-join modes."""
     JOIN_MODE_CHOICES = [
         ('direct', 'Direct Join'),
         ('swipe', 'Swipe to Join'),
@@ -990,15 +937,7 @@ class Event(models.Model):
 
 
 class EventAttendee(models.Model):
-    """
-    Tracks event attendance for users.
-    
-    Users can join events and later confirm their attendance. The status
-    tracks whether they've joined, confirmed, or declined.
-    
-    For direct mode events: Users join directly and can confirm attendance.
-    For swipe mode events: Attendees are added when match threshold is reached.
-    """
+    """Tracks event attendance (joined/confirmed/declined)."""
     STATUS_CHOICES = [
         ('joined', 'Joined'),
         ('confirmed', 'Confirmed'),
@@ -1029,14 +968,7 @@ class EventAttendee(models.Model):
 
 
 class EventSwipe(models.Model):
-    """
-    User swipe on an event for swipe-based event matching.
-    
-    Only used for events with join_mode='swipe'. Tracks when a user swipes
-    right (like) or left (pass) on an event. Each user can only swipe once
-    per event. When enough users swipe right to fill all spots, attendees
-    are added to EventAttendee.
-    """
+    """User swipe on a swipe-mode event. Match triggers when spots fill."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     event = models.ForeignKey(
         Event,
@@ -1061,12 +993,7 @@ class EventSwipe(models.Model):
 
 
 class EventMessage(models.Model):
-    """
-    Chat message for event group chat.
-    
-    Enables group chat for all attendees of an event. Messages are displayed
-    in chronological order. Access control: only attendees can send/view messages.
-    """
+    """Group chat message for event attendees."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     event = models.ForeignKey(
         Event,
@@ -1091,13 +1018,7 @@ class EventMessage(models.Model):
 
 
 class UserSubscription(models.Model):
-    """
-    Tracks a user's subscription status for the freemium model.
-
-    Free users are limited to 3 person-swipes per UTC day.
-    Premium users ($4.99/month via RevenueCat) get unlimited swipes.
-    RevenueCat is the source of truth for entitlement status, synced via webhooks.
-    """
+    """User subscription status for the freemium model (synced via RevenueCat)."""
     PLAN_CHOICES = [
         ('free', 'Free'),
         ('premium', 'Premium'),
