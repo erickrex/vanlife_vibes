@@ -273,7 +273,7 @@ export default function DiscoveryScreen({ mode = 'dating' }) {
                 <Text style={styles.emptyEmoji}>{mode === 'dating' ? '💔' : '🤷'}</Text>
                 <Text style={styles.disabledTitle}>{exhausted ? 'No more profiles' : 'No profiles found'}</Text>
                 <Text style={styles.disabledBody}>
-                  {exhausted ? 'That's everyone in your queue for now.' : 'Check back later, or loosen your filters.'}
+                  {exhausted ? "That's everyone in your queue for now." : 'Check back later, or loosen your filters.'}
                 </Text>
                 <AppButton title="Refresh" onPress={loadProfiles} variant="primary" />
               </View>
