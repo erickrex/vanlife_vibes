@@ -98,6 +98,9 @@ class ProfileSerializer(serializers.ModelSerializer):
     next_month_in_start_date = serializers.SerializerMethodField()
     next_month_in_end_date = serializers.SerializerMethodField()
     
+    # Discovery scoring (set dynamically on profile instances during dating discovery)
+    relevance_score = serializers.SerializerMethodField()
+    
     class Meta:
         model = Profile
         fields = [
@@ -152,6 +155,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'next_month_in_end_date',
             'hobbies',
             'vehicle',
+            'relevance_score',
             'created_at',
             'updated_at',
         ]
@@ -168,6 +172,10 @@ class ProfileSerializer(serializers.ModelSerializer):
             return VehicleSerializer(vehicle).data
         except Vehicle.DoesNotExist:
             return None
+
+    def get_relevance_score(self, obj):
+        """Return relevance_score if set during discovery ranking, else None."""
+        return getattr(obj, 'relevance_score', None)
     
     def get_in_town_windows(self, obj):
         """Return active (non-expired) in-town windows ordered by start_date."""

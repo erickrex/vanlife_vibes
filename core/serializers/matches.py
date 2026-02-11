@@ -198,9 +198,41 @@ class PersonSwipeSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({
                 'swiped_on': "This user is not available for dating."
             })
+
+        # Gender preference validation for dating-mode swipes
+        if swiper and swiped_on and mode == 'dating':
+            self._check_gender_compatibility(swiper, swiped_on)
         
         return attrs
     
+    def _check_gender_compatibility(self, swiper, swiped_on):
+        """Reject dating swipes that violate gender preferences."""
+        # Forward: target's gender must match swiper's interested_in_* flags
+        target_gender = swiped_on.gender
+        if target_gender:
+            prefs = {
+                'man': swiper.interested_in_men,
+                'woman': swiper.interested_in_women,
+                'non_binary': swiper.interested_in_nonbinary,
+            }
+            if not prefs.get(target_gender, False):
+                raise serializers.ValidationError({
+                    'swiped_on': "This profile doesn't match your gender preferences."
+                })
+
+        # Reverse: target's interested_in_* flags must include swiper's gender
+        swiper_gender = swiper.gender
+        if swiper_gender:
+            reverse_prefs = {
+                'man': swiped_on.interested_in_men,
+                'woman': swiped_on.interested_in_women,
+                'non_binary': swiped_on.interested_in_nonbinary,
+            }
+            if not reverse_prefs.get(swiper_gender, False):
+                raise serializers.ValidationError({
+                    'swiped_on': "You don't match this profile's gender preferences."
+                })
+
     def create(self, validated_data):
         """Create a PersonSwipe and check for mutual match."""
         # Set swiper from context if not provided

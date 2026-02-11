@@ -61,6 +61,21 @@ class RelevanceScorer:
             if user_profile.travel_pace == target_profile.travel_pace:
                 score += 10
         
+        # 6. Social vibe match: +10
+        score += self.calculate_social_vibe_score(user_profile, target_profile)
+        
+        # 7. Travel status match: +8
+        score += self.calculate_travel_status_score(user_profile, target_profile)
+        
+        # 8. Travel companions match: +5
+        score += self.calculate_travel_companions_score(user_profile, target_profile)
+        
+        # 9. Rig affinity: +5
+        score += self.calculate_rig_affinity_score(user_profile, target_profile)
+        
+        # 10. Shared prompts: +3 per shared prompt
+        score += self.calculate_shared_prompts_score(user_profile, target_profile)
+        
         return score
     
     def sort_by_relevance(self, user_profile: Profile, profiles: List[Profile]) -> List[Profile]:
@@ -79,3 +94,54 @@ class RelevanceScorer:
         
         # Return just the profiles in sorted order
         return [profile for profile, score in scored_profiles]
+
+    def calculate_social_vibe_score(self, user_profile: Profile, target_profile: Profile) -> int:
+        """+10 if social_vibe matches."""
+        if user_profile.social_vibe and target_profile.social_vibe:
+            return 10 if user_profile.social_vibe == target_profile.social_vibe else 0
+        return 0
+
+    def calculate_travel_status_score(self, user_profile: Profile, target_profile: Profile) -> int:
+        """+8 if travel_status matches."""
+        if user_profile.travel_status and target_profile.travel_status:
+            return 8 if user_profile.travel_status == target_profile.travel_status else 0
+        return 0
+
+    def calculate_travel_companions_score(self, user_profile: Profile, target_profile: Profile) -> int:
+        """+5 if travel_companions match."""
+        if user_profile.travel_companions and target_profile.travel_companions:
+            return 5 if user_profile.travel_companions == target_profile.travel_companions else 0
+        return 0
+
+    def calculate_rig_affinity_score(self, user_profile: Profile, target_profile: Profile) -> int:
+        """+5 if both have vehicles or both don't."""
+        user_has = user_profile.has_van or (user_profile.rig_status and user_profile.rig_status != 'no_vehicle')
+        target_has = target_profile.has_van or (target_profile.rig_status and target_profile.rig_status != 'no_vehicle')
+        return 5 if user_has == target_has else 0
+
+    def calculate_shared_prompts_score(self, user_profile: Profile, target_profile: Profile) -> int:
+        """+3 per shared prompt topic."""
+        user_prompts = set(user_profile.prompts.values_list('prompt_id', flat=True))
+        target_prompts = set(target_profile.prompts.values_list('prompt_id', flat=True))
+        return len(user_prompts & target_prompts) * 3
+
+    def calculate_completeness_score(self, profile: Profile) -> int:
+        """Compute profile completeness score (0-60)."""
+        score = 0
+        if profile.avatar_url:
+            score += 15
+        if profile.cover_url:
+            score += 5
+        if profile.photos.count() >= 2:
+            score += 10
+        if profile.bio and len(profile.bio) > 20:
+            score += 10
+        if profile.profile_hobbies.count() >= 3:
+            score += 10
+        if profile.prompts.count() >= 1:
+            score += 5
+        if profile.in_town_windows.count() >= 1:
+            score += 5
+        return score
+
+

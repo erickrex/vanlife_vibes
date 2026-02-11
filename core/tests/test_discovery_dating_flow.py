@@ -30,6 +30,11 @@ class TestDiscoveryDatingFlow(TestCase):
         self.profile2.display_name = 'Dating Flow Two'
         self.profile1.looking_for_dating = True
         self.profile2.looking_for_dating = True
+        # Set gender preferences so profiles pass bidirectional gender filter
+        self.profile1.gender = 'man'
+        self.profile1.interested_in_women = True
+        self.profile2.gender = 'woman'
+        self.profile2.interested_in_men = True
         self.profile1.save()
         self.profile2.save()
 

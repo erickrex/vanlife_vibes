@@ -929,6 +929,12 @@ class FeedViewSet(viewsets.GenericViewSet):
 # Discovery ViewSet
 # ============================================================================
 
+# Combined score weights for dating discovery ranking
+W_LOCATION = 2.0
+W_RELEVANCE = 1.0
+W_COMPLETENESS = 0.5
+
+
 class DiscoveryViewSet(viewsets.GenericViewSet):
     """Discovery and swiping for dating/friends modes."""
     permission_classes = [IsAuthenticated]
@@ -998,6 +1004,37 @@ class DiscoveryViewSet(viewsets.GenericViewSet):
                     queryset = queryset.filter(pet_friendly_only=False)
         
         return queryset
+
+    def _apply_gender_filters(self, queryset, user_profile):
+        """Apply bidirectional gender preference filtering."""
+        # Forward: filter by current user's preferences
+        gender_q = Q()
+        if user_profile.interested_in_men:
+            gender_q |= Q(gender='man')
+        if user_profile.interested_in_women:
+            gender_q |= Q(gender='woman')
+        if user_profile.interested_in_nonbinary:
+            gender_q |= Q(gender='non_binary')
+        # Always include profiles with no gender set
+        gender_q |= Q(gender__isnull=True) | Q(gender='')
+
+        if not (user_profile.interested_in_men or user_profile.interested_in_women or user_profile.interested_in_nonbinary):
+            return queryset.none()
+
+        queryset = queryset.filter(gender_q)
+
+        # Reverse: exclude profiles whose preferences don't include current user
+        user_gender = user_profile.gender
+        if user_gender == 'man':
+            queryset = queryset.filter(Q(interested_in_men=True) | Q(gender__isnull=True) | Q(gender=''))
+        elif user_gender == 'woman':
+            queryset = queryset.filter(Q(interested_in_women=True) | Q(gender__isnull=True) | Q(gender=''))
+        elif user_gender == 'non_binary':
+            queryset = queryset.filter(Q(interested_in_nonbinary=True) | Q(gender__isnull=True) | Q(gender=''))
+        # If current user has no gender set, don't apply reverse filter
+
+        return queryset
+
     
     def _get_discovery_profiles(self, request, mode):
         """Get filtered and sorted profiles for discovery by mode."""
@@ -1022,6 +1059,8 @@ class DiscoveryViewSet(viewsets.GenericViewSet):
         if mode == 'dating':
             # Only show profiles where looking_for_dating is true
             queryset = queryset.filter(looking_for_dating=True)
+            # Apply bidirectional gender preference filtering
+            queryset = self._apply_gender_filters(queryset, user_profile)
         else:  # friends mode
             # Only show profiles where looking_for_friends is true
             queryset = queryset.filter(looking_for_friends=True)
@@ -1042,8 +1081,22 @@ class DiscoveryViewSet(viewsets.GenericViewSet):
         # Sort by overlap score (descending)
         profiles_with_scores.sort(key=lambda x: x[1], reverse=True)
         
-        # Extract sorted profiles
-        sorted_profiles = [p[0] for p in profiles_with_scores]
+        # For dating mode, apply combined score ranking with RelevanceScorer
+        if mode == 'dating':
+            top_candidates = profiles_with_scores[:50]
+            scorer = RelevanceScorer()
+            ranked = []
+            for profile, overlap in top_candidates:
+                relevance = scorer.calculate_score(user_profile, profile)
+                completeness = scorer.calculate_completeness_score(profile)
+                final_score = (overlap * W_LOCATION) + (relevance * W_RELEVANCE) + (completeness * W_COMPLETENESS)
+                profile.relevance_score = relevance
+                ranked.append((profile, final_score))
+            ranked.sort(key=lambda x: x[1], reverse=True)
+            sorted_profiles = [p[0] for p in ranked]
+        else:
+            # Extract sorted profiles
+            sorted_profiles = [p[0] for p in profiles_with_scores]
         
         return sorted_profiles, None
 
