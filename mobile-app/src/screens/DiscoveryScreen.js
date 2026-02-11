@@ -4,6 +4,8 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
 import DiscoveryFilters from '../components/DiscoveryFilters';
 import DiscoverySwipeDeck from '../components/DiscoverySwipeDeck';
+import PaywallModal from '../components/PaywallModal';
+import SwipeCounter from '../components/SwipeCounter';
 import AppButton from '../components/AppButton';
 import Screen from '../components/Screen';
 import { useAuth } from '../contexts/AuthContext';
@@ -13,8 +15,17 @@ import { colors } from '../theme/colors';
 function normalizeListResponse(response) {
   const data = response?.data?.data ?? response?.data;
   if (Array.isArray(data)) return data;
+  if (data?.profiles && Array.isArray(data.profiles)) return data.profiles;
   if (data?.results && Array.isArray(data.results)) return data.results;
   return [];
+}
+
+function extractSubscriptionMeta(response) {
+  const data = response?.data?.data ?? response?.data;
+  return {
+    remainingSwipes: data?.remaining_swipes ?? null,
+    isPremium: data?.is_premium ?? false,
+  };
 }
 
 export default function DiscoveryScreen({ mode = 'dating' }) {
@@ -29,6 +40,9 @@ export default function DiscoveryScreen({ mode = 'dating' }) {
   const [enabled, setEnabled] = useState(null);
   const [exhausted, setExhausted] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [remainingSwipes, setRemainingSwipes] = useState(null);
+  const [isPremium, setIsPremium] = useState(false);
+  const [paywallVisible, setPaywallVisible] = useState(false);
   const filtersRef = useRef(filters);
   const loadRequestIdRef = useRef(0);
 
@@ -80,6 +94,10 @@ export default function DiscoveryScreen({ mode = 'dating' }) {
       const list = normalizeListResponse(response);
       if (requestId !== loadRequestIdRef.current) return;
       setProfiles(list);
+
+      const meta = extractSubscriptionMeta(response);
+      if (meta.remainingSwipes !== null) setRemainingSwipes(meta.remainingSwipes);
+      setIsPremium(meta.isPremium);
     } catch (err) {
       if (requestId !== loadRequestIdRef.current) return;
       setError(err.message || 'Failed to load profiles');
@@ -122,6 +140,32 @@ export default function DiscoveryScreen({ mode = 'dating' }) {
     setFilters(nextFilters);
     loadProfiles(nextFilters);
   };
+
+  const handleSwipe = useCallback((direction, profile, data) => {
+    if (data?.error) {
+      // Detect swipe limit 403 — the backend message contains "swipe limit"
+      if (typeof data.error === 'string' && data.error.toLowerCase().includes('swipe limit')) {
+        setRemainingSwipes(0);
+        setPaywallVisible(true);
+      }
+      return;
+    }
+    if (data?.remaining_swipes !== undefined) {
+      setRemainingSwipes(data.remaining_swipes);
+    }
+    if (data?.is_premium !== undefined) {
+      setIsPremium(data.is_premium);
+    }
+  }, []);
+
+  const handleSubscribed = useCallback(() => {
+    setPaywallVisible(false);
+    setIsPremium(true);
+    setRemainingSwipes(null);
+    loadProfiles();
+  }, [loadProfiles]);
+
+  const swipesDisabled = remainingSwipes === 0 && !isPremium;
 
   return (
     <Screen>
@@ -166,6 +210,7 @@ export default function DiscoveryScreen({ mode = 'dating' }) {
               <Text style={styles.matchesBadgeText}>{headerMatchesLabel}</Text>
             </View>
           </Pressable>
+          <SwipeCounter remainingSwipes={remainingSwipes} isPremium={isPremium} />
         </View>
 
         {loading && enabled === null ? (
@@ -242,8 +287,11 @@ export default function DiscoveryScreen({ mode = 'dating' }) {
                   currentProfile={currentProfile}
                   accentColor={accent}
                   onMatch={handleMatch}
+                  onSwipe={handleSwipe}
                   onNavigateToChat={handleNavigateToChat}
                   onEmpty={() => setExhausted(true)}
+                  swipesDisabled={swipesDisabled}
+                  onSwipeLimitReached={() => setPaywallVisible(true)}
                 />
               </View>
             ) : null}
@@ -254,6 +302,12 @@ export default function DiscoveryScreen({ mode = 'dating' }) {
           <Text style={styles.refreshText}>{loading ? 'Refreshing…' : 'Refresh'}</Text>
         </Pressable>
       </View>
+
+      <PaywallModal
+        visible={paywallVisible}
+        onClose={() => setPaywallVisible(false)}
+        onSubscribed={handleSubscribed}
+      />
     </Screen>
   );
 }

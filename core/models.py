@@ -1089,3 +1089,40 @@ class EventMessage(models.Model):
         return f"Message from {self.sender.user.username} in {self.event.title}"
 
 
+
+class UserSubscription(models.Model):
+    """
+    Tracks a user's subscription status for the freemium model.
+
+    Free users are limited to 3 person-swipes per UTC day.
+    Premium users ($4.99/month via RevenueCat) get unlimited swipes.
+    RevenueCat is the source of truth for entitlement status, synced via webhooks.
+    """
+    PLAN_CHOICES = [
+        ('free', 'Free'),
+        ('premium', 'Premium'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    profile = models.OneToOneField(
+        Profile,
+        on_delete=models.CASCADE,
+        related_name='subscription'
+    )
+    plan = models.CharField(max_length=20, choices=PLAN_CHOICES, default='free')
+    revenuecat_app_user_id = models.CharField(max_length=255, blank=True, default='')
+    current_period_end = models.DateTimeField(null=True, blank=True)
+    is_active = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'user_subscription'
+
+    @property
+    def is_premium(self):
+        return self.plan == 'premium' and self.is_active
+
+    def __str__(self):
+        return f"{self.profile.user.username} - {self.plan} ({'active' if self.is_active else 'inactive'})"
+

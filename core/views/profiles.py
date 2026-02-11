@@ -24,6 +24,7 @@ from core.models import (
     InTownWindow, City, Prompt, ProfilePrompt, PersonSwipe,
     AnalyticsEvent, ProfilePhoto
 )
+from core.services.swipe_limit import SwipeLimitService
 from core.serializers import (
     ProfileSerializer,
     ProfileUpdateSerializer,
@@ -1253,60 +1254,68 @@ class DiscoveryViewSet(viewsets.GenericViewSet):
         return sorted_profiles, None
 
     
-    @action(detail=False, methods=['get'], url_path='dating')
+    @action(detail=False, methods=['get'])
     def dating(self, request):
         """
         Get profiles for dating mode discovery.
-        
+
         GET /discovery/dating/
-        
+
         Query Parameters:
         - travel_pace: Filter by travel pace (slow, mixed, fast)
         - profile_type: Filter by profile type (solo, couple, group)
         - pet_compatible: Filter by pet compatibility (true/false)
-        
+
         Returns profiles with looking_for_dating=True, excluding already-swiped
         profiles and the current user. Results are boosted by in-town window overlap.
         """
         profiles, error_response = self._get_discovery_profiles(request, 'dating')
-        
+
         if error_response:
             return error_response
-        
-        # Serialize profiles
+
+        user_profile = self._get_user_profile(request)
         serializer = ProfileSerializer(profiles, many=True)
-        
+
         return Response({
             'status': 'success',
-            'data': serializer.data
+            'data': {
+                'profiles': serializer.data,
+                'remaining_swipes': SwipeLimitService.get_remaining_swipes(user_profile),
+                'is_premium': SwipeLimitService.is_premium(user_profile),
+            }
         }, status=status.HTTP_200_OK)
     
-    @action(detail=False, methods=['get'], url_path='friends')
+    @action(detail=False, methods=['get'])
     def friends(self, request):
         """
         Get profiles for friends mode discovery.
-        
+
         GET /discovery/friends/
-        
+
         Query Parameters:
         - travel_pace: Filter by travel pace (slow, mixed, fast)
         - profile_type: Filter by profile type (solo, couple, group)
         - pet_compatible: Filter by pet compatibility (true/false)
-        
+
         Returns profiles with looking_for_friends=True, excluding already-swiped
         profiles and the current user. Results are boosted by in-town window overlap.
         """
         profiles, error_response = self._get_discovery_profiles(request, 'friends')
-        
+
         if error_response:
             return error_response
-        
-        # Serialize profiles
+
+        user_profile = self._get_user_profile(request)
         serializer = ProfileSerializer(profiles, many=True)
-        
+
         return Response({
             'status': 'success',
-            'data': serializer.data
+            'data': {
+                'profiles': serializer.data,
+                'remaining_swipes': SwipeLimitService.get_remaining_swipes(user_profile),
+                'is_premium': SwipeLimitService.is_premium(user_profile),
+            }
         }, status=status.HTTP_200_OK)
 
     
@@ -1334,6 +1343,18 @@ class DiscoveryViewSet(viewsets.GenericViewSet):
                 'status': 'error',
                 'message': 'Profile not found'
             }, status=status.HTTP_404_NOT_FOUND)
+        
+        # Check swipe limit before creating swipe
+        if not SwipeLimitService.can_swipe(user_profile):
+            return Response({
+                'status': 'error',
+                'message': 'Daily swipe limit reached. Upgrade to Premium for unlimited swipes.',
+                'data': {
+                    'swipe_limit_reached': True,
+                    'remaining_swipes': 0,
+                    'is_premium': False
+                }
+            }, status=status.HTTP_403_FORBIDDEN)
         
         # Add swiper to the data
         data = request.data.copy()
@@ -1379,6 +1400,10 @@ class DiscoveryViewSet(viewsets.GenericViewSet):
             response_data['is_match'] = True
         else:
             response_data['is_match'] = False
+        
+        # Include subscription metadata in response
+        response_data['remaining_swipes'] = SwipeLimitService.get_remaining_swipes(user_profile)
+        response_data['is_premium'] = SwipeLimitService.is_premium(user_profile)
         
         return Response({
             'status': 'success',

@@ -11,6 +11,7 @@ import CreateEventScreen from '../../screens/CreateEventScreen';
 import WelcomeScreen from '../../screens/WelcomeScreen';
 import ProfileScreen from '../../screens/ProfileScreen';
 import ProfileEditScreen from '../../screens/ProfileEditScreen';
+import SubscriptionScreen from '../../screens/SubscriptionScreen';
 import { colors } from '../../theme/colors';
 
 const Stack = createNativeStackNavigator();
@@ -42,6 +43,7 @@ export default function AppStackNavigator({ initialRouteName = 'Tabs' }) {
         component={DiscoverySettingsScreen}
         options={{ title: 'Discovery Settings' }}
       />
+      <Stack.Screen name="Subscription" component={SubscriptionScreen} options={{ title: 'Subscription' }} />
     </Stack.Navigator>
   );
 }

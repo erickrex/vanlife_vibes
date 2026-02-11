@@ -218,6 +218,11 @@ export const eventsAPI = {
   getMyMatches: () => api.get('/events/my-matches/'),
 };
 
+// Subscription API
+export const subscriptionAPI = {
+  getStatus: () => api.get('/subscription/status/'),
+};
+
 // Analytics API
 export const analyticsAPI = {
   trackEvent: (eventName, metadata = {}) =>

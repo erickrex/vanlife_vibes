@@ -45,14 +45,16 @@ class TestDiscoveryDatingFlow(TestCase):
     def test_dating_swipe_match_and_chat(self):
         resp1 = self.client1.get('/api/v1/discovery/dating/')
         self.assertEqual(resp1.status_code, status.HTTP_200_OK)
+        profiles1 = resp1.json().get('data', {}).get('profiles', [])
         self.assertTrue(
-            any(p['id'] == str(self.profile2.id) for p in resp1.json().get('data', []))
+            any(p['id'] == str(self.profile2.id) for p in profiles1)
         )
 
         resp2 = self.client2.get('/api/v1/discovery/dating/')
         self.assertEqual(resp2.status_code, status.HTTP_200_OK)
+        profiles2 = resp2.json().get('data', {}).get('profiles', [])
         self.assertTrue(
-            any(p['id'] == str(self.profile1.id) for p in resp2.json().get('data', []))
+            any(p['id'] == str(self.profile1.id) for p in profiles2)
         )
 
         like1 = self.client1.post(

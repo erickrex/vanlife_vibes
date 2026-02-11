@@ -328,3 +328,6 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
+
+# RevenueCat Configuration
+REVENUECAT_WEBHOOK_SECRET = config("REVENUECAT_WEBHOOK_SECRET", default="")

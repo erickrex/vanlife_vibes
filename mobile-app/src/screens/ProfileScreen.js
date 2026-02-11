@@ -373,6 +373,7 @@ export default function ProfileScreen() {
 
         {isOwnProfile ? (
           <View style={styles.actionRow}>
+            <AppButton title="Subscription" onPress={() => navigation.navigate('Subscription')} variant="secondary" style={styles.flexButton} />
             <AppButton title="Matches" onPress={() => navigation.navigate('Matches')} variant="secondary" style={styles.flexButton} />
             <AppButton title="Log out" onPress={logout} variant="danger" style={styles.flexButton} />
           </View>

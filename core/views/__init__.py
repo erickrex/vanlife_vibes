@@ -21,6 +21,7 @@ from .profiles import (
 from .matches import PersonMatchViewSet
 from .events import EventViewSet
 from .health import health_check
+from .subscription import RevenueCatWebhookView, SubscriptionViewSet
 
 __all__ = [
     'MessageMixin',
@@ -34,4 +35,6 @@ __all__ = [
     'PersonMatchViewSet',
     'EventViewSet',
     'health_check',
+    'RevenueCatWebhookView',
+    'SubscriptionViewSet',
 ]

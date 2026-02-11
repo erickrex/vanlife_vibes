@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { authAPI, profilesAPI, setUnauthorizedHandler } from '../services/api';
 import { clearAuthToken, getAuthToken, setAuthToken } from '../storage/authToken';
+import { revenueCatClient } from '../services/revenuecat';
 
 const AuthContext = createContext(null);
 
@@ -20,6 +21,11 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   const clearSession = async () => {
+    try {
+      await revenueCatClient.reset();
+    } catch {
+      // Non-blocking — proceed with session cleanup
+    }
     await clearAuthToken();
     setUser(null);
     setProfile(null);
@@ -70,6 +76,11 @@ export const AuthProvider = ({ children }) => {
         const userData = response.data.data || response.data;
         if (!isMounted) return;
         setUser(userData);
+        try {
+          await revenueCatClient.identify(String(userData.id));
+        } catch {
+          // Non-blocking — app continues with backend status
+        }
         await refreshProfile();
       } catch {
         await clearAuthToken();
@@ -96,6 +107,11 @@ export const AuthProvider = ({ children }) => {
 
       await setAuthToken(token);
       setUser(userData);
+      try {
+        await revenueCatClient.identify(String(userData.id));
+      } catch {
+        // Non-blocking — app continues with backend status
+      }
       await refreshProfile();
 
       return { success: true };
@@ -114,6 +130,11 @@ export const AuthProvider = ({ children }) => {
 
       await setAuthToken(token);
       setUser(newUser);
+      try {
+        await revenueCatClient.identify(String(newUser.id));
+      } catch {
+        // Non-blocking — app continues with backend status
+      }
       await refreshProfile();
 
       return { success: true };

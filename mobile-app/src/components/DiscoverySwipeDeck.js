@@ -92,6 +92,8 @@ export default function DiscoverySwipeDeck({
   onEmpty,
   onNavigateToChat,
   accentColor,
+  swipesDisabled = false,
+  onSwipeLimitReached,
 }) {
   const [width, setWidth] = useState(360);
   const swipeThreshold = Math.max(80, Math.min(width * 0.25, 150));
@@ -190,6 +192,10 @@ export default function DiscoverySwipeDeck({
   const forceSwipe = useCallback(
     (direction) => {
       if (!activeProfile || isProcessing) return;
+      if (swipesDisabled) {
+        onSwipeLimitReached?.();
+        return;
+      }
 
       const x = direction === 'right' ? width * 1.2 : -width * 1.2;
       Animated.timing(position, {
@@ -202,18 +208,18 @@ export default function DiscoverySwipeDeck({
         finalizeSwipe(direction, activeProfile);
       });
     },
-    [activeProfile, finalizeSwipe, isProcessing, position, width],
+    [activeProfile, finalizeSwipe, isProcessing, onSwipeLimitReached, position, swipesDisabled, width],
   );
 
   const panResponder = useMemo(() => {
     return PanResponder.create({
-      onStartShouldSetPanResponder: () => !isProcessing,
-      onMoveShouldSetPanResponder: (_, gesture) => !isProcessing && (Math.abs(gesture.dx) > 4 || Math.abs(gesture.dy) > 4),
+      onStartShouldSetPanResponder: () => !isProcessing && !swipesDisabled,
+      onMoveShouldSetPanResponder: (_, gesture) => !isProcessing && !swipesDisabled && (Math.abs(gesture.dx) > 4 || Math.abs(gesture.dy) > 4),
       onPanResponderMove: Animated.event([null, { dx: position.x, dy: position.y }], {
         useNativeDriver: false,
       }),
       onPanResponderRelease: (_, gesture) => {
-        if (isProcessing) return;
+        if (isProcessing || swipesDisabled) return;
         if (gesture.dx > swipeThreshold) {
           forceSwipe('right');
           return;
@@ -225,7 +231,7 @@ export default function DiscoverySwipeDeck({
         resetPosition();
       },
     });
-  }, [forceSwipe, isProcessing, position.x, position.y, swipeThreshold]);
+  }, [forceSwipe, isProcessing, position.x, position.y, swipesDisabled, swipeThreshold]);
 
   const closeMatch = () => {
     setMatchVisible(false);
@@ -288,21 +294,27 @@ export default function DiscoverySwipeDeck({
 
       <View style={styles.actions}>
         <Pressable
-          onPress={() => forceSwipe('left')}
+          onPress={() => {
+            if (swipesDisabled) { onSwipeLimitReached?.(); return; }
+            forceSwipe('left');
+          }}
           disabled={isProcessing}
-          style={({ pressed }) => [styles.actionButton, styles.passButton, pressed ? styles.pressed : null, isProcessing ? styles.disabled : null]}
+          style={({ pressed }) => [styles.actionButton, styles.passButton, pressed ? styles.pressed : null, (isProcessing || swipesDisabled) ? styles.disabled : null]}
         >
           <Text style={styles.actionEmoji}>✕</Text>
           <Text style={styles.actionLabel}>Pass</Text>
         </Pressable>
         <Pressable
-          onPress={() => forceSwipe('right')}
+          onPress={() => {
+            if (swipesDisabled) { onSwipeLimitReached?.(); return; }
+            forceSwipe('right');
+          }}
           disabled={isProcessing}
           style={({ pressed }) => [
             styles.actionButton,
             { borderColor: accentColor || colors.primary, backgroundColor: `${(accentColor || colors.primary)}22` },
             pressed ? styles.pressed : null,
-            isProcessing ? styles.disabled : null,
+            (isProcessing || swipesDisabled) ? styles.disabled : null,
           ]}
         >
           <Text style={[styles.actionEmoji, { color: accentColor || colors.primary }]}>{rightActionIcon}</Text>
