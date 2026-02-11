@@ -1,12 +1,13 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { colors } from '../theme/colors';
+import { radius } from '../theme/tokens';
 
 const VARIANTS = {
   primary: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
-    textColor: '#001018',
+    textColor: colors.primaryText,
   },
   secondary: {
     backgroundColor: 'transparent',
@@ -44,21 +45,20 @@ export default function AppButton({ title, onPress, disabled, variant = 'primary
 const styles = StyleSheet.create({
   base: {
     borderWidth: 1,
-    borderRadius: 14,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    borderRadius: radius.lg,
+    paddingVertical: 13,
+    paddingHorizontal: 18,
     alignItems: 'center',
     justifyContent: 'center',
   },
   pressed: {
-    opacity: 0.9,
+    opacity: 0.88,
   },
   disabled: {
-    opacity: 0.5,
+    opacity: 0.45,
   },
   title: {
     fontSize: 16,
     fontWeight: '700',
   },
 });
-

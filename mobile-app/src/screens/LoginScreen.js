@@ -8,6 +8,7 @@ import Screen from '../components/Screen';
 import { useAuth } from '../contexts/AuthContext';
 import { API_BASE_URL } from '../services/api';
 import { colors } from '../theme/colors';
+import { radius } from '../theme/tokens';
 
 export default function LoginScreen({ navigation }) {
   const { login } = useAuth();
@@ -121,75 +122,38 @@ export default function LoginScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 28,
-    paddingBottom: 28,
-  },
-  title: {
-    color: colors.text,
-    fontSize: 24,
-    fontWeight: '800',
-  },
-  subtitle: {
-    color: colors.muted,
-    marginTop: 6,
-    marginBottom: 18,
-  },
-  debugText: {
-    color: colors.muted,
-    fontSize: 12,
-    marginBottom: 10,
-  },
+  flex: { flex: 1 },
+  scrollContainer: { flexGrow: 1, flex: 1, paddingHorizontal: 20, paddingTop: 28, paddingBottom: 28 },
+  title: { color: colors.text, fontSize: 24, fontWeight: '800' },
+  subtitle: { color: colors.muted, marginTop: 6, marginBottom: 18 },
+  debugText: { color: colors.muted, fontSize: 12, marginBottom: 10 },
   form: {
     gap: 14,
     padding: 16,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.card,
-    borderRadius: 18,
+    borderRadius: radius.xl,
   },
   toggle: {
     alignSelf: 'flex-start',
     paddingVertical: 6,
     paddingHorizontal: 8,
-    borderRadius: 10,
+    borderRadius: radius.sm,
     borderWidth: 1,
     borderColor: colors.border,
   },
-  togglePressed: {
-    opacity: 0.9,
-  },
-  toggleText: {
-    color: colors.muted,
-    fontSize: 12,
-    fontWeight: '600',
-  },
+  togglePressed: { opacity: 0.9 },
+  toggleText: { color: colors.muted, fontSize: 12, fontWeight: '600' },
   banner: {
     borderWidth: 1,
-    borderColor: '#7f1d1d',
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderColor: `${colors.danger}44`,
+    backgroundColor: `${colors.danger}18`,
     padding: 12,
-    borderRadius: 14,
+    borderRadius: radius.lg,
   },
-  bannerText: {
-    color: colors.danger,
-    fontSize: 13,
-  },
-  footerLink: {
-    paddingVertical: 4,
-  },
-  footerText: {
-    color: colors.muted,
-    textAlign: 'center',
-  },
-  footerTextStrong: {
-    color: colors.primary,
-    fontWeight: '700',
-  },
+  bannerText: { color: colors.danger, fontSize: 13 },
+  footerLink: { paddingVertical: 4 },
+  footerText: { color: colors.muted, textAlign: 'center' },
+  footerTextStrong: { color: colors.primary, fontWeight: '700' },
 });

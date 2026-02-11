@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   description: {
-    color: '#d4d4d8',
+    color: colors.secondary,
     lineHeight: 19,
   },
   hostRow: {

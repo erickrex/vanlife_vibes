@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # VanlifeVibes Development Startup Script
-# This script starts both backend and frontend servers
+# This script starts backend and mobile Expo servers
 
 echo "🚀 Starting VanlifeVibes Development Environment"
 echo ""
@@ -14,11 +14,11 @@ if [ ! -f .env ]; then
     echo ""
 fi
 
-# Check if frontend/.env exists
-if [ ! -f frontend/.env ]; then
-    echo "⚠️  frontend/.env file not found. Creating from frontend/.env.example..."
-    cp frontend/.env.example frontend/.env
-    echo "✅ Created frontend/.env file."
+# Check if mobile-app/.env exists
+if [ ! -f mobile-app/.env ] && [ -f mobile-app/.env.example ]; then
+    echo "⚠️  mobile-app/.env file not found. Creating from mobile-app/.env.example..."
+    cp mobile-app/.env.example mobile-app/.env
+    echo "✅ Created mobile-app/.env file."
     echo ""
 fi
 
@@ -29,11 +29,11 @@ if ! command -v uv &> /dev/null; then
     exit 1
 fi
 
-# Check if node_modules exists in frontend
-if [ ! -d "frontend/node_modules" ]; then
-    echo "📦 Installing frontend dependencies..."
-    cd frontend && npm install && cd ..
-    echo "✅ Frontend dependencies installed."
+# Check if node_modules exists in mobile-app
+if [ ! -d "mobile-app/node_modules" ]; then
+    echo "📦 Installing mobile dependencies..."
+    cd mobile-app && npm install && cd ..
+    echo "✅ Mobile dependencies installed."
     echo ""
 fi
 
@@ -41,7 +41,7 @@ fi
 cleanup() {
     echo ""
     echo "🛑 Shutting down servers..."
-    kill $BACKEND_PID $FRONTEND_PID 2>/dev/null
+    kill $BACKEND_PID $MOBILE_PID 2>/dev/null
     exit 0
 }
 
@@ -54,16 +54,16 @@ BACKEND_PID=$!
 # Wait a moment for backend to start
 sleep 2
 
-echo "🎨 Starting Frontend Server..."
-cd frontend && npm run dev &
-FRONTEND_PID=$!
+echo "📱 Starting Mobile Expo Server..."
+cd mobile-app && npx expo start --lan &
+MOBILE_PID=$!
 cd ..
 
 echo ""
 echo "✅ Development servers started!"
 echo ""
 echo "📍 Access the application at:"
-echo "   Frontend:     http://localhost:5173"
+echo "   Expo DevTools: (opened by Expo CLI)"
 echo "   Backend API:  http://0.0.0.0:8000/api/v1"
 echo "   Django Admin: http://0.0.0.0:8000/admin"
 echo "   Mobile LAN:   http://<your-lan-ip>:8000/api/v1"
@@ -72,4 +72,4 @@ echo "Press Ctrl+C to stop all servers"
 echo ""
 
 # Wait for both processes
-wait $BACKEND_PID $FRONTEND_PID
+wait $BACKEND_PID $MOBILE_PID

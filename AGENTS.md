@@ -1,54 +1,45 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- `core/`: Django app (models, API endpoints, matching/services).
-- `vanlifevibes/`: Django project settings and URL config.
-- `frontend/`: React + Vite app (`src/pages`, `src/components`, `src/services/api.js`, `src/contexts`).
-- `templates/`: Server-rendered templates (if used).
-- `manage.py`: Django entrypoint.
-- `start-dev.sh`, `run-tests.sh`: Local dev and test helpers.
+This repository is a monorepo with a Django backend and Expo React Native mobile client.
+
+- `core/`: main Django app (`models.py`, `views/`, `serializers/`, `services/`, `tests/`, `migrations/`).
+- `vanlifevibes/`: Django project config (`settings.py`, `urls.py`, `asgi.py`, `wsgi.py`).
+- `mobile-app/`: mobile app (`src/screens`, `src/components`, `src/navigation`, `src/services`).
+- `templates/`: Django email/auth templates.
+- Ops and docs: `Dockerfile`, `entrypoint.sh`, `.ebextensions/`, `DEPLOYMENT.md`.
 
 ## Build, Test, and Development Commands
-- **Always use `uv run` to execute Python** - never use `python` or `python3` directly.
-- `uv sync`: Install Python dependencies.
-- `./start-dev.sh`: Run backend (`manage.py runserver`) + frontend (`npm run dev`).
-- `uv run python manage.py migrate`: Apply DB migrations.
-- `uv run python manage.py createsuperuser`: Create admin user.
-- `./run-tests.sh`: Run backend and frontend tests together.
-- `uv run python manage.py test core.tests`: Backend test suite.
-- `cd frontend && npm test`: Frontend tests (Vitest).
-- `cd frontend && npm run build`: Build frontend bundle.
+- Install backend deps: `uv sync`
+- Run backend locally: `uv run python manage.py runserver 0.0.0.0:8000`
+- Apply migrations: `uv run python manage.py migrate`
+- Run backend tests: `uv run python manage.py test core.tests`
+- Install mobile deps: `cd mobile-app && npm install`
+- Start Expo: `cd mobile-app && npx expo start --lan`
+
+Use `README.md` commands as source of truth.
 
 ## Coding Style & Naming Conventions
-- Follow existing patterns in `core/` and `frontend/src/`.
-- Python: 4-space indentation, Django naming (apps, models, serializers, services).
-- Frontend: ESLint (`cd frontend && npm run lint`), keep components and hooks small and focused.
-- Use descriptive names for services and UI components; avoid abbreviations.
+- Python: PEP 8 style, 4-space indentation, `snake_case` for functions/variables, `PascalCase` for classes.
+- Django: keep business logic in `core/services/` when it does not belong in serializers/views.
+- JavaScript/React Native: functional components, `PascalCase` component filenames (for example `LoginScreen.js`), `camelCase` for variables/hooks.
+- Keep modules focused; prefer small serializers/services over large multi-purpose files.
 
 ## Testing Guidelines
-- Backend tests live in `core/tests/` and follow `test_*.py` or `*_test.py`.
-- Frontend tests use Vitest + React Testing Library.
-- Favor unit tests for services and serializers; add UI tests for key flows.
+- Backend tests live in `core/tests/` and follow `test_*.py` naming.
+- Pytest is configured in `pyproject.toml`, but `manage.py test` is the standard workflow used here.
+- Add or update tests with every behavior change (API contract, matching logic, subscriptions, messaging).
 
 ## Commit & Pull Request Guidelines
-- Commit messages use a conventional style (e.g., `feat: ...`, `fix: ...`).
-- PRs should include a short summary, tests run, and screenshots for UI changes.
+- Follow Conventional Commit style seen in history: `feat: ...`, `fix: ...`, `refactor: ...`, `chore: ...`.
+- Keep commits scoped to one logical change.
+- PRs should include:
+  - concise summary of behavior changes,
+  - linked issue/task,
+  - test evidence (command + result),
+  - screenshots/video for mobile UI changes.
 
-## Architecture Overview
-- API lives in `core/views.py` and `core/serializers.py`.
-- Matching logic is centralized in `core/services/matching.py` and invoked from views/signals.
-- Frontend calls the API via `frontend/src/services/api.js`.
-
-## Frontend Conventions
-- Pages go in `frontend/src/pages/`; reusable UI in `frontend/src/components/`.
-- Keep API calls in `frontend/src/services/` and state in `frontend/src/contexts/`.
-- Prefer explicit route components and co-locate page-specific helpers.
-
-## Local Setup Prerequisites
-- Python 3.12+, Node.js, and `uv`.
-- PostgreSQL database named `vanlifevibes`.
-- Copy env files if missing: `.env.example` -> `.env`, `frontend/.env.example` -> `frontend/.env`.
-
-## Configuration & Security Tips
-- Store secrets in `.env` / `frontend/.env`; never commit credentials.
-- Keep local config out of version control; rely on examples for defaults.
+## Security & Configuration Tips
+- Copy env templates: `.env.example` and mobile env files before local runs.
+- Never commit secrets, tokens, or production credentials.
+- Validate CORS/auth changes carefully; these affect both API and mobile login flows.

@@ -1449,7 +1449,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   label: {
-    color: '#d4d4d8',
+    color: colors.secondary,
     fontSize: 13,
     fontWeight: '700',
   },
@@ -1566,7 +1566,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   hobbyTextActive: {
-    color: '#dbeafe',
+    color: colors.text,
     fontWeight: '800',
   },
   promptList: {
@@ -1601,7 +1601,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   promptDeleteText: {
-    color: '#fca5a5',
+    color: colors.danger,
     fontSize: 11,
     fontWeight: '800',
   },

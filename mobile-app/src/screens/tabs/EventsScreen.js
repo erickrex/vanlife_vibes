@@ -473,8 +473,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   iconButtonActive: {
-    borderColor: '#f59e0b',
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    borderColor: colors.primary,
+    backgroundColor: `${colors.primary}26`,
   },
   iconButtonText: {
     color: colors.text,
@@ -500,8 +500,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   modeTabActive: {
-    borderColor: '#f59e0b',
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    borderColor: colors.primary,
+    backgroundColor: `${colors.primary}26`,
   },
   modeTabText: {
     color: colors.muted,
@@ -509,7 +509,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   modeTabTextActive: {
-    color: '#fbbf24',
+    color: colors.primary,
   },
   filters: {
     borderWidth: 1,
@@ -538,8 +538,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 11,
   },
   typeChipActive: {
-    borderColor: '#f59e0b',
-    backgroundColor: 'rgba(245, 158, 11, 0.22)',
+    borderColor: colors.primary,
+    backgroundColor: `${colors.primary}38`,
   },
   typeChipText: {
     color: colors.muted,
@@ -547,7 +547,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   typeChipTextActive: {
-    color: '#fef3c7',
+    color: colors.text,
   },
   input: {
     borderWidth: 1,
@@ -629,7 +629,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   eventDescription: {
-    color: '#d4d4d8',
+    color: colors.secondary,
     fontSize: 13,
     lineHeight: 18,
   },

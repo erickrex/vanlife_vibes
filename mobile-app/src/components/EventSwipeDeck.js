@@ -12,6 +12,7 @@ import {
 
 import { eventsAPI } from '../services/api';
 import { colors } from '../theme/colors';
+import { radius } from '../theme/tokens';
 import { formatEventDate, getEventTypeEmoji, getEventTypeInfo, getTimeWindowEmoji, getTimeWindowInfo } from '../utils/events';
 
 const SWIPE_ANIM_MS = 260;
@@ -245,7 +246,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 64,
-    borderRadius: 24,
+    borderRadius: radius.xl,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.card,
@@ -274,7 +275,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.panel,
-    borderRadius: 999,
+    borderRadius: radius.full,
   },
   status: {
     color: colors.muted,
@@ -296,7 +297,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   description: {
-    color: colors.text,
+    color: colors.secondary,
     lineHeight: 19,
   },
   footer: {
@@ -323,7 +324,7 @@ const styles = StyleSheet.create({
   },
   overlayText: {
     borderWidth: 3,
-    borderRadius: 14,
+    borderRadius: radius.lg,
     paddingVertical: 6,
     paddingHorizontal: 10,
     fontSize: 22,
@@ -354,7 +355,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.panel,
-    borderRadius: 16,
+    borderRadius: radius.lg,
     paddingVertical: 10,
     alignItems: 'center',
     justifyContent: 'center',
@@ -378,7 +379,7 @@ const styles = StyleSheet.create({
   },
   matchBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.75)',
+    backgroundColor: 'rgba(0,0,0,0.78)',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
@@ -389,7 +390,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.card,
-    borderRadius: 20,
+    borderRadius: radius.xl,
     padding: 18,
     gap: 10,
   },
@@ -412,7 +413,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.panel,
-    borderRadius: 16,
+    borderRadius: radius.lg,
     paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
@@ -426,7 +427,7 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   matchPrimaryText: {
-    color: '#001018',
+    color: colors.primaryText,
     fontWeight: '900',
   },
   pressed: {
@@ -436,4 +437,3 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
 });
-

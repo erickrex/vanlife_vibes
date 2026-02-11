@@ -34,10 +34,10 @@ export default function ProfileAvatar({ uri, name, size = 44, style }) {
 
 const styles = StyleSheet.create({
   image: {
-    backgroundColor: colors.panel,
+    backgroundColor: colors.surface,
   },
   fallback: {
-    backgroundColor: colors.panel,
+    backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
     alignItems: 'center',
@@ -48,4 +48,3 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
 });
-

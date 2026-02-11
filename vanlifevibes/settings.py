@@ -266,7 +266,7 @@ else:
     )
     CORS_ALLOWED_ORIGINS = config(
         "CORS_ALLOWED_ORIGINS",
-        default="http://localhost:3000,http://localhost:5173",
+        default="http://localhost:3000,http://localhost:8081,http://localhost:19006",
         cast=Csv(),
     )
 

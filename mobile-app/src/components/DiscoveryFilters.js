@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors } from '../theme/colors';
+import { radius } from '../theme/tokens';
 
 const TRAVEL_PACE_OPTIONS = [
   { value: '', label: 'Any pace', icon: '🌍' },
@@ -179,7 +180,7 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 10,
     paddingHorizontal: 12,
-    borderRadius: 14,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.panel,
@@ -218,7 +219,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.card,
-    borderRadius: 18,
+    borderRadius: radius.xl,
     padding: 14,
     gap: 16,
   },
@@ -238,7 +239,7 @@ const styles = StyleSheet.create({
   chip: {
     paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: 12,
+    borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.panel,
@@ -249,7 +250,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   chipTextSelected: {
-    color: '#001018',
+    color: colors.primaryText,
   },
   checkboxRow: {
     flexDirection: 'row',
@@ -268,7 +269,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   checkboxTick: {
-    color: '#001018',
+    color: colors.primaryText,
     fontWeight: '900',
     marginTop: -1,
   },

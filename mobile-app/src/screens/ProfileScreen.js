@@ -8,6 +8,7 @@ import Screen from '../components/Screen';
 import { useAuth } from '../contexts/AuthContext';
 import { profilesAPI } from '../services/api';
 import { colors } from '../theme/colors';
+import { radius } from '../theme/tokens';
 
 const DEFAULT_COVER =
   'https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&fit=crop&w=1400&q=80';
@@ -123,10 +124,7 @@ export default function ProfileScreen() {
       facts.push({ label: 'Travel style', value: TRAVEL_STATUS_LABELS[profile.travel_status] || toTitle(profile.travel_status) });
     }
     if (profile.travel_companions) {
-      facts.push({
-        label: 'Crew',
-        value: TRAVEL_COMPANIONS_LABELS[profile.travel_companions] || toTitle(profile.travel_companions),
-      });
+      facts.push({ label: 'Crew', value: TRAVEL_COMPANIONS_LABELS[profile.travel_companions] || toTitle(profile.travel_companions) });
     }
     if (profile.travel_pace) {
       facts.push({ label: 'Pace', value: TRAVEL_PACE_LABELS[profile.travel_pace] || toTitle(profile.travel_pace) });
@@ -166,7 +164,7 @@ export default function ProfileScreen() {
     return (
       <Screen>
         <View style={styles.center}>
-          <ActivityIndicator color={colors.muted} />
+          <ActivityIndicator color={colors.primary} />
           <Text style={styles.loadingText}>Loading profile…</Text>
         </View>
       </Screen>
@@ -384,11 +382,6 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    gap: 12,
-    paddingBottom: 26,
-  },
   center: {
     flex: 1,
     alignItems: 'center',
@@ -405,116 +398,118 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '800',
   },
+  container: {
+    paddingBottom: 30,
+  },
   topCard: {
-    borderWidth: 1,
-    borderColor: colors.border,
     backgroundColor: colors.card,
-    borderRadius: 18,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
     overflow: 'hidden',
   },
   cover: {
     width: '100%',
-    height: 150,
-    backgroundColor: colors.panel,
+    height: 180,
   },
   avatarWrap: {
-    marginTop: -46,
-    marginLeft: 14,
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    borderWidth: 4,
-    borderColor: colors.bg,
-    backgroundColor: colors.bg,
-    alignItems: 'center',
-    justifyContent: 'center',
+    position: 'absolute',
+    top: 133,
+    left: 20,
+    borderRadius: radius.xl,
+    borderWidth: 3,
+    borderColor: colors.card,
+    overflow: 'hidden',
   },
   topBody: {
-    paddingHorizontal: 14,
-    paddingBottom: 14,
-    gap: 8,
+    paddingTop: 54,
+    paddingHorizontal: 20,
+    paddingBottom: 18,
+    gap: 12,
   },
   headRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
+    justifyContent: 'space-between',
     gap: 10,
   },
   name: {
     color: colors.text,
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '900',
   },
   username: {
     color: colors.muted,
-    marginTop: 2,
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700',
+    marginTop: 2,
   },
   editChip: {
     borderWidth: 1,
     borderColor: colors.primary,
     backgroundColor: `${colors.primary}22`,
-    borderRadius: 999,
+    borderRadius: radius.md,
     paddingVertical: 7,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
   },
   editChipText: {
-    color: colors.text,
-    fontSize: 12,
-    fontWeight: '900',
+    color: colors.primary,
+    fontWeight: '800',
+    fontSize: 13,
+  },
+  pressed: {
+    opacity: 0.85,
   },
   statsRow: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 10,
   },
   statCard: {
     flex: 1,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.panel,
-    borderRadius: 12,
-    paddingVertical: 8,
+    borderRadius: radius.md,
+    paddingVertical: 10,
     alignItems: 'center',
     gap: 2,
   },
   statValue: {
     color: colors.text,
+    fontSize: 18,
     fontWeight: '900',
-    fontSize: 14,
   },
   statLabel: {
     color: colors.muted,
-    fontSize: 10,
-    fontWeight: '800',
-    textTransform: 'uppercase',
+    fontSize: 11,
+    fontWeight: '700',
   },
   intentRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: 8,
   },
   intentChip: {
-    borderRadius: 999,
-    borderWidth: 1,
+    borderRadius: radius.full,
     paddingVertical: 5,
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
   },
   intentDating: {
-    borderColor: `${colors.rose}66`,
     backgroundColor: `${colors.rose}22`,
+    borderWidth: 1,
+    borderColor: `${colors.rose}44`,
   },
   intentFriends: {
-    borderColor: `${colors.blue}66`,
     backgroundColor: `${colors.blue}22`,
+    borderWidth: 1,
+    borderColor: `${colors.blue}44`,
   },
   intentText: {
     color: colors.text,
-    fontSize: 11,
-    fontWeight: '900',
+    fontSize: 12,
+    fontWeight: '800',
   },
   bio: {
-    color: '#e4e4e7',
-    lineHeight: 19,
+    color: colors.secondary,
+    lineHeight: 20,
   },
   highlightRow: {
     flexDirection: 'row',
@@ -524,8 +519,8 @@ const styles = StyleSheet.create({
   highlightChip: {
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: colors.panel,
-    borderRadius: 999,
+    backgroundColor: colors.surface,
+    borderRadius: radius.full,
     paddingVertical: 5,
     paddingHorizontal: 10,
   },
@@ -534,29 +529,30 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
   },
+
   actionRow: {
     flexDirection: 'row',
     gap: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
   },
   flexButton: {
     flex: 1,
   },
   card: {
+    marginHorizontal: 20,
+    marginTop: 12,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.card,
-    borderRadius: 18,
+    borderRadius: radius.lg,
     padding: 14,
     gap: 10,
   },
   sectionTitle: {
     color: colors.text,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '900',
-  },
-  emptyText: {
-    color: colors.muted,
-    lineHeight: 18,
   },
   quickFactsGrid: {
     flexDirection: 'row',
@@ -564,69 +560,74 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   quickFact: {
-    width: '48%',
+    width: '47%',
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.panel,
-    borderRadius: 12,
+    borderRadius: radius.md,
     padding: 10,
-    gap: 4,
+    gap: 3,
   },
   quickFactLabel: {
     color: colors.muted,
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   quickFactValue: {
     color: colors.text,
     fontWeight: '800',
     fontSize: 13,
   },
+  emptyText: {
+    color: colors.muted,
+    lineHeight: 18,
+  },
   locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
     borderWidth: 1,
-    borderRadius: 12,
-    paddingVertical: 9,
-    paddingHorizontal: 10,
-    gap: 4,
+    borderRadius: radius.md,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
   },
   locationNow: {
-    borderColor: 'rgba(16, 185, 129, 0.45)',
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    borderColor: `${colors.emerald}44`,
+    backgroundColor: `${colors.emerald}14`,
   },
   locationNextWeek: {
-    borderColor: 'rgba(245, 158, 11, 0.45)',
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    borderColor: `${colors.blue}44`,
+    backgroundColor: `${colors.blue}14`,
   },
   locationNextMonth: {
-    borderColor: 'rgba(251, 146, 60, 0.45)',
-    backgroundColor: 'rgba(251, 146, 60, 0.15)',
+    borderColor: `${colors.primary}44`,
+    backgroundColor: `${colors.primary}14`,
   },
   locationLabel: {
-    color: colors.text,
-    fontWeight: '900',
+    color: colors.muted,
     fontSize: 12,
+    fontWeight: '800',
+    width: 80,
   },
   locationValue: {
-    color: '#e4e4e7',
-    fontSize: 13,
-    fontWeight: '700',
+    color: colors.text,
+    fontWeight: '800',
+    flex: 1,
   },
   galleryGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 6,
   },
   galleryPhoto: {
-    width: '31%',
+    width: '48%',
     aspectRatio: 1,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderRadius: radius.md,
     backgroundColor: colors.panel,
   },
   galleryPhotoLarge: {
     width: '100%',
-    aspectRatio: 16 / 10,
+    aspectRatio: 1.6,
   },
   hobbyRow: {
     flexDirection: 'row',
@@ -635,39 +636,35 @@ const styles = StyleSheet.create({
   },
   hobbyChip: {
     borderWidth: 1,
-    borderColor: `${colors.blue}55`,
-    backgroundColor: `${colors.blue}22`,
-    borderRadius: 999,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    borderRadius: radius.full,
     paddingVertical: 6,
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
   },
   hobbyText: {
-    color: '#bfdbfe',
+    color: colors.secondary,
     fontSize: 12,
     fontWeight: '700',
   },
   promptList: {
-    gap: 8,
+    gap: 10,
   },
   promptCard: {
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.panel,
-    borderRadius: 12,
-    padding: 10,
-    gap: 5,
+    borderRadius: radius.md,
+    padding: 12,
+    gap: 6,
   },
   promptQuestion: {
-    color: colors.muted,
-    fontSize: 11,
-    fontWeight: '700',
-    textTransform: 'uppercase',
+    color: colors.primary,
+    fontSize: 13,
+    fontWeight: '800',
   },
   promptAnswer: {
-    color: '#e4e4e7',
-    lineHeight: 18,
-  },
-  pressed: {
-    opacity: 0.9,
+    color: colors.secondary,
+    lineHeight: 19,
   },
 });

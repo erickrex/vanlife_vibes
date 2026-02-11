@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { colors } from '../theme/colors';
+import { radius } from '../theme/tokens';
 
 export default function SwipeCounter({ remainingSwipes, isPremium }) {
   if (isPremium) {
@@ -11,7 +12,6 @@ export default function SwipeCounter({ remainingSwipes, isPremium }) {
     );
   }
 
-  // Don't render until we have data from the API
   if (remainingSwipes === null || remainingSwipes === undefined) {
     return null;
   }
@@ -32,14 +32,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderRadius: 999,
+    borderRadius: radius.full,
     paddingVertical: 11,
     paddingHorizontal: 13,
-    backgroundColor: '#151821',
-    borderColor: '#2c3240',
+    backgroundColor: colors.panel,
+    borderColor: colors.border,
   },
   premiumContainer: {
     borderColor: colors.primary,
+    backgroundColor: `${colors.primary}18`,
   },
   text: {
     color: colors.text,

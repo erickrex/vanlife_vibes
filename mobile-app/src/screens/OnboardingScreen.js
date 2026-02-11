@@ -821,7 +821,7 @@ const styles = StyleSheet.create({
     marginTop: -8,
   },
   label: {
-    color: '#d4d4d8',
+    color: colors.secondary,
     fontSize: 13,
     fontWeight: '700',
   },

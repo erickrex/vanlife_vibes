@@ -4,6 +4,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import AppButton from '../components/AppButton';
 import Screen from '../components/Screen';
 import { colors } from '../theme/colors';
+import { radius } from '../theme/tokens';
 
 export default function LandingScreen({ navigation }) {
   const highlights = [
@@ -83,66 +84,26 @@ export default function LandingScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    paddingBottom: 24,
-  },
-  hero: {
-    paddingHorizontal: 20,
-    paddingTop: 28,
-    paddingBottom: 12,
-  },
-  kicker: {
-    color: colors.primary,
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
-  title: {
-    color: colors.text,
-    fontSize: 28,
-    fontWeight: '800',
-    marginBottom: 12,
-  },
-  body: {
-    color: colors.muted,
-    fontSize: 15,
-    lineHeight: 22,
-    marginBottom: 22,
-  },
-  actions: {
-    gap: 12,
-  },
-  section: {
-    paddingHorizontal: 20,
-    paddingTop: 4,
-    gap: 10,
-  },
+  container: { paddingBottom: 24 },
+  hero: { paddingHorizontal: 20, paddingTop: 28, paddingBottom: 12 },
+  kicker: { color: colors.primary, fontSize: 13, fontWeight: '600', marginBottom: 12 },
+  title: { color: colors.text, fontSize: 28, fontWeight: '800', marginBottom: 12 },
+  body: { color: colors.muted, fontSize: 15, lineHeight: 22, marginBottom: 22 },
+  actions: { gap: 12 },
+  section: { paddingHorizontal: 20, paddingTop: 4, gap: 10 },
   card: {
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.card,
-    borderRadius: 16,
+    borderRadius: radius.lg,
     padding: 14,
     gap: 12,
     flexDirection: 'row',
     alignItems: 'flex-start',
   },
-  cardEmoji: {
-    fontSize: 24,
-    width: 30,
-    textAlign: 'center',
-  },
-  cardTitle: {
-    color: colors.text,
-    fontSize: 15,
-    fontWeight: '800',
-  },
-  cardBody: {
-    color: colors.muted,
-    fontSize: 13,
-    lineHeight: 19,
-    marginTop: 4,
-  },
+  cardEmoji: { fontSize: 24, width: 30, textAlign: 'center' },
+  cardTitle: { color: colors.text, fontSize: 15, fontWeight: '800' },
+  cardBody: { color: colors.muted, fontSize: 13, lineHeight: 19, marginTop: 4 },
   whySection: {
     borderTopWidth: 1,
     borderTopColor: colors.border,
@@ -151,31 +112,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     gap: 12,
   },
-  whyTitle: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: '900',
-    textAlign: 'center',
-    marginBottom: 4,
-  },
+  whyTitle: { color: colors.text, fontSize: 18, fontWeight: '900', textAlign: 'center', marginBottom: 4 },
   whyCard: {
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.card,
-    borderRadius: 14,
+    borderRadius: radius.lg,
     padding: 14,
     gap: 6,
   },
-  whyCardTitle: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: '800',
-    textAlign: 'center',
-  },
-  whyCardBody: {
-    color: colors.muted,
-    fontSize: 13,
-    textAlign: 'center',
-    lineHeight: 18,
-  },
+  whyCardTitle: { color: colors.text, fontSize: 14, fontWeight: '800', textAlign: 'center' },
+  whyCardBody: { color: colors.muted, fontSize: 13, textAlign: 'center', lineHeight: 18 },
 });

@@ -23,6 +23,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { matchesAPI } from '../services/api';
 import { createRealtimeSocket } from '../services/realtime';
 import { colors } from '../theme/colors';
+import { radius } from '../theme/tokens';
 
 const REPORT_REASON_OPTIONS = [
   { value: 'harassment', label: 'Harassment' },
@@ -131,7 +132,6 @@ export default function MatchChatScreen() {
 
   useEffect(() => {
     if (Platform.OS !== 'android') return undefined;
-
     const showSubscription = Keyboard.addListener('keyboardDidShow', (event) => {
       setKeyboardHeight(event?.endCoordinates?.height || 0);
     });
@@ -139,7 +139,6 @@ export default function MatchChatScreen() {
       setKeyboardHeight(0);
       baseWindowHeightRef.current = Dimensions.get('window').height;
     });
-
     return () => {
       showSubscription.remove();
       hideSubscription.remove();
@@ -152,7 +151,7 @@ export default function MatchChatScreen() {
       const response = await matchesAPI.get(matchId);
       setMatch(normalizeObjectResponse(response));
     } catch {
-      // keep match from route params when fetch fails
+      // keep match from route params
     }
   }, [matchId]);
 
@@ -178,7 +177,6 @@ export default function MatchChatScreen() {
 
   useEffect(() => {
     if (!matchId) return undefined;
-
     const realtimeSocket = createRealtimeSocket({
       path: `/ws/matches/${matchId}/`,
       onOpen: () => {
@@ -196,20 +194,16 @@ export default function MatchChatScreen() {
         });
       },
     });
-
     realtimeSocket.connect();
     return () => realtimeSocket.disconnect();
   }, [loadMessages, matchId]);
 
   useEffect(() => {
     if (!matchId) return undefined;
-
-    // Fallback sync keeps chat fresh even when websocket transport is degraded.
     const intervalMs = 1000;
     const interval = setInterval(() => {
       loadMessages({ silent: true });
     }, intervalMs);
-
     return () => clearInterval(interval);
   }, [loadMessages, matchId]);
 
@@ -233,7 +227,6 @@ export default function MatchChatScreen() {
     if (!matchId) return;
     const content = input.trim();
     if (!content) return;
-
     try {
       setSending(true);
       setError('');
@@ -258,7 +251,6 @@ export default function MatchChatScreen() {
     if (!matchId || actionLoading) return;
     const firstName = otherUser?.display_name ? String(otherUser.display_name).split(' ')[0] : 'there';
     const content = `Hey ${firstName}, what does your ideal vanlife day look like this week?`;
-
     try {
       setActionLoading('icebreaker');
       setError('');
@@ -280,7 +272,6 @@ export default function MatchChatScreen() {
 
   const shareMiniCard = async () => {
     if (!matchId || actionLoading) return;
-
     const payload = {};
     if (me?.current_location || me?.now_in_city) {
       payload.current_location = me?.current_location || me?.now_in_city;
@@ -289,7 +280,6 @@ export default function MatchChatScreen() {
       payload.in_town_until = me.now_in_end_date;
     }
     payload.meet_preference = me?.meetup_interest || 'open_to_it';
-
     try {
       setActionLoading('mini-card');
       setError('');
@@ -500,7 +490,7 @@ export default function MatchChatScreen() {
               value={input}
               onChangeText={setInput}
               placeholder="Message…"
-              placeholderTextColor={colors.muted}
+              placeholderTextColor={colors.placeholder}
               style={styles.input}
               editable={!sending}
               multiline
@@ -555,7 +545,7 @@ export default function MatchChatScreen() {
                   value={reportDescription}
                   onChangeText={setReportDescription}
                   placeholder="Optional details"
-                  placeholderTextColor={colors.muted}
+                  placeholderTextColor={colors.placeholder}
                   style={styles.reportInput}
                   maxLength={500}
                   multiline
@@ -588,74 +578,36 @@ export default function MatchChatScreen() {
 }
 
 const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-  },
-  container: {
-    flex: 1,
-    padding: 16,
-    gap: 10,
-  },
+  flex: { flex: 1 },
+  container: { flex: 1, padding: 16, gap: 10 },
   topMeta: {
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.card,
-    borderRadius: 18,
+    borderRadius: radius.xl,
     padding: 12,
     gap: 10,
   },
-  peerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  peerName: {
-    color: colors.text,
-    fontWeight: '900',
-    fontSize: 15,
-  },
-  peerMeta: {
-    color: colors.muted,
-    fontSize: 12,
-    fontWeight: '700',
-    marginTop: 2,
-  },
-  quickActions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
+  peerRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  peerName: { color: colors.text, fontWeight: '900', fontSize: 15 },
+  peerMeta: { color: colors.muted, fontSize: 12, fontWeight: '700', marginTop: 2 },
+  quickActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   quickActionChip: {
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.panel,
-    borderRadius: 999,
+    borderRadius: radius.full,
     paddingVertical: 6,
     paddingHorizontal: 10,
   },
-  quickActionText: {
-    color: colors.muted,
-    fontSize: 11,
-    fontWeight: '800',
-  },
+  quickActionText: { color: colors.muted, fontSize: 11, fontWeight: '800' },
   quickActionDanger: {
-    borderColor: '#7f1d1d',
-    backgroundColor: 'rgba(239, 68, 68, 0.18)',
+    borderColor: `${colors.danger}55`,
+    backgroundColor: `${colors.danger}18`,
   },
-  quickActionDangerText: {
-    color: '#fca5a5',
-    fontSize: 11,
-    fontWeight: '900',
-  },
-  list: {
-    paddingVertical: 6,
-    paddingBottom: 10,
-    gap: 10,
-  },
-  dateRow: {
-    alignItems: 'center',
-    marginVertical: 3,
-  },
+  quickActionDangerText: { color: colors.danger, fontSize: 11, fontWeight: '900' },
+  list: { paddingVertical: 6, paddingBottom: 10, gap: 10 },
+  dateRow: { alignItems: 'center', marginVertical: 3 },
   dateText: {
     color: colors.muted,
     fontSize: 11,
@@ -663,24 +615,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.panel,
-    borderRadius: 999,
+    borderRadius: radius.full,
     paddingVertical: 4,
     paddingHorizontal: 10,
   },
-  messageRow: {
-    flexDirection: 'row',
-  },
-  messageRowMine: {
-    justifyContent: 'flex-end',
-  },
-  messageRowTheirs: {
-    justifyContent: 'flex-start',
-  },
+  messageRow: { flexDirection: 'row' },
+  messageRowMine: { justifyContent: 'flex-end' },
+  messageRowTheirs: { justifyContent: 'flex-start' },
   bubble: {
     maxWidth: '82%',
     paddingVertical: 10,
     paddingHorizontal: 12,
-    borderRadius: 16,
+    borderRadius: radius.lg,
     borderWidth: 1,
   },
   bubbleMine: {
@@ -691,52 +637,33 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderColor: colors.border,
   },
-  bubbleTextMine: {
-    color: colors.text,
-    fontWeight: '700',
-  },
-  bubbleTextTheirs: {
-    color: colors.text,
-    fontWeight: '700',
-  },
-  timeText: {
-    color: colors.muted,
-    fontSize: 10,
-    marginTop: 6,
-    textAlign: 'right',
-  },
+  bubbleTextMine: { color: colors.text, fontWeight: '700' },
+  bubbleTextTheirs: { color: colors.text, fontWeight: '700' },
+  timeText: { color: colors.muted, fontSize: 10, marginTop: 6, textAlign: 'right' },
   noticeBanner: {
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.45)',
-    backgroundColor: 'rgba(16, 185, 129, 0.16)',
+    borderColor: `${colors.emerald}66`,
+    backgroundColor: `${colors.emerald}18`,
     padding: 10,
-    borderRadius: 14,
+    borderRadius: radius.lg,
   },
-  noticeText: {
-    color: '#6ee7b7',
-    fontSize: 12,
-    fontWeight: '700',
-  },
+  noticeText: { color: '#6ee7b7', fontSize: 12, fontWeight: '700' },
   banner: {
     borderWidth: 1,
-    borderColor: '#7f1d1d',
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderColor: `${colors.danger}44`,
+    backgroundColor: `${colors.danger}18`,
     padding: 10,
-    borderRadius: 14,
+    borderRadius: radius.lg,
   },
-  bannerText: {
-    color: colors.danger,
-    fontSize: 12,
-    fontWeight: '700',
-  },
+  bannerText: { color: colors.danger, fontSize: 12, fontWeight: '700' },
   composer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     gap: 10,
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: '#12141b',
-    borderRadius: 20,
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
     padding: 8,
   },
   input: {
@@ -744,7 +671,7 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     backgroundColor: 'transparent',
     color: colors.text,
-    borderRadius: 12,
+    borderRadius: radius.md,
     paddingHorizontal: 10,
     paddingVertical: 8,
     fontSize: 15,
@@ -754,87 +681,37 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.primary,
     backgroundColor: colors.primary,
-    borderRadius: 999,
+    borderRadius: radius.full,
     width: 64,
     height: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.22,
-    shadowOffset: { width: 0, height: 6 },
-    shadowRadius: 12,
-    elevation: 6,
   },
-  sendDisabled: {
-    opacity: 0.5,
-  },
-  sendText: {
-    color: '#001018',
-    fontWeight: '900',
-  },
-  center: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-    padding: 20,
-  },
-  loadingText: {
-    color: colors.muted,
-    fontWeight: '900',
-  },
-  errorText: {
-    color: colors.danger,
-    fontWeight: '900',
-    textAlign: 'center',
-  },
-  emptyTitle: {
-    color: colors.text,
-    fontWeight: '900',
-    fontSize: 18,
-    textAlign: 'center',
-  },
-  emptyBody: {
-    color: colors.muted,
-    textAlign: 'center',
-    lineHeight: 18,
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.65)',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  modalFlex: {
-    flex: 1,
-  },
+  sendDisabled: { opacity: 0.5 },
+  sendText: { color: colors.primaryText, fontWeight: '900' },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 20 },
+  loadingText: { color: colors.muted, fontWeight: '900' },
+  errorText: { color: colors.danger, fontWeight: '900', textAlign: 'center' },
+  emptyTitle: { color: colors.text, fontWeight: '900', fontSize: 18, textAlign: 'center' },
+  emptyBody: { color: colors.muted, textAlign: 'center', lineHeight: 18 },
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.68)', justifyContent: 'center', padding: 20 },
+  modalFlex: { flex: 1 },
   modalCard: {
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.card,
-    borderRadius: 18,
+    borderRadius: radius.xl,
     padding: 14,
     gap: 10,
   },
-  modalTitle: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: '900',
-  },
-  modalBody: {
-    color: colors.muted,
-    lineHeight: 18,
-  },
-  reasonRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
+  modalTitle: { color: colors.text, fontSize: 18, fontWeight: '900' },
+  modalBody: { color: colors.muted, lineHeight: 18 },
+  reasonRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   reasonChip: {
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.panel,
-    borderRadius: 999,
+    borderRadius: radius.full,
     paddingVertical: 6,
     paddingHorizontal: 10,
   },
@@ -842,39 +719,22 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
     backgroundColor: `${colors.primary}22`,
   },
-  reasonText: {
-    color: colors.muted,
-    fontWeight: '700',
-    fontSize: 12,
-  },
-  reasonTextActive: {
-    color: colors.text,
-    fontWeight: '800',
-  },
+  reasonText: { color: colors.muted, fontWeight: '700', fontSize: 12 },
+  reasonTextActive: { color: colors.text, fontWeight: '800' },
   reportInput: {
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: colors.panel,
+    backgroundColor: colors.surface,
     color: colors.text,
-    borderRadius: 12,
+    borderRadius: radius.md,
     paddingVertical: 10,
     paddingHorizontal: 12,
     minHeight: 88,
     maxHeight: 130,
     fontSize: 14,
   },
-  modalActions: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 2,
-  },
-  flexButton: {
-    flex: 1,
-  },
-  pressed: {
-    opacity: 0.9,
-  },
-  disabled: {
-    opacity: 0.5,
-  },
+  modalActions: { flexDirection: 'row', gap: 10, marginTop: 2 },
+  flexButton: { flex: 1 },
+  pressed: { opacity: 0.9 },
+  disabled: { opacity: 0.5 },
 });

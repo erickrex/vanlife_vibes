@@ -11,6 +11,7 @@ import {
 
 import { discoveryAPI } from '../services/api';
 import { colors } from '../theme/colors';
+import { radius } from '../theme/tokens';
 import ProfileAvatar from './ProfileAvatar';
 import { buildCompatibilityChips } from '../utils/compatibility';
 
@@ -325,7 +326,7 @@ export default function DiscoverySwipeDeck({
       <Modal visible={matchVisible} transparent animationType="fade" onRequestClose={closeMatch}>
         <View style={styles.matchBackdrop}>
           <View style={styles.matchCard}>
-            <Text style={styles.matchTitle}>It’s a match!</Text>
+            <Text style={styles.matchTitle}>It's a match!</Text>
             <Text style={styles.matchSubtitle}>{`You matched in ${prettyMode(mode)}.`}</Text>
             <ProfileAvatar uri={matchedProfile?.avatar_url} name={matchedProfile?.display_name} size={72} />
             <Text style={styles.matchName}>{matchedProfile?.display_name || 'New match'}</Text>
@@ -342,7 +343,7 @@ export default function DiscoverySwipeDeck({
                   pressed ? styles.pressed : null,
                 ]}
               >
-                <Text style={[styles.matchButtonText, { color: '#001018' }]}>Message</Text>
+                <Text style={[styles.matchButtonText, { color: colors.primaryText }]}>Message</Text>
               </Pressable>
             </View>
           </View>
@@ -373,10 +374,10 @@ const styles = StyleSheet.create({
   progressSlice: {
     flex: 1,
     height: 4,
-    borderRadius: 999,
+    borderRadius: radius.full,
   },
   progressSliceMuted: {
-    backgroundColor: '#2c2f36',
+    backgroundColor: colors.border,
   },
   progressCount: {
     color: colors.muted,
@@ -391,13 +392,13 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 102,
-    borderRadius: 28,
+    borderRadius: radius.xl,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.card,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOpacity: 0.24,
+    shadowOpacity: 0.28,
     shadowOffset: { width: 0, height: 14 },
     shadowRadius: 22,
     elevation: 9,
@@ -411,7 +412,7 @@ const styles = StyleSheet.create({
   },
   photoWrap: {
     flex: 1,
-    backgroundColor: colors.panel,
+    backgroundColor: colors.surface,
   },
   photo: {
     width: '100%',
@@ -419,7 +420,7 @@ const styles = StyleSheet.create({
   },
   photoFallback: {
     flex: 1,
-    backgroundColor: colors.panel,
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -451,7 +452,7 @@ const styles = StyleSheet.create({
   },
   modeBadge: {
     borderWidth: 1,
-    borderRadius: 999,
+    borderRadius: radius.full,
     paddingVertical: 4,
     paddingHorizontal: 9,
   },
@@ -466,11 +467,11 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   location: {
-    color: colors.muted,
+    color: colors.secondary,
     fontWeight: '700',
   },
   bio: {
-    color: '#e4e4e7',
+    color: colors.secondary,
     lineHeight: 18,
   },
   chipRow: {
@@ -481,10 +482,10 @@ const styles = StyleSheet.create({
   chip: {
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: 'rgba(17, 17, 19, 0.8)',
+    backgroundColor: 'rgba(30, 30, 34, 0.8)',
     paddingVertical: 6,
     paddingHorizontal: 10,
-    borderRadius: 999,
+    borderRadius: radius.full,
   },
   chipText: {
     color: colors.text,
@@ -508,7 +509,7 @@ const styles = StyleSheet.create({
   },
   overlayText: {
     borderWidth: 3,
-    borderRadius: 14,
+    borderRadius: radius.lg,
     paddingVertical: 6,
     paddingHorizontal: 10,
     fontSize: 22,
@@ -539,14 +540,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 3,
     shadowColor: '#000',
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.22,
     shadowOffset: { width: 0, height: 8 },
     shadowRadius: 14,
     elevation: 8,
   },
   passButton: {
-    backgroundColor: '#1a1b1f',
-    borderColor: '#2d2f35',
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
   },
   actionEmoji: {
     fontSize: 30,
@@ -566,7 +567,7 @@ const styles = StyleSheet.create({
   },
   matchBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.75)',
+    backgroundColor: 'rgba(0,0,0,0.78)',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
@@ -577,7 +578,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.card,
-    borderRadius: 22,
+    borderRadius: radius.xl,
     padding: 18,
     alignItems: 'center',
     gap: 10,
@@ -609,7 +610,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 16,
+    borderRadius: radius.lg,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.panel,

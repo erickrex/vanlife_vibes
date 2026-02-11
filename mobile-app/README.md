@@ -1,6 +1,6 @@
 # VanlifeVibes Mobile (React Native)
 
-This folder contains the React Native mobile app. The existing web app stays in `frontend/`.
+This folder contains the React Native mobile app for VanlifeVibes.
 
 ## Target platform
 

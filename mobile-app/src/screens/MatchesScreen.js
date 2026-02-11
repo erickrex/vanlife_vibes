@@ -8,6 +8,7 @@ import Screen from '../components/Screen';
 import { matchesAPI } from '../services/api';
 import { createRealtimeSocket } from '../services/realtime';
 import { colors } from '../theme/colors';
+import { radius } from '../theme/tokens';
 
 function normalizeListResponse(response) {
   const data = response?.data?.data ?? response?.data;
@@ -74,12 +75,10 @@ export default function MatchesScreen() {
   }, [loadMatches]);
 
   useEffect(() => {
-    // Fallback sync keeps match cards and unread counts up to date.
     const intervalMs = socketConnected ? 5000 : 2000;
     const interval = setInterval(() => {
       loadMatches({ silent: true });
     }, intervalMs);
-
     return () => clearInterval(interval);
   }, [loadMatches, socketConnected]);
 
@@ -277,7 +276,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.card,
-    borderRadius: 18,
+    borderRadius: radius.xl,
     padding: 16,
     gap: 8,
   },
@@ -299,7 +298,7 @@ const styles = StyleSheet.create({
   badge: {
     paddingVertical: 6,
     paddingHorizontal: 10,
-    borderRadius: 999,
+    borderRadius: radius.full,
     borderWidth: 1,
     borderColor: colors.border,
   },
@@ -309,20 +308,20 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   badgeDating: {
-    backgroundColor: 'rgba(251, 113, 133, 0.12)',
-    borderColor: 'rgba(251, 113, 133, 0.28)',
+    backgroundColor: `${colors.rose}18`,
+    borderColor: `${colors.rose}44`,
   },
   badgeFriends: {
-    backgroundColor: 'rgba(96, 165, 250, 0.12)',
-    borderColor: 'rgba(96, 165, 250, 0.28)',
+    backgroundColor: `${colors.blue}18`,
+    borderColor: `${colors.blue}44`,
   },
   badgeUnread: {
-    backgroundColor: 'rgba(245, 158, 11, 0.12)',
-    borderColor: 'rgba(245, 158, 11, 0.28)',
+    backgroundColor: `${colors.primary}18`,
+    borderColor: `${colors.primary}44`,
   },
   badgeLive: {
-    backgroundColor: 'rgba(52, 211, 153, 0.12)',
-    borderColor: 'rgba(52, 211, 153, 0.28)',
+    backgroundColor: `${colors.emerald}18`,
+    borderColor: `${colors.emerald}44`,
   },
   badgeSync: {
     backgroundColor: colors.panel,
@@ -335,18 +334,18 @@ const styles = StyleSheet.create({
   filterChip: {
     paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: 999,
+    borderRadius: radius.full,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.panel,
   },
   filterChipActive: {
-    backgroundColor: '#f4f4f5',
-    borderColor: '#f4f4f5',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   filterChipUnread: {
-    backgroundColor: '#fbbf24',
-    borderColor: '#fbbf24',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   filterChipDating: {
     backgroundColor: colors.rose,
@@ -362,7 +361,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   filterTextActive: {
-    color: '#001018',
+    color: colors.primaryText,
   },
   list: {
     paddingTop: 6,
@@ -376,7 +375,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.card,
-    borderRadius: 18,
+    borderRadius: radius.xl,
     padding: 14,
   },
   rowPressed: {
@@ -406,13 +405,13 @@ const styles = StyleSheet.create({
     minWidth: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: '#f59e0b',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 6,
   },
   unreadText: {
-    color: '#001018',
+    color: colors.primaryText,
     fontWeight: '900',
     fontSize: 11,
   },

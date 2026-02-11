@@ -11,6 +11,7 @@ import {
 import { revenueCatClient } from '../services/revenuecat';
 import { subscriptionAPI } from '../services/api';
 import { colors } from '../theme/colors';
+import { radius } from '../theme/tokens';
 
 const BENEFITS = [
   'Unlimited daily swipes',
@@ -55,12 +56,12 @@ export default function PaywallModal({ visible, onClose, onSubscribed }) {
         try {
           await subscriptionAPI.sync(result.customerInfo);
         } catch {
-          // Non-blocking fallback: webhook may still update shortly after purchase.
+          // Non-blocking fallback
         }
         onSubscribed?.();
         onClose?.();
       } else if (result.error === 'cancelled') {
-        // User dismissed the billing sheet — keep paywall open so they can retry
+        // User dismissed — keep paywall open
       } else {
         setError(result.error || 'Purchase failed. Please try again.');
       }
@@ -113,7 +114,7 @@ export default function PaywallModal({ visible, onClose, onSubscribed }) {
                 ]}
               >
                 {purchasing ? (
-                  <ActivityIndicator color="#001018" size="small" />
+                  <ActivityIndicator color={colors.primaryText} size="small" />
                 ) : (
                   <Text style={styles.subscribeText}>Subscribe to Premium</Text>
                 )}
@@ -133,7 +134,7 @@ export default function PaywallModal({ visible, onClose, onSubscribed }) {
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.75)',
+    backgroundColor: 'rgba(0,0,0,0.78)',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
@@ -144,7 +145,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.card,
-    borderRadius: 22,
+    borderRadius: radius.xl,
     padding: 22,
     alignItems: 'center',
     gap: 12,
@@ -201,13 +202,13 @@ const styles = StyleSheet.create({
   subscribeButton: {
     width: '100%',
     paddingVertical: 14,
-    borderRadius: 16,
+    borderRadius: radius.lg,
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   subscribeText: {
-    color: '#001018',
+    color: colors.primaryText,
     fontSize: 16,
     fontWeight: '900',
   },

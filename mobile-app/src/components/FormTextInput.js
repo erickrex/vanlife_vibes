@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { colors } from '../theme/colors';
+import { radius } from '../theme/tokens';
 
 export default function FormTextInput({
   label,
@@ -13,6 +14,7 @@ export default function FormTextInput({
   secureTextEntry,
   editable = true,
   error,
+  helperText,
   returnKeyType,
   onSubmitEditing,
   autoComplete,
@@ -29,7 +31,7 @@ export default function FormTextInput({
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor={colors.muted}
+        placeholderTextColor={colors.placeholder}
         autoCapitalize={autoCapitalize}
         autoCorrect={autoCorrect}
         keyboardType={keyboardType}
@@ -41,10 +43,16 @@ export default function FormTextInput({
         textContentType={textContentType}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
-        style={[styles.input, focused ? styles.inputFocused : null, error ? styles.inputError : null, style]}
+        style={[
+          styles.input,
+          focused ? styles.inputFocused : null,
+          error ? styles.inputError : null,
+          style,
+        ]}
         selectionColor={colors.primary}
         {...rest}
       />
+      {helperText && !error ? <Text style={styles.helper}>{helperText}</Text> : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
     </View>
   );
@@ -55,31 +63,30 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   label: {
-    color: '#d4d4d8',
+    color: colors.secondary,
     fontSize: 13,
     fontWeight: '600',
   },
   input: {
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: '#14161d',
+    backgroundColor: colors.surface,
     color: colors.text,
-    borderRadius: 16,
+    borderRadius: radius.lg,
     paddingHorizontal: 14,
     paddingVertical: 13,
     fontSize: 15,
-    shadowColor: '#000',
-    shadowOpacity: 0.14,
-    shadowOffset: { width: 0, height: 6 },
-    shadowRadius: 12,
-    elevation: 4,
   },
   inputFocused: {
-    borderColor: `${colors.primary}bb`,
-    shadowOpacity: 0.24,
+    borderColor: colors.focusRing,
+    borderWidth: 2,
   },
   inputError: {
     borderColor: colors.danger,
+  },
+  helper: {
+    color: colors.muted,
+    fontSize: 12,
   },
   error: {
     color: colors.danger,

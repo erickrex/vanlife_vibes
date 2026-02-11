@@ -12,7 +12,7 @@ const Tab = createBottomTabNavigator();
 const iconForRoute = (routeName, focused) => {
   if (routeName === 'Feed') return focused ? '🧭' : '🧭';
   if (routeName === 'Dating') return focused ? '💕' : '♡';
-  if (routeName === 'Campfire') return focused ? '📅' : '🗓️';
+  if (routeName === 'Campfire') return focused ? '🔥' : '🗓️';
   return '•';
 };
 
@@ -21,9 +21,13 @@ export default function MainTabNavigator() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarStyle: { backgroundColor: colors.bg, borderTopColor: colors.border },
+        tabBarStyle: {
+          backgroundColor: colors.bg,
+          borderTopColor: colors.border,
+          borderTopWidth: 1,
+        },
         tabBarHideOnKeyboard: true,
-        tabBarActiveTintColor: colors.text,
+        tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.muted,
         tabBarIcon: ({ focused, color }) => (
           <Text style={{ fontSize: 18, color }}>{iconForRoute(route.name, focused)}</Text>

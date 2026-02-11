@@ -11,6 +11,7 @@ import Screen from '../components/Screen';
 import { useAuth } from '../contexts/AuthContext';
 import { discoveryAPI, matchesAPI, profilesAPI } from '../services/api';
 import { colors } from '../theme/colors';
+import { radius } from '../theme/tokens';
 
 function normalizeListResponse(response) {
   const data = response?.data?.data ?? response?.data;
@@ -143,7 +144,6 @@ export default function DiscoveryScreen({ mode = 'dating' }) {
 
   const handleSwipe = useCallback((direction, profile, data) => {
     if (data?.error) {
-      // Detect swipe limit 403 — the backend message contains "swipe limit"
       if (typeof data.error === 'string' && data.error.toLowerCase().includes('swipe limit')) {
         setRemainingSwipes(0);
         setPaywallVisible(true);
@@ -215,7 +215,7 @@ export default function DiscoveryScreen({ mode = 'dating' }) {
 
         {loading && enabled === null ? (
           <View style={styles.center}>
-            <ActivityIndicator color={colors.muted} />
+            <ActivityIndicator color={colors.primary} />
             <Text style={styles.loadingText}>Preparing your queue…</Text>
           </View>
         ) : null}
@@ -256,7 +256,7 @@ export default function DiscoveryScreen({ mode = 'dating' }) {
 
             {loading ? (
               <View style={styles.center}>
-                <ActivityIndicator color={colors.muted} />
+                <ActivityIndicator color={colors.primary} />
                 <Text style={styles.loadingText}>Finding people…</Text>
               </View>
             ) : null}
@@ -273,7 +273,7 @@ export default function DiscoveryScreen({ mode = 'dating' }) {
                 <Text style={styles.emptyEmoji}>{mode === 'dating' ? '💔' : '🤷'}</Text>
                 <Text style={styles.disabledTitle}>{exhausted ? 'No more profiles' : 'No profiles found'}</Text>
                 <Text style={styles.disabledBody}>
-                  {exhausted ? 'That’s everyone in your queue for now.' : 'Check back later, or loosen your filters.'}
+                  {exhausted ? 'That's everyone in your queue for now.' : 'Check back later, or loosen your filters.'}
                 </Text>
                 <AppButton title="Refresh" onPress={loadProfiles} variant="primary" />
               </View>
@@ -350,12 +350,11 @@ const styles = StyleSheet.create({
   },
   profileButton: {
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 999,
+    borderRadius: radius.full,
     paddingVertical: 8,
     paddingHorizontal: 10,
-    backgroundColor: '#14161c',
-    borderColor: '#2a2e37',
+    backgroundColor: colors.panel,
+    borderColor: colors.border,
   },
   profileIcon: {
     fontSize: 18,
@@ -366,11 +365,10 @@ const styles = StyleSheet.create({
     gap: 8,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 999,
+    borderRadius: radius.full,
     paddingVertical: 11,
     paddingHorizontal: 13,
-    backgroundColor: '#151821',
-    borderColor: '#2c3240',
+    backgroundColor: colors.panel,
   },
   toolbarIcon: {
     fontSize: 14,
@@ -386,11 +384,10 @@ const styles = StyleSheet.create({
     gap: 8,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 999,
+    borderRadius: radius.full,
     paddingVertical: 11,
     paddingHorizontal: 13,
-    backgroundColor: '#151821',
-    borderColor: '#2c3240',
+    backgroundColor: colors.panel,
   },
   matchesIcon: {
     fontSize: 14,
@@ -429,10 +426,10 @@ const styles = StyleSheet.create({
   },
   banner: {
     borderWidth: 1,
-    borderColor: '#7f1d1d',
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderColor: `${colors.danger}44`,
+    backgroundColor: `${colors.danger}18`,
     padding: 12,
-    borderRadius: 14,
+    borderRadius: radius.lg,
   },
   bannerText: {
     color: colors.danger,
