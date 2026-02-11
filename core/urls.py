@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from core.views import (
     AuthViewSet, ProfileViewSet, VehicleViewSet,
     LocationViewSet, FeedViewSet, DiscoveryViewSet, PersonMatchViewSet,
-    AnalyticsViewSet, EventViewSet
+    AnalyticsViewSet, EventViewSet, health_check
 )
 
 router = DefaultRouter()
@@ -19,4 +19,5 @@ router.register(r'events', EventViewSet, basename='events')
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('health/', health_check, name='health-check'),
 ]

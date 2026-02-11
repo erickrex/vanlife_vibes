@@ -16,20 +16,38 @@ from decouple import config, Csv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Environment detection
+DJANGO_ENV = config("DJANGO_ENV", default="development")
+IS_PRODUCTION = DJANGO_ENV == "production"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config(
-    "SECRET_KEY",
-    default="django-insecure-u4p_mz)efwt!j_0-nf@n@$4rvi*a5qy^(m%=zde5%69(d-7xge",
-)
+# In production, SECRET_KEY must be set via environment variable (no default).
+if IS_PRODUCTION:
+    SECRET_KEY = config("SECRET_KEY")
+else:
+    SECRET_KEY = config(
+        "SECRET_KEY",
+        default="django-insecure-u4p_mz)efwt!j_0-nf@n@$4rvi*a5qy^(m%=zde5%69(d-7xge",
+    )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config("DEBUG", default=False, cast=bool)
+DEBUG = not IS_PRODUCTION
 
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="localhost,127.0.0.1", cast=Csv())
+if IS_PRODUCTION:
+    # Ensure EB domain and custom domains are included via ALLOWED_HOSTS env var.
+    # Also allow health checks from the load balancer.
+    ALLOWED_HOSTS += [".elasticbeanstalk.com"]
+
+# Production security settings
+if IS_PRODUCTION:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000
 
 
 # Application definition
@@ -92,11 +110,21 @@ TEMPLATES = [
 WSGI_APPLICATION = "vanlifevibes.wsgi.application"
 ASGI_APPLICATION = "vanlifevibes.asgi.application"
 
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer",
+if IS_PRODUCTION:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
+                "hosts": [config("REDIS_URL")],
+            },
+        }
     }
-}
+else:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels.layers.InMemoryChannelLayer",
+        }
+    }
 
 
 # Database
@@ -154,6 +182,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Media files (User uploads)
 # https://docs.djangoproject.com/en/5.2/topics/files/
@@ -165,17 +194,23 @@ MEDIA_ROOT = BASE_DIR / "media"
 USE_S3_STORAGE = config("USE_S3_STORAGE", default=False, cast=bool)
 
 if USE_S3_STORAGE:
-    # AWS S3 Configuration
-    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
-    AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID")
-    AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY")
+    # AWS S3 Configuration (Django 4.2+ STORAGES dict)
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        },
+        "staticfiles": {
+            "BACKEND": "storages.backends.s3boto3.S3StaticStorage",
+        },
+    }
     AWS_STORAGE_BUCKET_NAME = config("AWS_STORAGE_BUCKET_NAME")
     AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME", default="us-east-1")
     AWS_S3_FILE_OVERWRITE = False
     AWS_DEFAULT_ACL = None
-    AWS_S3_OBJECT_PARAMETERS = {
-        "CacheControl": "max-age=86400",
-    }
+    AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
+    AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
+    STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/static/"
+    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/media/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -218,11 +253,20 @@ REST_FRAMEWORK = {
 # CORS Settings
 # https://github.com/adamchainz/django-cors-headers
 
-CORS_ALLOWED_ORIGINS = config(
-    "CORS_ALLOWED_ORIGINS",
-    default="http://localhost:3000,http://localhost:5173",
-    cast=Csv(),
-)
+if IS_PRODUCTION:
+    # Production: never allow all origins; rely on the explicit origins list.
+    CORS_ALLOW_ALL_ORIGINS = False
+    CORS_ALLOWED_ORIGINS = config("CORS_ALLOWED_ORIGINS", cast=Csv())
+else:
+    # Development: optionally allow all origins for convenience.
+    CORS_ALLOW_ALL_ORIGINS = config(
+        "CORS_ALLOW_ALL_ORIGINS", default=False, cast=bool
+    )
+    CORS_ALLOWED_ORIGINS = config(
+        "CORS_ALLOWED_ORIGINS",
+        default="http://localhost:3000,http://localhost:5173",
+        cast=Csv(),
+    )
 
 CORS_ALLOW_CREDENTIALS = True
 

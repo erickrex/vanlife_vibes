@@ -1,0 +1,15 @@
+.git
+.gitignore
+frontend/
+node_modules/
+media/
+__pycache__/
+*.pyc
+.env
+.env.*
+*.md
+.kiro/
+.vscode/
+.pytest_cache
+.ruff_cache
+.venv

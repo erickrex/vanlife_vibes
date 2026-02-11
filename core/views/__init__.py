@@ -20,6 +20,7 @@ from .profiles import (
 )
 from .matches import PersonMatchViewSet
 from .events import EventViewSet
+from .health import health_check
 
 __all__ = [
     'MessageMixin',
@@ -32,4 +33,5 @@ __all__ = [
     'DiscoveryViewSet',
     'PersonMatchViewSet',
     'EventViewSet',
+    'health_check',
 ]
