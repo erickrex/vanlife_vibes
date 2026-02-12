@@ -13,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import { useHeaderHeight } from '@react-navigation/elements';
+import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 
 import AppButton from '../components/AppButton';
@@ -20,7 +21,7 @@ import CityAutocomplete from '../components/CityAutocomplete';
 import FormTextInput from '../components/FormTextInput';
 import Screen from '../components/Screen';
 import { useAuth } from '../contexts/AuthContext';
-import { profilesAPI } from '../services/api';
+import { profilesAPI, subscriptionAPI } from '../services/api';
 import { colors } from '../theme/colors';
 
 const STEPS = [
@@ -138,6 +139,7 @@ function SegmentedOption({ label, selected, onPress }) {
 }
 
 export default function OnboardingScreen() {
+  const navigation = useNavigation();
   const { profile, refreshProfile } = useAuth();
   const headerHeight = useHeaderHeight();
 
@@ -171,6 +173,7 @@ export default function OnboardingScreen() {
   const [uploadingPhotoType, setUploadingPhotoType] = useState('');
   const [photoError, setPhotoError] = useState('');
   const [showPhotoUrlFallback, setShowPhotoUrlFallback] = useState(false);
+  const [isPremium, setIsPremium] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -180,16 +183,19 @@ export default function OnboardingScreen() {
         setLoading(true);
         setError('');
 
-        const [profileRes, promptRes] = await Promise.all([
+        const [profileRes, promptRes, subscriptionRes] = await Promise.all([
           profilesAPI.getMyProfile(),
           profilesAPI.getAvailablePrompts(),
+          subscriptionAPI.getStatus().catch(() => null),
         ]);
 
         if (!mounted) return;
         const profileData = profileRes.data.data || profileRes.data;
         const promptsData = promptRes.data.data || promptRes.data || [];
+        const subscriptionData = subscriptionRes?.data?.data || subscriptionRes?.data || {};
 
         setPrompts(Array.isArray(promptsData) ? promptsData : []);
+        setIsPremium(!!subscriptionData?.is_premium);
         setDisplayName(profileData.display_name || '');
         setBio(profileData.bio || '');
         setGender(profileData.gender || '');
@@ -394,8 +400,6 @@ export default function OnboardingScreen() {
         cover_url: coverUrl.trim() || null,
         gender,
         now_in_city: nowInCity.trim(),
-        next_week_in_city: nextWeekInCity.trim(),
-        next_month_in_city: nextMonthInCity.trim(),
         looking_for_dating: !!lookingForDating,
         looking_for_friends: !!lookingForFriends,
         interested_in_men: !!interestedInMen,
@@ -407,6 +411,10 @@ export default function OnboardingScreen() {
         pet_type: hasPets ? petType : '',
         has_completed_onboarding: true,
       };
+      if (isPremium) {
+        payload.next_week_in_city = nextWeekInCity.trim();
+        payload.next_month_in_city = nextMonthInCity.trim();
+      }
 
       await profilesAPI.updateMyProfile(payload);
 
@@ -721,23 +729,59 @@ export default function OnboardingScreen() {
                 editable={!saving}
               />
 
-              <CityAutocomplete
-                label="Next week"
-                value={nextWeekInCity}
-                onChange={setNextWeekInCity}
-                placeholder="Search cities…"
-                editable={!saving}
-                optional
-              />
+              {isPremium ? (
+                <>
+                  <CityAutocomplete
+                    label="Next week"
+                    value={nextWeekInCity}
+                    onChange={setNextWeekInCity}
+                    placeholder="Search cities…"
+                    editable={!saving}
+                    optional
+                  />
 
-              <CityAutocomplete
-                label="Next month"
-                value={nextMonthInCity}
-                onChange={setNextMonthInCity}
-                placeholder="Search cities…"
-                editable={!saving}
-                optional
-              />
+                  <CityAutocomplete
+                    label="Next month"
+                    value={nextMonthInCity}
+                    onChange={setNextMonthInCity}
+                    placeholder="Search cities…"
+                    editable={!saving}
+                    optional
+                  />
+                </>
+              ) : (
+                <View style={styles.premiumLockCard}>
+                  <Text style={styles.premiumLockTitle}>Premium: Future location matching</Text>
+                  <Text style={styles.premiumLockBody}>
+                    Unlock more matches with Next week and Next month location timeline, plus unlimited swipes.
+                    You can enable this later from Subscription.
+                  </Text>
+
+                  <CityAutocomplete
+                    label="Next week (Premium)"
+                    value=""
+                    onChange={() => {}}
+                    placeholder="Premium required"
+                    editable={false}
+                    optional
+                  />
+
+                  <CityAutocomplete
+                    label="Next month (Premium)"
+                    value=""
+                    onChange={() => {}}
+                    placeholder="Premium required"
+                    editable={false}
+                    optional
+                  />
+
+                  <AppButton
+                    title="Unlock Premium"
+                    onPress={() => navigation.navigate('Subscription')}
+                    variant="primary"
+                  />
+                </View>
+              )}
             </View>
           ) : null}
 
@@ -819,6 +863,24 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontSize: 13,
     marginTop: -8,
+  },
+  premiumLockCard: {
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.panel,
+    borderRadius: 14,
+    padding: 12,
+    gap: 10,
+  },
+  premiumLockTitle: {
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  premiumLockBody: {
+    color: colors.muted,
+    fontSize: 12,
+    lineHeight: 18,
   },
   label: {
     color: colors.secondary,

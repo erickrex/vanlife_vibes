@@ -8,6 +8,7 @@ from core.models import (
     UserAccount, Profile, Vehicle, VehiclePhoto, HobbyTag, Country,
     InTownWindow, City, Prompt, ProfilePrompt, ProfilePhoto
 )
+from core.services.swipe_limit import SwipeLimitService
 
 
 class ProfileCardDataSerializer(serializers.ModelSerializer):
@@ -100,6 +101,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     
     # Discovery scoring (set dynamically on profile instances during dating discovery)
     relevance_score = serializers.SerializerMethodField()
+    overlap_windows = serializers.SerializerMethodField()
     
     class Meta:
         model = Profile
@@ -156,6 +158,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'hobbies',
             'vehicle',
             'relevance_score',
+            'overlap_windows',
             'created_at',
             'updated_at',
         ]
@@ -176,6 +179,10 @@ class ProfileSerializer(serializers.ModelSerializer):
     def get_relevance_score(self, obj):
         """Return relevance_score if set during discovery ranking, else None."""
         return getattr(obj, 'relevance_score', None)
+
+    def get_overlap_windows(self, obj):
+        """Return overlap_windows if set during discovery ranking, else empty list."""
+        return getattr(obj, 'overlap_windows', [])
     
     def get_in_town_windows(self, obj):
         """Return active (non-expired) in-town windows ordered by start_date."""
@@ -789,6 +796,19 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
             elif self.instance and self.instance.group_description:
                 # Also clear if profile_type is being set to 'solo' and instance has group_description
                 attrs['group_description'] = ''
+
+        # Premium gating: future location matching is a premium feature.
+        # Free users may still set "now_in_city".
+        if self.instance and not SwipeLimitService.is_premium(self.instance):
+            next_week = attrs.get('next_week_in_city')
+            next_month = attrs.get('next_month_in_city')
+            has_next_week = bool(next_week and str(next_week).strip())
+            has_next_month = bool(next_month and str(next_month).strip())
+            if has_next_week or has_next_month:
+                raise serializers.ValidationError({
+                    'next_week_in_city': 'Premium required for future location matching.',
+                    'next_month_in_city': 'Premium required for future location matching.',
+                })
         
         return attrs
 

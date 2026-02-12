@@ -20,7 +20,7 @@ import CityAutocomplete from '../components/CityAutocomplete';
 import FormTextInput from '../components/FormTextInput';
 import Screen from '../components/Screen';
 import { useAuth } from '../contexts/AuthContext';
-import { profilesAPI } from '../services/api';
+import { profilesAPI, subscriptionAPI } from '../services/api';
 import { colors } from '../theme/colors';
 
 const GENDER_OPTIONS = [
@@ -194,6 +194,7 @@ export default function ProfileEditScreen() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [isPremium, setIsPremium] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
 
   const [displayName, setDisplayName] = useState('');
@@ -275,12 +276,13 @@ export default function ProfileEditScreen() {
       setLoading(true);
       setError('');
 
-      const [profileRes, hobbyRes, promptsRes, availablePromptsRes, photosRes] = await Promise.all([
+      const [profileRes, hobbyRes, promptsRes, availablePromptsRes, photosRes, subscriptionRes] = await Promise.all([
         profilesAPI.getMyProfile(),
         profilesAPI.getHobbyTags(),
         profilesAPI.getPrompts(),
         profilesAPI.getAvailablePrompts(),
         profilesAPI.getPhotos(),
+        subscriptionAPI.getStatus().catch(() => null),
       ]);
 
       const profile = normalizeProfile(profileRes);
@@ -288,6 +290,7 @@ export default function ProfileEditScreen() {
       const promptList = normalizeList(promptsRes);
       const availablePromptList = normalizeList(availablePromptsRes);
       const profilePhotoList = normalizeList(photosRes);
+      const subscription = subscriptionRes?.data?.data || subscriptionRes?.data || {};
 
       let vehicle = null;
       try {
@@ -335,6 +338,7 @@ export default function ProfileEditScreen() {
       setPrompts(promptList);
       setAvailablePrompts(availablePromptList);
       setPhotos(profilePhotoList);
+      setIsPremium(!!subscription?.is_premium);
       setPromptError('');
       setPhotoError('');
 
@@ -609,7 +613,7 @@ export default function ProfileEditScreen() {
       setSaving(true);
       setError('');
 
-      await profilesAPI.updateMyProfile({
+      const payload = {
         display_name: displayName.trim(),
         bio: bio.trim(),
         avatar_url: avatarUrlInput.trim() || null,
@@ -634,18 +638,22 @@ export default function ProfileEditScreen() {
         pet_type: hasPets ? petType || null : null,
         pet_friendly_only: !!petFriendlyOnly,
         now_in_city: nowInCity || '',
-        next_week_in_city: nextWeekInCity || '',
-        next_month_in_city: nextMonthInCity || '',
         now_in_start_date: nowInStartDate || null,
         now_in_end_date: nowInEndDate || null,
-        next_week_in_start_date: nextWeekInStartDate || null,
-        next_week_in_end_date: nextWeekInEndDate || null,
-        next_month_in_start_date: nextMonthInStartDate || null,
-        next_month_in_end_date: nextMonthInEndDate || null,
         camping_preferences: hasVan ? campingPreferences : [],
         hobby_ids: selectedHobbyIds,
         has_van: !!hasVan,
-      });
+      };
+      if (isPremium) {
+        payload.next_week_in_city = nextWeekInCity || '';
+        payload.next_month_in_city = nextMonthInCity || '';
+        payload.next_week_in_start_date = nextWeekInStartDate || null;
+        payload.next_week_in_end_date = nextWeekInEndDate || null;
+        payload.next_month_in_start_date = nextMonthInStartDate || null;
+        payload.next_month_in_end_date = nextMonthInEndDate || null;
+      }
+
+      await profilesAPI.updateMyProfile(payload);
 
       if (hasVan) {
         await profilesAPI.updateMyVehicle({
@@ -912,52 +920,84 @@ export default function ProfileEditScreen() {
                 editable={!saving && !!nowInCity}
               />
             </View>
-            <CityAutocomplete
-              label="Next week in city"
-              value={nextWeekInCity}
-              onChange={setNextWeekInCity}
-              editable={!saving}
-              optional
-            />
-            <View style={styles.dateRow}>
-              <FormTextInput
-                label="Next week from (YYYY-MM-DD)"
-                value={nextWeekInStartDate}
-                onChangeText={setNextWeekInStartDate}
-                placeholder="2026-02-17"
-                editable={!saving && !!nextWeekInCity}
-              />
-              <FormTextInput
-                label="Next week until (YYYY-MM-DD)"
-                value={nextWeekInEndDate}
-                onChangeText={setNextWeekInEndDate}
-                placeholder="2026-02-21"
-                editable={!saving && !!nextWeekInCity}
-              />
-            </View>
-            <CityAutocomplete
-              label="Next month in city"
-              value={nextMonthInCity}
-              onChange={setNextMonthInCity}
-              editable={!saving}
-              optional
-            />
-            <View style={styles.dateRow}>
-              <FormTextInput
-                label="Next month from (YYYY-MM-DD)"
-                value={nextMonthInStartDate}
-                onChangeText={setNextMonthInStartDate}
-                placeholder="2026-03-12"
-                editable={!saving && !!nextMonthInCity}
-              />
-              <FormTextInput
-                label="Next month until (YYYY-MM-DD)"
-                value={nextMonthInEndDate}
-                onChangeText={setNextMonthInEndDate}
-                placeholder="2026-03-20"
-                editable={!saving && !!nextMonthInCity}
-              />
-            </View>
+            {isPremium ? (
+              <>
+                <CityAutocomplete
+                  label="Next week in city"
+                  value={nextWeekInCity}
+                  onChange={setNextWeekInCity}
+                  editable={!saving}
+                  optional
+                />
+                <View style={styles.dateRow}>
+                  <FormTextInput
+                    label="Next week from (YYYY-MM-DD)"
+                    value={nextWeekInStartDate}
+                    onChangeText={setNextWeekInStartDate}
+                    placeholder="2026-02-17"
+                    editable={!saving && !!nextWeekInCity}
+                  />
+                  <FormTextInput
+                    label="Next week until (YYYY-MM-DD)"
+                    value={nextWeekInEndDate}
+                    onChangeText={setNextWeekInEndDate}
+                    placeholder="2026-02-21"
+                    editable={!saving && !!nextWeekInCity}
+                  />
+                </View>
+                <CityAutocomplete
+                  label="Next month in city"
+                  value={nextMonthInCity}
+                  onChange={setNextMonthInCity}
+                  editable={!saving}
+                  optional
+                />
+                <View style={styles.dateRow}>
+                  <FormTextInput
+                    label="Next month from (YYYY-MM-DD)"
+                    value={nextMonthInStartDate}
+                    onChangeText={setNextMonthInStartDate}
+                    placeholder="2026-03-12"
+                    editable={!saving && !!nextMonthInCity}
+                  />
+                  <FormTextInput
+                    label="Next month until (YYYY-MM-DD)"
+                    value={nextMonthInEndDate}
+                    onChangeText={setNextMonthInEndDate}
+                    placeholder="2026-03-20"
+                    editable={!saving && !!nextMonthInCity}
+                  />
+                </View>
+              </>
+            ) : (
+              <View style={styles.premiumLocationLock}>
+                <Text style={styles.premiumLocationTitle}>Premium: Future location matching</Text>
+                <Text style={styles.premiumLocationBody}>
+                  Unlock Next week and Next month timeline fields to get ranked for future-location matches.
+                </Text>
+                <CityAutocomplete
+                  label="Next week in city (Premium)"
+                  value=""
+                  onChange={() => {}}
+                  editable={false}
+                  optional
+                  placeholder="Premium required"
+                />
+                <CityAutocomplete
+                  label="Next month in city (Premium)"
+                  value=""
+                  onChange={() => {}}
+                  editable={false}
+                  optional
+                  placeholder="Premium required"
+                />
+                <AppButton
+                  title="Unlock Premium"
+                  onPress={() => navigation.navigate('Subscription')}
+                  variant="primary"
+                />
+              </View>
+            )}
           </View>
 
           <View style={styles.card}>
@@ -1447,6 +1487,24 @@ const styles = StyleSheet.create({
   },
   dateRow: {
     gap: 10,
+  },
+  premiumLocationLock: {
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.panel,
+    borderRadius: 14,
+    padding: 12,
+    gap: 10,
+  },
+  premiumLocationTitle: {
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  premiumLocationBody: {
+    color: colors.muted,
+    fontSize: 12,
+    lineHeight: 18,
   },
   label: {
     color: colors.secondary,

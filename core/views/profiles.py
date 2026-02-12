@@ -974,6 +974,34 @@ class DiscoveryViewSet(viewsets.GenericViewSet):
         
         return total_overlap_days
 
+    def _filter_rankable_windows(self, windows, allow_future):
+        """Filter windows used for ranking, gating future windows by premium."""
+        today = timezone.now().date()
+        if allow_future:
+            # Ignore stale windows to avoid boosting based on past travel history.
+            return [window for window in windows if window.end_date >= today]
+        # Free users only get ranking value from current location overlap.
+        return [window for window in windows if window.start_date <= today <= window.end_date]
+    def _find_overlap_windows(self, user_windows, profile_windows):
+        """Return list of overlapping window details between two users."""
+        overlaps = []
+        if not user_windows or not profile_windows:
+            return overlaps
+
+        for user_window in user_windows:
+            for profile_window in profile_windows:
+                if user_window.city_area.lower() == profile_window.city_area.lower():
+                    overlap_start = max(user_window.start_date, profile_window.start_date)
+                    overlap_end = min(user_window.end_date, profile_window.end_date)
+                    if overlap_start <= overlap_end:
+                        overlaps.append({
+                            'city_area': profile_window.city_area,
+                            'start_date': overlap_start.isoformat(),
+                            'end_date': overlap_end.isoformat(),
+                            'overlap_days': (overlap_end - overlap_start).days + 1,
+                        })
+        return overlaps
+
     
     def _apply_filters(self, queryset, request, user_profile):
         """Apply discovery filters (travel_pace, profile_type, pet_compatible)."""
@@ -1069,34 +1097,41 @@ class DiscoveryViewSet(viewsets.GenericViewSet):
         queryset = self._apply_filters(queryset, request, user_profile)
         
         # Get user's in-town windows for overlap calculation
-        user_windows = list(user_profile.in_town_windows.all())
+        user_is_premium = SwipeLimitService.is_premium(user_profile)
+        user_windows = self._filter_rankable_windows(
+            list(user_profile.in_town_windows.all()),
+            allow_future=user_is_premium,
+        )
         
-        # Calculate overlap scores and sort
+        # Calculate overlap scores and find overlapping windows
         profiles_with_scores = []
         for profile in queryset:
-            profile_windows = list(profile.in_town_windows.all())
+            candidate_is_premium = SwipeLimitService.is_premium(profile)
+            profile_windows = self._filter_rankable_windows(
+                list(profile.in_town_windows.all()),
+                allow_future=candidate_is_premium,
+            )
             overlap_score = self._calculate_overlap_score(user_windows, profile_windows)
+            profile.overlap_windows = self._find_overlap_windows(user_windows, profile_windows)
             profiles_with_scores.append((profile, overlap_score))
         
         # Sort by overlap score (descending)
         profiles_with_scores.sort(key=lambda x: x[1], reverse=True)
         
-        # For dating mode, apply combined score ranking with RelevanceScorer
-        if mode == 'dating':
-            top_candidates = profiles_with_scores[:50]
-            scorer = RelevanceScorer()
-            ranked = []
-            for profile, overlap in top_candidates:
-                relevance = scorer.calculate_score(user_profile, profile)
-                completeness = scorer.calculate_completeness_score(profile)
-                final_score = (overlap * W_LOCATION) + (relevance * W_RELEVANCE) + (completeness * W_COMPLETENESS)
-                profile.relevance_score = relevance
-                ranked.append((profile, final_score))
-            ranked.sort(key=lambda x: x[1], reverse=True)
-            sorted_profiles = [p[0] for p in ranked]
-        else:
-            # Extract sorted profiles
-            sorted_profiles = [p[0] for p in profiles_with_scores]
+        # Apply combined score ranking with RelevanceScorer for both modes.
+        # Friends mode intentionally skips gender filtering above, but should
+        # still benefit from most shared relevance signals used in dating mode.
+        top_candidates = profiles_with_scores[:50]
+        scorer = RelevanceScorer()
+        ranked = []
+        for profile, overlap in top_candidates:
+            relevance = scorer.calculate_score(user_profile, profile)
+            completeness = scorer.calculate_completeness_score(profile)
+            final_score = (overlap * W_LOCATION) + (relevance * W_RELEVANCE) + (completeness * W_COMPLETENESS)
+            profile.relevance_score = relevance
+            ranked.append((profile, final_score))
+        ranked.sort(key=lambda x: x[1], reverse=True)
+        sorted_profiles = [p[0] for p in ranked]
         
         return sorted_profiles, None
 

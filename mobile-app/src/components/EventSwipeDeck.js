@@ -113,7 +113,6 @@ export default function EventSwipeDeck({ events = [], onSwipe, onMatch, onEmpty,
   const finalizeSwipe = useCallback(async (direction, event) => {
     const isLike = direction === 'right';
     try {
-      setIsProcessing(true);
       const response = await eventsAPI.swipe(event.id, isLike);
       const data = response?.data?.data ?? response?.data;
       if (data?.matched) {
@@ -122,24 +121,38 @@ export default function EventSwipeDeck({ events = [], onSwipe, onMatch, onEmpty,
         onMatch?.(event, data);
       }
       onSwipe?.(direction, event, data);
+      return { ok: true, data };
     } catch (err) {
-      onSwipe?.(direction, event, { error: err.message || 'Swipe failed' });
-    } finally {
-      setIsProcessing(false);
+      const payload = { error: err.message || 'Swipe failed' };
+      onSwipe?.(direction, event, payload);
+      return { ok: false, data: payload };
     }
   }, [onMatch, onSwipe]);
 
   const forceSwipe = useCallback((direction) => {
     if (!activeEvent || isProcessing) return;
+    setIsProcessing(true);
     const x = direction === 'right' ? width * 1.2 : -width * 1.2;
+    const swipedEvent = activeEvent;
     Animated.timing(position, {
       toValue: { x, y: 0 },
       duration: SWIPE_ANIM_MS,
       useNativeDriver: true,
     }).start(() => {
-      position.setValue({ x: 0, y: 0 });
-      setCurrentIndex((prev) => prev + 1);
-      finalizeSwipe(direction, activeEvent);
+      (async () => {
+        const result = await finalizeSwipe(direction, swipedEvent);
+        if (result?.ok) {
+          position.setValue({ x: 0, y: 0 });
+          setCurrentIndex((prev) => prev + 1);
+          setIsProcessing(false);
+          return;
+        }
+        Animated.spring(position, {
+          toValue: { x: 0, y: 0 },
+          useNativeDriver: true,
+          friction: 7,
+        }).start(() => setIsProcessing(false));
+      })();
     });
   }, [activeEvent, finalizeSwipe, isProcessing, position, width]);
 

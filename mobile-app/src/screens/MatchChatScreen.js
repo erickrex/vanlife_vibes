@@ -7,6 +7,7 @@ import {
   Modal,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -33,6 +34,115 @@ const REPORT_REASON_OPTIONS = [
   { value: 'scam', label: 'Scam' },
   { value: 'other', label: 'Other' },
 ];
+
+const MINI_CARD_MEET_PREFERENCE_OPTIONS = [
+  { value: 'open_to_it', label: 'Open to meeting up' },
+  { value: 'coffee', label: 'Coffee nearby' },
+  { value: 'hike', label: 'Trail hike' },
+  { value: 'campfire', label: 'Campfire hang' },
+];
+
+function firstName(value, fallback = 'there') {
+  if (!value) return fallback;
+  const name = String(value).trim().split(' ')[0];
+  return name || fallback;
+}
+
+function buildIcebreakerSuggestions({ me, otherUser, match }) {
+  const peerName = firstName(otherUser?.display_name);
+  const myCity = me?.now_in_city || me?.current_location;
+  const peerCity = otherUser?.now_in_city || otherUser?.current_location;
+  const relationshipType = match?.relationship_type || 'dating';
+  const pet = otherUser?.pet_name || me?.pet_name;
+  const suggestions = [];
+
+  if (myCity || peerCity) {
+    const city = peerCity || myCity;
+    suggestions.push({
+      id: 'location-sync',
+      text: `Hey ${peerName}, how long are you around ${city}? I am planning my next stop and would love to sync routes.`,
+      reason: city
+        ? `Relevant because location is part of this match context (${city}).`
+        : 'Relevant because travel timing usually drives vanlife plans.',
+    });
+  }
+
+  if (relationshipType === 'friends') {
+    suggestions.push({
+      id: 'friends-plan',
+      text: `Hey ${peerName}, want to trade favorite boondocking spots for this month?`,
+      reason: 'Relevant because this is a friends match and activity ideas work well.',
+    });
+  } else {
+    suggestions.push({
+      id: 'dating-vibe',
+      text: `Hey ${peerName}, what does your ideal vanlife date look like this week?`,
+      reason: 'Relevant because this is a dating match and sets a playful tone.',
+    });
+  }
+
+  if (pet) {
+    suggestions.push({
+      id: 'pet-opener',
+      text: `I saw a mention of ${pet} vibes in profiles. What is the best pet-friendly stop you have found lately?`,
+      reason: 'Relevant because pet-friendly travel is a strong shared context.',
+    });
+  }
+
+  suggestions.push({
+    id: 'practical-opener',
+    text: `Quick one: what is one thing you always check before choosing a new camp spot?`,
+    reason: 'Relevant because practical travel questions are easy to answer and keep chat moving.',
+  });
+
+  return suggestions.slice(0, 4);
+}
+
+function buildMiniCardPresets({ me, otherUser }) {
+  const myCity = me?.now_in_city || me?.current_location || '';
+  const myUntil = me?.now_in_end_date || '';
+  const peerCity = otherUser?.now_in_city || otherUser?.current_location || '';
+
+  return [
+    {
+      id: 'local-coffee',
+      label: 'Coffee check-in',
+      reason: peerCity
+        ? `Relevant because they appear to be around ${peerCity}.`
+        : 'Relevant as a low-pressure first meetup option.',
+      payload: {
+        current_location: myCity,
+        in_town_until: myUntil,
+        meet_preference: 'coffee',
+      },
+    },
+    {
+      id: 'trail-plan',
+      label: 'Trail + timing',
+      reason: 'Relevant for coordinating time windows before routes diverge.',
+      payload: {
+        current_location: myCity,
+        in_town_until: myUntil,
+        meet_preference: 'hike',
+      },
+    },
+    {
+      id: 'open-intro',
+      label: 'Open mini-card',
+      reason: 'Relevant when you want to share your situation without pushing a specific plan.',
+      payload: {
+        current_location: myCity,
+        in_town_until: myUntil,
+        meet_preference: 'open_to_it',
+      },
+    },
+  ];
+}
+
+function isValidYyyyMmDd(value) {
+  if (!value) return true;
+  return /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
 
 function normalizeListResponse(response) {
   const data = response?.data?.data ?? response?.data;
@@ -104,8 +214,18 @@ export default function MatchChatScreen() {
   const [actionLoading, setActionLoading] = useState('');
 
   const [reportVisible, setReportVisible] = useState(false);
+  const [icebreakerVisible, setIcebreakerVisible] = useState(false);
+  const [miniCardVisible, setMiniCardVisible] = useState(false);
   const [reportReason, setReportReason] = useState(REPORT_REASON_OPTIONS[0].value);
   const [reportDescription, setReportDescription] = useState('');
+  const [icebreakerDraft, setIcebreakerDraft] = useState('');
+  const [selectedIcebreakerId, setSelectedIcebreakerId] = useState('');
+  const [miniCardDraft, setMiniCardDraft] = useState({
+    current_location: '',
+    in_town_until: '',
+    meet_preference: 'open_to_it',
+  });
+  const [selectedMiniCardPresetId, setSelectedMiniCardPresetId] = useState('');
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [windowHeight, setWindowHeight] = useState(Dimensions.get('window').height);
 
@@ -208,6 +328,11 @@ export default function MatchChatScreen() {
   }, [loadMessages, matchId]);
 
   const timeline = useMemo(() => buildTimeline(messages), [messages]);
+  const icebreakerSuggestions = useMemo(
+    () => buildIcebreakerSuggestions({ me, otherUser, match }),
+    [match, me, otherUser]
+  );
+  const miniCardPresets = useMemo(() => buildMiniCardPresets({ me, otherUser }), [me, otherUser]);
   const androidWindowShrink = Math.max(0, baseWindowHeightRef.current - windowHeight);
   const androidKeyboardCompensation =
     Platform.OS === 'android' ? Math.max(0, keyboardHeight - androidWindowShrink) : 0;
@@ -247,10 +372,21 @@ export default function MatchChatScreen() {
     }
   };
 
+  const openIcebreakerComposer = () => {
+    if (actionLoading) return;
+    const firstSuggestion = icebreakerSuggestions[0];
+    setSelectedIcebreakerId(firstSuggestion?.id || '');
+    setIcebreakerDraft(firstSuggestion?.text || '');
+    setIcebreakerVisible(true);
+  };
+
   const sendIcebreaker = async () => {
     if (!matchId || actionLoading) return;
-    const firstName = otherUser?.display_name ? String(otherUser.display_name).split(' ')[0] : 'there';
-    const content = `Hey ${firstName}, what does your ideal vanlife day look like this week?`;
+    const content = icebreakerDraft.trim();
+    if (!content) {
+      setError('Icebreaker message cannot be empty.');
+      return;
+    }
     try {
       setActionLoading('icebreaker');
       setError('');
@@ -263,6 +399,9 @@ export default function MatchChatScreen() {
         await loadMessages();
       }
       setNotice('Icebreaker sent.');
+      setIcebreakerVisible(false);
+      setIcebreakerDraft('');
+      setSelectedIcebreakerId('');
     } catch (err) {
       setError(err.message || 'Failed to send icebreaker');
     } finally {
@@ -270,16 +409,44 @@ export default function MatchChatScreen() {
     }
   };
 
+  const openMiniCardComposer = () => {
+    if (actionLoading) return;
+    const firstPreset = miniCardPresets[0];
+    setSelectedMiniCardPresetId(firstPreset?.id || '');
+    setMiniCardDraft({
+      current_location: firstPreset?.payload?.current_location || me?.current_location || me?.now_in_city || '',
+      in_town_until: firstPreset?.payload?.in_town_until || me?.now_in_end_date || '',
+      meet_preference: firstPreset?.payload?.meet_preference || 'open_to_it',
+    });
+    setMiniCardVisible(true);
+  };
+
   const shareMiniCard = async () => {
     if (!matchId || actionLoading) return;
     const payload = {};
-    if (me?.current_location || me?.now_in_city) {
-      payload.current_location = me?.current_location || me?.now_in_city;
+    const currentLocation = miniCardDraft.current_location.trim();
+    const inTownUntil = miniCardDraft.in_town_until.trim();
+    const meetPreference = miniCardDraft.meet_preference.trim();
+
+    if (currentLocation) {
+      payload.current_location = currentLocation;
     }
-    if (me?.now_in_end_date) {
-      payload.in_town_until = me.now_in_end_date;
+    if (inTownUntil) {
+      if (!isValidYyyyMmDd(inTownUntil)) {
+        setError('Mini-card date must use YYYY-MM-DD format.');
+        return;
+      }
+      payload.in_town_until = inTownUntil;
     }
-    payload.meet_preference = me?.meetup_interest || 'open_to_it';
+    if (meetPreference) {
+      payload.meet_preference = meetPreference;
+    }
+
+    if (!payload.current_location && !payload.in_town_until && !payload.meet_preference) {
+      setError('Add at least one mini-card field before sending.');
+      return;
+    }
+
     try {
       setActionLoading('mini-card');
       setError('');
@@ -292,6 +459,8 @@ export default function MatchChatScreen() {
         await loadMessages();
       }
       setNotice('Mini-card shared.');
+      setMiniCardVisible(false);
+      setSelectedMiniCardPresetId('');
     } catch (err) {
       setError(err.message || 'Failed to share mini-card');
     } finally {
@@ -395,14 +564,14 @@ export default function MatchChatScreen() {
 
             <View style={styles.quickActions}>
               <Pressable
-                onPress={sendIcebreaker}
+                onPress={openIcebreakerComposer}
                 disabled={!!actionLoading}
                 style={({ pressed }) => [styles.quickActionChip, pressed ? styles.pressed : null, actionLoading ? styles.disabled : null]}
               >
                 <Text style={styles.quickActionText}>Icebreaker</Text>
               </Pressable>
               <Pressable
-                onPress={shareMiniCard}
+                onPress={openMiniCardComposer}
                 disabled={!!actionLoading}
                 style={({ pressed }) => [styles.quickActionChip, pressed ? styles.pressed : null, actionLoading ? styles.disabled : null]}
               >
@@ -572,6 +741,199 @@ export default function MatchChatScreen() {
             </View>
           </KeyboardAvoidingView>
         </Modal>
+
+        <Modal
+          visible={icebreakerVisible}
+          animationType="slide"
+          transparent
+          onRequestClose={() => setIcebreakerVisible(false)}
+        >
+          <KeyboardAvoidingView
+            style={styles.modalFlex}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? headerHeight : 0}
+          >
+            <View style={styles.modalBackdrop}>
+              <View style={styles.modalCard}>
+                <Text style={styles.modalTitle}>Choose an icebreaker</Text>
+                <Text style={styles.modalBody}>
+                  Pick a suggestion, then edit it before sending.
+                </Text>
+
+                <ScrollView style={styles.optionScroll} contentContainerStyle={styles.optionScrollContent}>
+                  {icebreakerSuggestions.map((item) => {
+                    const selected = selectedIcebreakerId === item.id;
+                    return (
+                      <Pressable
+                        key={item.id}
+                        onPress={() => {
+                          setSelectedIcebreakerId(item.id);
+                          setIcebreakerDraft(item.text);
+                        }}
+                        style={({ pressed }) => [
+                          styles.optionCard,
+                          selected ? styles.optionCardActive : null,
+                          pressed ? styles.pressed : null,
+                        ]}
+                      >
+                        <Text style={styles.optionText}>{item.text}</Text>
+                        <Text style={styles.optionReason}>{item.reason}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </ScrollView>
+
+                <TextInput
+                  value={icebreakerDraft}
+                  onChangeText={setIcebreakerDraft}
+                  placeholder="Edit your icebreaker before sending"
+                  placeholderTextColor={colors.placeholder}
+                  style={styles.reportInput}
+                  maxLength={1000}
+                  multiline
+                  textAlignVertical="top"
+                />
+
+                <View style={styles.modalActions}>
+                  <AppButton
+                    title={actionLoading === 'icebreaker' ? 'Sending…' : 'Send'}
+                    onPress={sendIcebreaker}
+                    disabled={actionLoading === 'icebreaker' || !icebreakerDraft.trim()}
+                    variant="primary"
+                    style={styles.flexButton}
+                  />
+                  <AppButton
+                    title="Cancel"
+                    onPress={() => setIcebreakerVisible(false)}
+                    disabled={actionLoading === 'icebreaker'}
+                    variant="secondary"
+                    style={styles.flexButton}
+                  />
+                </View>
+              </View>
+            </View>
+          </KeyboardAvoidingView>
+        </Modal>
+
+        <Modal
+          visible={miniCardVisible}
+          animationType="slide"
+          transparent
+          onRequestClose={() => setMiniCardVisible(false)}
+        >
+          <KeyboardAvoidingView
+            style={styles.modalFlex}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? headerHeight : 0}
+          >
+            <View style={styles.modalBackdrop}>
+              <View style={styles.modalCard}>
+                <Text style={styles.modalTitle}>Build your mini-card</Text>
+                <Text style={styles.modalBody}>
+                  Choose a preset and adjust the fields before sending.
+                </Text>
+
+                <ScrollView style={styles.optionScroll} contentContainerStyle={styles.optionScrollContent}>
+                  {miniCardPresets.map((preset) => {
+                    const selected = selectedMiniCardPresetId === preset.id;
+                    return (
+                      <Pressable
+                        key={preset.id}
+                        onPress={() => {
+                          setSelectedMiniCardPresetId(preset.id);
+                          setMiniCardDraft({
+                            current_location: preset.payload.current_location || '',
+                            in_town_until: preset.payload.in_town_until || '',
+                            meet_preference: preset.payload.meet_preference || 'open_to_it',
+                          });
+                        }}
+                        style={({ pressed }) => [
+                          styles.optionCard,
+                          selected ? styles.optionCardActive : null,
+                          pressed ? styles.pressed : null,
+                        ]}
+                      >
+                        <Text style={styles.optionLabel}>{preset.label}</Text>
+                        <Text style={styles.optionReason}>{preset.reason}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </ScrollView>
+
+                <TextInput
+                  value={miniCardDraft.current_location}
+                  onChangeText={(value) =>
+                    setMiniCardDraft((prev) => ({
+                      ...prev,
+                      current_location: value,
+                    }))
+                  }
+                  placeholder="Current location"
+                  placeholderTextColor={colors.placeholder}
+                  style={styles.fieldInput}
+                  maxLength={100}
+                />
+
+                <TextInput
+                  value={miniCardDraft.in_town_until}
+                  onChangeText={(value) =>
+                    setMiniCardDraft((prev) => ({
+                      ...prev,
+                      in_town_until: value,
+                    }))
+                  }
+                  placeholder="In town until (YYYY-MM-DD)"
+                  placeholderTextColor={colors.placeholder}
+                  style={styles.fieldInput}
+                  maxLength={10}
+                />
+
+                <View style={styles.reasonRow}>
+                  {MINI_CARD_MEET_PREFERENCE_OPTIONS.map((option) => {
+                    const selected = miniCardDraft.meet_preference === option.value;
+                    return (
+                      <Pressable
+                        key={option.value}
+                        onPress={() =>
+                          setMiniCardDraft((prev) => ({
+                            ...prev,
+                            meet_preference: option.value,
+                          }))
+                        }
+                        style={({ pressed }) => [
+                          styles.reasonChip,
+                          selected ? styles.reasonChipActive : null,
+                          pressed ? styles.pressed : null,
+                        ]}
+                      >
+                        <Text style={[styles.reasonText, selected ? styles.reasonTextActive : null]}>
+                          {option.label}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+
+                <View style={styles.modalActions}>
+                  <AppButton
+                    title={actionLoading === 'mini-card' ? 'Sending…' : 'Send'}
+                    onPress={shareMiniCard}
+                    disabled={actionLoading === 'mini-card'}
+                    variant="primary"
+                    style={styles.flexButton}
+                  />
+                  <AppButton
+                    title="Cancel"
+                    onPress={() => setMiniCardVisible(false)}
+                    disabled={actionLoading === 'mini-card'}
+                    variant="secondary"
+                    style={styles.flexButton}
+                  />
+                </View>
+              </View>
+            </View>
+          </KeyboardAvoidingView>
+        </Modal>
       </KeyboardAvoidingView>
     </Screen>
   );
@@ -706,6 +1068,24 @@ const styles = StyleSheet.create({
   },
   modalTitle: { color: colors.text, fontSize: 18, fontWeight: '900' },
   modalBody: { color: colors.muted, lineHeight: 18 },
+  optionScroll: { maxHeight: 220 },
+  optionScrollContent: { gap: 8, paddingBottom: 4 },
+  optionCard: {
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.panel,
+    borderRadius: radius.md,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    gap: 6,
+  },
+  optionCardActive: {
+    borderColor: colors.primary,
+    backgroundColor: `${colors.primary}16`,
+  },
+  optionLabel: { color: colors.text, fontWeight: '800', fontSize: 13 },
+  optionText: { color: colors.text, fontWeight: '700', lineHeight: 18 },
+  optionReason: { color: colors.muted, fontSize: 12, lineHeight: 16 },
   reasonRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   reasonChip: {
     borderWidth: 1,
@@ -731,6 +1111,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     minHeight: 88,
     maxHeight: 130,
+    fontSize: 14,
+  },
+  fieldInput: {
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.surface,
+    color: colors.text,
+    borderRadius: radius.md,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     fontSize: 14,
   },
   modalActions: { flexDirection: 'row', gap: 10, marginTop: 2 },

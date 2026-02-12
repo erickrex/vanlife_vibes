@@ -1,0 +1,13 @@
+{
+  "app": "npx ts-node --prefer-ts-exts bin/infra.ts",
+  "context": {
+    "appName": "vanlifevibes",
+    "environmentName": "prod",
+    "dbName": "vanlifevibes",
+    "dbUsername": "vanlifevibes_admin",
+    "instanceType": "t3.small",
+    "dbInstanceType": "t4g.micro",
+    "redisNodeType": "cache.t4g.micro",
+    "singleInstance": "false"
+  }
+}

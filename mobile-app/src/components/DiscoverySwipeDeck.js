@@ -28,6 +28,17 @@ function CardContent({ profile, currentProfile, mode, accentColor }) {
   const location = profile?.now_in_city || profile?.current_location || '';
   const bio = profile?.bio || '';
 
+  const overlapBadge = useMemo(() => {
+    const windows = profile?.overlap_windows;
+    if (!windows || windows.length === 0) return null;
+    const w = windows[0];
+    const fmt = (iso) => {
+      const d = new Date(iso + 'T00:00:00');
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    };
+    return `📍 ${w.city_area} · ${fmt(w.start_date)} – ${fmt(w.end_date)}`;
+  }, [profile?.overlap_windows]);
+
   return (
     <View style={styles.cardInner}>
       <View style={styles.photoWrap}>
@@ -52,6 +63,11 @@ function CardContent({ profile, currentProfile, mode, accentColor }) {
               {mode === 'friends' ? 'FRIENDS' : 'DATING'}
             </Text>
           </View>
+          {overlapBadge ? (
+            <View style={styles.overlapBadge}>
+              <Text style={styles.overlapBadgeText}>{overlapBadge}</Text>
+            </View>
+          ) : null}
         </View>
         <Text style={styles.name} numberOfLines={1}>
           {displayName}
@@ -460,6 +476,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
+    flexWrap: 'wrap',
+    gap: 6,
   },
   modeBadge: {
     borderWidth: 1,
@@ -471,6 +489,20 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '900',
     letterSpacing: 0.7,
+  },
+  overlapBadge: {
+    borderWidth: 1,
+    borderColor: `${colors.emerald}80`,
+    backgroundColor: `${colors.emerald}30`,
+    borderRadius: radius.full,
+    paddingVertical: 4,
+    paddingHorizontal: 9,
+  },
+  overlapBadgeText: {
+    color: colors.emerald,
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 0.3,
   },
   name: {
     color: colors.text,

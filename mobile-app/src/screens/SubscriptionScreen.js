@@ -16,6 +16,7 @@ import { colors } from '../theme/colors';
 
 const BENEFITS = [
   'Unlimited daily swipes',
+  'Future-location matching boosts',
   'See who liked you',
   'Priority in discovery',
   'Advanced filters',

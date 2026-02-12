@@ -92,6 +92,7 @@ export default function EventsScreen() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
 
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
@@ -215,6 +216,30 @@ export default function EventsScreen() {
   const applyFilters = () => {
     loadEvents();
   };
+
+  const handleSwipe = useCallback(async (direction, event, payload) => {
+    if (payload?.error) {
+      setError(payload.error);
+      setNotice('');
+      await loadEvents();
+      return;
+    }
+
+    const title = event?.title || 'event';
+    setError('');
+    setNotice(direction === 'right' ? `Liked ${title}.` : `Passed ${title}.`);
+  }, [loadEvents]);
+
+  const handleMatch = useCallback(async (event) => {
+    const title = event?.title || 'Event';
+    setNotice(`${title} is matched. Group chat is now available.`);
+    try {
+      const response = await eventsAPI.getMyMatches();
+      setMyMatches(normalizeListResponse(response));
+    } catch {
+      // Non-blocking best-effort refresh.
+    }
+  }, []);
 
   const listData = useMemo(() => {
     if (joinMode === 'direct') {
@@ -368,8 +393,8 @@ export default function EventsScreen() {
         <View style={styles.deckWrap}>
           <EventSwipeDeck
             events={listData}
-            onSwipe={() => {}}
-            onMatch={() => {}}
+            onSwipe={handleSwipe}
+            onMatch={handleMatch}
             onEmpty={() => setExhausted(true)}
             onOpenEvent={openDetail}
             onOpenChat={openChat}
@@ -385,6 +410,7 @@ export default function EventsScreen() {
           <Text style={styles.emptyBody}>{emptyMessage}</Text>
           <View style={styles.emptyActions}>
             {hasActiveFilters ? <AppButton title="Clear Filters" onPress={clearFilters} variant="secondary" /> : null}
+            {exhausted ? <AppButton title="Refresh Queue" onPress={loadEvents} variant="secondary" /> : null}
             <AppButton title="Create Event" onPress={openCreate} variant="primary" />
           </View>
         </View>
@@ -422,6 +448,12 @@ export default function EventsScreen() {
             <View style={styles.banner}>
               <Text style={styles.bannerText}>{error}</Text>
             </View>
+          ) : null}
+
+          {notice ? (
+            <Pressable onPress={() => setNotice('')} style={styles.noticeBanner}>
+              <Text style={styles.noticeText}>{notice}</Text>
+            </Pressable>
           ) : null}
 
           {renderContent()}
@@ -576,6 +608,18 @@ const styles = StyleSheet.create({
   },
   bannerText: {
     color: colors.danger,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  noticeBanner: {
+    borderWidth: 1,
+    borderColor: `${colors.emerald}66`,
+    backgroundColor: `${colors.emerald}18`,
+    padding: 12,
+    borderRadius: 14,
+  },
+  noticeText: {
+    color: colors.emerald,
     fontSize: 13,
     fontWeight: '700',
   },
