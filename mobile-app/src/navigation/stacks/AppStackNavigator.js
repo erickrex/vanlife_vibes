@@ -12,6 +12,9 @@ import WelcomeScreen from '../../screens/WelcomeScreen';
 import ProfileScreen from '../../screens/ProfileScreen';
 import ProfileEditScreen from '../../screens/ProfileEditScreen';
 import SubscriptionScreen from '../../screens/SubscriptionScreen';
+import BuilderListingDetailScreen from '../../screens/BuilderListingDetailScreen';
+import CreateBuilderListingScreen from '../../screens/CreateBuilderListingScreen';
+import BuilderChatScreen from '../../screens/BuilderChatScreen';
 import { colors } from '../../theme/colors';
 
 const Stack = createNativeStackNavigator();
@@ -44,6 +47,9 @@ export default function AppStackNavigator({ initialRouteName = 'Tabs' }) {
         options={{ title: 'Discovery Settings' }}
       />
       <Stack.Screen name="Subscription" component={SubscriptionScreen} options={{ title: 'Subscription' }} />
+      <Stack.Screen name="BuilderListingDetail" component={BuilderListingDetailScreen} options={{ title: 'Listing Details' }} />
+      <Stack.Screen name="CreateBuilderListing" component={CreateBuilderListingScreen} options={{ title: 'Post a Listing' }} />
+      <Stack.Screen name="BuilderChat" component={BuilderChatScreen} options={{ title: 'Builder Chat' }} />
     </Stack.Navigator>
   );
 }

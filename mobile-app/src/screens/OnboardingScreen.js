@@ -21,7 +21,7 @@ import CityAutocomplete from '../components/CityAutocomplete';
 import FormTextInput from '../components/FormTextInput';
 import Screen from '../components/Screen';
 import { useAuth } from '../contexts/AuthContext';
-import { profilesAPI, subscriptionAPI } from '../services/api';
+import { API_BASE_URL, profilesAPI, subscriptionAPI } from '../services/api';
 import { colors } from '../theme/colors';
 
 const STEPS = [
@@ -138,6 +138,16 @@ function SegmentedOption({ label, selected, onPress }) {
   );
 }
 
+function normalizePhotoUrl(value) {
+  if (!value || typeof value !== 'string') return '';
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+  if (/^(https?:\/\/|file:\/\/|content:\/\/|ph:\/\/|asset:\/\/)/i.test(trimmed)) return trimmed;
+  const origin = API_BASE_URL.replace(/\/api\/v1\/?$/i, '');
+  if (!origin) return trimmed;
+  return `${origin}${trimmed.startsWith('/') ? '' : '/'}${trimmed}`;
+}
+
 export default function OnboardingScreen() {
   const navigation = useNavigation();
   const { profile, refreshProfile } = useAuth();
@@ -172,8 +182,11 @@ export default function OnboardingScreen() {
   const [coverUrl, setCoverUrl] = useState('');
   const [uploadingPhotoType, setUploadingPhotoType] = useState('');
   const [photoError, setPhotoError] = useState('');
+  const [photoNotice, setPhotoNotice] = useState('');
   const [showPhotoUrlFallback, setShowPhotoUrlFallback] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
+  const [avatarUploaded, setAvatarUploaded] = useState(false);
+  const [coverUploaded, setCoverUploaded] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -199,8 +212,12 @@ export default function OnboardingScreen() {
         setDisplayName(profileData.display_name || '');
         setBio(profileData.bio || '');
         setGender(profileData.gender || '');
-        setAvatarUrl(profileData.avatar_url || '');
-        setCoverUrl(profileData.cover_url || '');
+        const initialAvatarUrl = normalizePhotoUrl(profileData.avatar_url || '');
+        const initialCoverUrl = normalizePhotoUrl(profileData.cover_url || '');
+        setAvatarUrl(initialAvatarUrl);
+        setCoverUrl(initialCoverUrl);
+        setAvatarUploaded(!!initialAvatarUrl);
+        setCoverUploaded(!!initialCoverUrl);
         setNowInCity(profileData.now_in_city || '');
         setNextWeekInCity(profileData.next_week_in_city || '');
         setNextMonthInCity(profileData.next_month_in_city || '');
@@ -306,6 +323,7 @@ export default function OnboardingScreen() {
     try {
       setUploadingPhotoType(photoType);
       setPhotoError('');
+      setPhotoNotice('');
 
       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) {
@@ -348,12 +366,16 @@ export default function OnboardingScreen() {
 
       const response = await profilesAPI.uploadPhoto(formData);
       const uploadedPhoto = response?.data?.data ?? response?.data ?? null;
-      const uploadedUrl = uploadedPhoto?.image || '';
+      const uploadedUrl = normalizePhotoUrl(uploadedPhoto?.image || uploadedPhoto?.image_url || '');
 
       if (photoType === 'avatar') {
         setAvatarUrl(uploadedUrl || asset.uri);
+        setAvatarUploaded(true);
+        setPhotoNotice('Avatar uploaded.');
       } else if (photoType === 'cover') {
         setCoverUrl(uploadedUrl || asset.uri);
+        setCoverUploaded(true);
+        setPhotoNotice('Cover uploaded.');
       }
 
       await refreshProfile();
@@ -408,7 +430,7 @@ export default function OnboardingScreen() {
         profile_type: profileType,
         travel_pace: travelPace || null,
         has_pets: !!hasPets,
-        pet_type: hasPets ? petType : '',
+        pet_type: hasPets ? petType : null,
         has_completed_onboarding: true,
       };
       if (isPremium) {
@@ -575,22 +597,35 @@ export default function OnboardingScreen() {
 
               <View style={styles.photoUploadActions}>
                 <AppButton
-                  title={uploadingPhotoType === 'avatar' ? 'Uploading avatar…' : 'Upload Avatar'}
+                  title={
+                    uploadingPhotoType === 'avatar'
+                      ? 'Uploading avatar…'
+                      : avatarUploaded
+                        ? 'Avatar Uploaded ✓'
+                        : 'Upload Avatar'
+                  }
                   onPress={() => pickAndUploadPhoto('avatar')}
                   disabled={!!uploadingPhotoType || saving}
-                  variant="secondary"
+                  variant={avatarUploaded ? 'primary' : 'secondary'}
                   style={styles.photoUploadButton}
                 />
                 <AppButton
-                  title={uploadingPhotoType === 'cover' ? 'Uploading cover…' : 'Upload Cover'}
+                  title={
+                    uploadingPhotoType === 'cover'
+                      ? 'Uploading cover…'
+                      : coverUploaded
+                        ? 'Cover Uploaded ✓'
+                        : 'Upload Cover'
+                  }
                   onPress={() => pickAndUploadPhoto('cover')}
                   disabled={!!uploadingPhotoType || saving}
-                  variant="secondary"
+                  variant={coverUploaded ? 'primary' : 'secondary'}
                   style={styles.photoUploadButton}
                 />
               </View>
 
               {photoError ? <Text style={styles.inlineError}>{photoError}</Text> : null}
+              {photoNotice ? <Text style={styles.inlineSuccess}>{photoNotice}</Text> : null}
               <Pressable
                 onPress={() => setShowPhotoUrlFallback((prev) => !prev)}
                 style={({ pressed }) => [styles.linkRow, pressed ? styles.segmentPressed : null]}
@@ -606,6 +641,7 @@ export default function OnboardingScreen() {
                   value={avatarUrl}
                   onChangeText={(value) => {
                     setAvatarUrl(value);
+                    setAvatarUploaded(!!value.trim());
                     if (photoError) setPhotoError('');
                   }}
                   placeholder="https://"
@@ -897,6 +933,11 @@ const styles = StyleSheet.create({
   bannerText: {
     color: colors.danger,
     fontSize: 13,
+  },
+  inlineSuccess: {
+    color: colors.emerald,
+    fontSize: 12,
+    fontWeight: '700',
   },
   segmentRow: {
     flexDirection: 'row',

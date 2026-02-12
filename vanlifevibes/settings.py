@@ -44,10 +44,11 @@ if IS_PRODUCTION:
 
 # Production security settings
 if IS_PRODUCTION:
-    SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SECURE_HSTS_SECONDS = 31536000
+    SECURE_SSL_REDIRECT = config("SECURE_SSL_REDIRECT", default=False, cast=bool)
+    SESSION_COOKIE_SECURE = SECURE_SSL_REDIRECT
+    CSRF_COOKIE_SECURE = SECURE_SSL_REDIRECT
+    if SECURE_SSL_REDIRECT:
+        SECURE_HSTS_SECONDS = 31536000
 
 
 # Application definition
@@ -251,6 +252,12 @@ REST_FRAMEWORK = {
         "api": "1000/hour",  # 1000 API requests per hour for authenticated users
     },
 }
+
+# Upload limits (bytes)
+# Keep this aligned with nginx client_max_body_size in .platform/nginx/conf.d.
+UPLOAD_MAX_BYTES = config("UPLOAD_MAX_BYTES", default=25 * 1024 * 1024, cast=int)
+DATA_UPLOAD_MAX_MEMORY_SIZE = UPLOAD_MAX_BYTES
+FILE_UPLOAD_MAX_MEMORY_SIZE = UPLOAD_MAX_BYTES
 
 # CORS Settings
 # https://github.com/adamchainz/django-cors-headers

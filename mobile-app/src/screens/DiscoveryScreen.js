@@ -53,8 +53,7 @@ export default function DiscoveryScreen({ mode = 'dating' }) {
 
   const accent = mode === 'dating' ? colors.rose : colors.blue;
   const title = mode === 'dating' ? 'Dating' : 'Friends';
-  const icon = mode === 'dating' ? '💕' : '🤝';
-  const subtitle = mode === 'dating' ? 'Swipe right to like, left to pass.' : 'Swipe right to connect, left to pass.';
+  const headerLabel = `Community - ${title}`;
 
   const loadMatchCount = useCallback(async () => {
     try {
@@ -173,11 +172,7 @@ export default function DiscoveryScreen({ mode = 'dating' }) {
         <View style={styles.headerShell}>
           <View style={styles.header}>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.eyebrow, { color: accent }]}>{mode === 'dating' ? 'DISCOVERY' : 'COMMUNITY'}</Text>
-              <Text style={styles.headerTitle}>
-                {title} <Text style={{ color: accent }}>{icon}</Text>
-              </Text>
-              <Text style={styles.headerSubtitle}>{subtitle}</Text>
+              <Text style={[styles.headerTitle, { color: accent }]}>{headerLabel}</Text>
             </View>
             <Pressable
               onPress={() => navigation.getParent()?.navigate('Profile')}
@@ -334,7 +329,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bgElevated,
     borderRadius: radius.xl,
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingVertical: 8,
   },
   toolbar: {
     flexDirection: 'row',
@@ -342,21 +337,9 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   headerTitle: {
-    color: colors.text,
-    fontSize: 28,
+    fontSize: 21,
     fontWeight: '900',
-    letterSpacing: -0.3,
-  },
-  eyebrow: {
-    fontSize: 11,
-    fontWeight: '900',
-    letterSpacing: 1.2,
-    marginBottom: 2,
-  },
-  headerSubtitle: {
-    color: colors.muted,
-    marginTop: 2,
-    fontSize: 14,
+    letterSpacing: -0.2,
   },
   profileButton: {
     borderWidth: 1,

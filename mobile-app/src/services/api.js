@@ -228,6 +228,26 @@ export const subscriptionAPI = {
     }),
 };
 
+// Builder Marketplace API
+export const builderAPI = {
+  list: (params = {}) => api.get('/builder/', { params }),
+  create: (data) => api.post('/builder/', data),
+  get: (id) => api.get(`/builder/${id}/`),
+  update: (id, data) => api.patch(`/builder/${id}/`, data),
+  remove: (id) => api.delete(`/builder/${id}/`),
+  myListings: () => api.get('/builder/my-listings/'),
+  getMessages: (listingId, recipientId = null) =>
+    api.get(`/builder/${listingId}/messages/`, {
+      params: recipientId ? { recipient_id: recipientId } : undefined,
+    }),
+  sendMessage: (listingId, content, recipientId = null) => {
+    const body = { content };
+    if (recipientId) body.recipient_id = recipientId;
+    return api.post(`/builder/${listingId}/messages/`, body);
+  },
+  getConversations: (listingId) => api.get(`/builder/${listingId}/conversations/`),
+};
+
 // Analytics API
 export const analyticsAPI = {
   trackEvent: (eventName, metadata = {}) =>

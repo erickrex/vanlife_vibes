@@ -1047,3 +1047,92 @@ class UserSubscription(models.Model):
     def __str__(self):
         return f"{self.profile.user.username} - {self.plan} ({'active' if self.is_active else 'inactive'})"
 
+
+class BuilderListing(models.Model):
+    """Marketplace listing for van build help (offering or requesting)."""
+    CATEGORY_CHOICES = [
+        ('electrical', 'Electrical'),
+        ('plumbing', 'Plumbing'),
+        ('carpentry', 'Carpentry'),
+        ('mechanical', 'Mechanical'),
+        ('painting', 'Painting'),
+        ('insulation', 'Insulation'),
+        ('solar', 'Solar'),
+        ('general', 'General'),
+    ]
+
+    LISTING_TYPE_CHOICES = [
+        ('offering', 'Offering'),
+        ('requesting', 'Requesting'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        UserAccount,
+        on_delete=models.CASCADE,
+        related_name='builder_listings'
+    )
+    title = models.CharField(max_length=100)
+    description = models.TextField(max_length=500, blank=True)
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
+    listing_type = models.CharField(max_length=20, choices=LISTING_TYPE_CHOICES)
+    price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    city = models.ForeignKey(
+        City,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='builder_listings'
+    )
+    photo_url = models.URLField(max_length=500, blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'builder_listing'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['category']),
+            models.Index(fields=['listing_type']),
+            models.Index(fields=['is_active', '-created_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.title} ({self.get_listing_type_display()}) by {self.user.username}"
+
+
+
+class BuilderMessage(models.Model):
+    """Chat message on a builder listing between listing owner and an inquirer."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    listing = models.ForeignKey(
+        BuilderListing,
+        on_delete=models.CASCADE,
+        related_name='messages'
+    )
+    sender = models.ForeignKey(
+        Profile,
+        on_delete=models.CASCADE,
+        related_name='sent_builder_messages'
+    )
+    recipient = models.ForeignKey(
+        Profile,
+        on_delete=models.CASCADE,
+        related_name='received_builder_messages'
+    )
+    content = models.TextField(max_length=1000)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'builder_message'
+        ordering = ['created_at']
+        indexes = [
+            models.Index(fields=['listing', 'sender', 'recipient']),
+            models.Index(fields=['listing', 'created_at']),
+        ]
+
+    def __str__(self):
+        return f"Builder msg from {self.sender.user.username} on {self.listing.title}"
+

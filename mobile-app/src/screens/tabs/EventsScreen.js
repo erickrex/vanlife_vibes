@@ -272,8 +272,7 @@ export default function EventsScreen() {
   const renderHeader = () => (
     <View style={styles.header}>
       <View style={{ flex: 1 }}>
-        <Text style={styles.title}>Campfire</Text>
-        <Text style={styles.subtitle}>{joinMode === 'direct' ? 'Browse and join meetups' : 'Swipe to find adventures'}</Text>
+        <Text style={styles.title}>Community - Campfire</Text>
       </View>
 
       <View style={styles.headerActions}>
@@ -290,6 +289,14 @@ export default function EventsScreen() {
           </Pressable>
         ) : null}
         <AppButton title="Create" onPress={openCreate} variant="primary" />
+        <Pressable
+          onPress={() => navigation.getParent()?.navigate('Profile')}
+          style={({ pressed }) => [styles.profileButton, pressed ? styles.pressed : null]}
+          accessibilityRole="button"
+          accessibilityLabel="Open profile"
+        >
+          <Text style={styles.profileIcon}>👤</Text>
+        </Pressable>
       </View>
     </View>
   );
@@ -473,28 +480,35 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    padding: 20,
+    padding: 16,
     gap: 10,
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'space-between',
     gap: 10,
   },
   title: {
     color: colors.text,
-    fontSize: 22,
+    fontSize: 21,
     fontWeight: '900',
-  },
-  subtitle: {
-    color: colors.muted,
-    marginTop: 4,
   },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  profileButton: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    backgroundColor: colors.surface,
+    borderColor: colors.borderStrong,
+  },
+  profileIcon: {
+    fontSize: 18,
   },
   iconButton: {
     borderWidth: 1,

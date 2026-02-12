@@ -53,6 +53,14 @@ from .events import (
     EventMessageCreateSerializer,
 )
 
+# Builder serializers
+from .builder import (
+    BuilderListingSerializer,
+    BuilderListingCreateSerializer,
+    BuilderMessageSerializer,
+    BuilderMessageCreateSerializer,
+)
+
 # Analytics serializers
 from .analytics import (
     AnalyticsEventSerializer,
@@ -100,6 +108,11 @@ __all__ = [
     'EventSwipeSerializer',
     'EventSwipeCreateSerializer',
     'EventMessageCreateSerializer',
+    # Builder
+    'BuilderListingSerializer',
+    'BuilderListingCreateSerializer',
+    'BuilderMessageSerializer',
+    'BuilderMessageCreateSerializer',
     # Analytics
     'AnalyticsEventSerializer',
     'AnalyticsEventCreateSerializer',

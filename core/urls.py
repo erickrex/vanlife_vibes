@@ -5,6 +5,7 @@ from core.views import (
     LocationViewSet, FeedViewSet, DiscoveryViewSet, PersonMatchViewSet,
     AnalyticsViewSet, EventViewSet, health_check,
     SubscriptionViewSet, RevenueCatWebhookView,
+    BuilderListingViewSet,
 )
 
 router = DefaultRouter()
@@ -18,6 +19,7 @@ router.register(r'matches', PersonMatchViewSet, basename='matches')
 router.register(r'analytics', AnalyticsViewSet, basename='analytics')
 router.register(r'events', EventViewSet, basename='events')
 router.register(r'subscription', SubscriptionViewSet, basename='subscription')
+router.register(r'builder', BuilderListingViewSet, basename='builder')
 
 urlpatterns = [
     path('', include(router.urls)),

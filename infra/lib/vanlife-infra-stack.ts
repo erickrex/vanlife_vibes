@@ -69,6 +69,7 @@ export class VanlifeInfraStack extends Stack {
       description: 'Security group for Elastic Beanstalk EC2 instances',
       securityGroupName: `${namePrefix}-app-sg`,
     });
+    appSecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(80), 'Allow HTTP from internet');
 
     const dbSecurityGroup = new ec2.SecurityGroup(this, 'DbSecurityGroup', {
       vpc,
@@ -92,8 +93,8 @@ export class VanlifeInfraStack extends Stack {
       encryption: BucketEncryption.S3_MANAGED,
       enforceSSL: true,
       versioned: true,
-      removalPolicy: RemovalPolicy.RETAIN,
-      autoDeleteObjects: false,
+      removalPolicy: RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
     });
 
     const dbCredentialsSecret = new secretsmanager.Secret(this, 'DbCredentialsSecret', {
@@ -118,13 +119,13 @@ export class VanlifeInfraStack extends Stack {
       vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_ISOLATED },
       securityGroups: [dbSecurityGroup],
       engine: rds.DatabaseInstanceEngine.postgres({
-        version: rds.PostgresEngineVersion.VER_16_4,
+        version: rds.PostgresEngineVersion.VER_16_6,
       }),
       allocatedStorage: 20,
       maxAllocatedStorage: 100,
       storageEncrypted: true,
       backupRetention: Duration.days(7),
-      deletionProtection: true,
+      deletionProtection: false,
       credentials: rds.Credentials.fromSecret(dbCredentialsSecret),
       databaseName: props.dbName,
       instanceType: new ec2.InstanceType(props.dbInstanceType),
@@ -183,7 +184,7 @@ export class VanlifeInfraStack extends Stack {
     });
 
     const sourceBundleAsset = new Asset(this, 'SourceBundleAsset', {
-      path: path.resolve(__dirname, '..', '..', '..'),
+      path: path.resolve(__dirname, '..', '..'),
       exclude: [
         '.git',
         '.venv',
@@ -195,6 +196,8 @@ export class VanlifeInfraStack extends Stack {
         'mobile-app/.expo',
         'infra/node_modules',
         'infra/cdk.out',
+        'media',
+        '.DS_Store',
       ],
     });
 
@@ -230,7 +233,9 @@ export class VanlifeInfraStack extends Stack {
       {
         namespace: 'aws:ec2:vpc',
         optionName: 'Subnets',
-        value: vpc.selectSubnets({ subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS }).subnetIds.join(','),
+        value: props.singleInstance
+          ? vpc.selectSubnets({ subnetType: ec2.SubnetType.PUBLIC }).subnetIds.join(',')
+          : vpc.selectSubnets({ subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS }).subnetIds.join(','),
       },
       { namespace: 'aws:ec2:vpc', optionName: 'AssociatePublicIpAddress', value: 'true' },
       { namespace: 'aws:autoscaling:launchconfiguration', optionName: 'SecurityGroups', value: appSecurityGroup.securityGroupId },

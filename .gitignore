@@ -13,10 +13,8 @@ wheels/
 # Media files (user uploads)
 media/
 
-# Frontend
-frontend/docs/
-frontend/node_modules
-frontend/dist
+
+creds_aws.txt
 
 # Mobile app
 mobile-app/node_modules

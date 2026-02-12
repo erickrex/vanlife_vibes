@@ -1,6 +1,7 @@
 """Reusable ViewSet mixins."""
 
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -66,7 +67,10 @@ class MessageMixin:
         )
         
         # Validate input
-        serializer = create_serializer_class(data=request.data)
+        serializer = create_serializer_class(
+            data=request.data,
+            context=self.get_message_create_serializer_context(request, parent, profile),
+        )
         if not serializer.is_valid():
             return Response({
                 'status': 'error',
@@ -74,8 +78,15 @@ class MessageMixin:
                 'errors': serializer.errors
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        # Create the message using the hook
-        message = self.create_message(parent, profile, serializer.validated_data)
+        try:
+            # Create the message using the hook
+            message = self.create_message(parent, profile, serializer.validated_data)
+        except ValidationError as exc:
+            return Response({
+                'status': 'error',
+                'message': 'Invalid message data',
+                'errors': exc.detail,
+            }, status=status.HTTP_400_BAD_REQUEST)
         
         # Return the created message using the response serializer
         response_serializer = self.message_serializer_class(message)
@@ -106,6 +117,10 @@ class MessageMixin:
     def check_can_send_message(self, parent):
         """Return (allowed: bool, error_response). Default: allow."""
         return True, None
+
+    def get_message_create_serializer_context(self, request, parent, profile):
+        """Return serializer context for message create serializer."""
+        return {}
     
     def create_message(self, parent, profile, validated_data):
         """Create and return a message. Override in subclass."""

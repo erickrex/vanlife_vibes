@@ -92,9 +92,7 @@ function CardContent({ profile, currentProfile, mode, accentColor }) {
               </View>
             ))}
           </View>
-        ) : (
-          <Text style={styles.hintText}>{`Swipe right to ${mode === 'friends' ? 'connect' : 'like'}, left to pass.`}</Text>
-        )}
+        ) : null}
       </View>
     </View>
   );
@@ -534,11 +532,6 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 12,
     fontWeight: '800',
-  },
-  hintText: {
-    color: colors.muted,
-    fontSize: 12,
-    fontWeight: '700',
   },
   overlay: {
     position: 'absolute',
