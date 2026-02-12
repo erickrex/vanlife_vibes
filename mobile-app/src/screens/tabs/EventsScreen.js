@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     borderRadius: 12,
     paddingVertical: 10,
@@ -492,7 +492,7 @@ const styles = StyleSheet.create({
   modeTab: {
     flex: 1,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     borderRadius: 12,
     paddingVertical: 10,
@@ -513,7 +513,7 @@ const styles = StyleSheet.create({
   },
   filters: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.card,
     borderRadius: 18,
     padding: 14,
@@ -531,7 +531,7 @@ const styles = StyleSheet.create({
   },
   typeChip: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     borderRadius: 999,
     paddingVertical: 7,
@@ -551,7 +551,7 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     color: colors.text,
     borderRadius: 14,
@@ -569,8 +569,8 @@ const styles = StyleSheet.create({
   },
   banner: {
     borderWidth: 1,
-    borderColor: '#7f1d1d',
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderColor: colors.dangerBorder,
+    backgroundColor: colors.dangerSoft,
     padding: 12,
     borderRadius: 14,
   },
@@ -590,7 +590,7 @@ const styles = StyleSheet.create({
   },
   eventCard: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.card,
     borderRadius: 18,
     padding: 14,

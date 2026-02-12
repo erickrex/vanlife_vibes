@@ -134,7 +134,7 @@ export default function PaywallModal({ visible, onClose, onSubscribed }) {
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.78)',
+    backgroundColor: colors.overlayStrong,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 360,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.card,
     borderRadius: radius.xl,
     padding: 22,

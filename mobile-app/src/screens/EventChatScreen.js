@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
   },
   eventMeta: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.card,
     borderRadius: 16,
     padding: 12,
@@ -475,8 +475,8 @@ const styles = StyleSheet.create({
   },
   banner: {
     borderWidth: 1,
-    borderColor: '#7f1d1d',
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderColor: colors.dangerBorder,
+    backgroundColor: colors.dangerSoft,
     padding: 10,
     borderRadius: 14,
   },
@@ -499,7 +499,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '800',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     borderRadius: 999,
     paddingVertical: 4,
@@ -529,7 +529,7 @@ const styles = StyleSheet.create({
   },
   bubbleTheirs: {
     backgroundColor: colors.card,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
   },
   senderName: {
     color: colors.muted,
@@ -553,8 +553,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     gap: 10,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: '#12141b',
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.bgElevated,
     borderRadius: 20,
     padding: 8,
   },
@@ -585,7 +585,7 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   sendText: {
-    color: '#001018',
+    color: colors.primaryText,
     fontWeight: '900',
   },
   center: {

@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
   topCard: {
     backgroundColor: colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.borderStrong,
     overflow: 'hidden',
   },
   cover: {
@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
   statCard: {
     flex: 1,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     borderRadius: radius.md,
     paddingVertical: 10,
@@ -518,7 +518,7 @@ const styles = StyleSheet.create({
   },
   highlightChip: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.surface,
     borderRadius: radius.full,
     paddingVertical: 5,
@@ -543,7 +543,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginTop: 12,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.card,
     borderRadius: radius.lg,
     padding: 14,
@@ -562,7 +562,7 @@ const styles = StyleSheet.create({
   quickFact: {
     width: '47%',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     borderRadius: radius.md,
     padding: 10,
@@ -636,7 +636,7 @@ const styles = StyleSheet.create({
   },
   hobbyChip: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.surface,
     borderRadius: radius.full,
     paddingVertical: 6,
@@ -652,7 +652,7 @@ const styles = StyleSheet.create({
   },
   promptCard: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     borderRadius: radius.md,
     padding: 12,

@@ -15,7 +15,7 @@ function ToggleRow({ label, value, onChange, color = colors.primary, disabled = 
       disabled={disabled}
       style={({ pressed }) => [
         styles.toggle,
-        { borderColor: value ? color : colors.border, backgroundColor: value ? `${color}22` : colors.panel },
+        { borderColor: value ? color : colors.borderStrong, backgroundColor: value ? `${color}22` : colors.panel },
         pressed && !disabled ? styles.pressed : null,
         disabled ? styles.disabled : null,
       ]}
@@ -160,8 +160,8 @@ const styles = StyleSheet.create({
   },
   banner: {
     borderWidth: 1,
-    borderColor: '#7f1d1d',
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderColor: colors.dangerBorder,
+    backgroundColor: colors.dangerSoft,
     padding: 12,
     borderRadius: 14,
   },
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
   },
   card: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.card,
     borderRadius: 18,
     padding: 16,

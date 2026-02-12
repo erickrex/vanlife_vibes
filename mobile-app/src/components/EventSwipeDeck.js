@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
     bottom: 64,
     borderRadius: radius.xl,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.card,
     overflow: 'hidden',
   },
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     borderRadius: radius.full,
   },
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
   footer: {
     marginTop: 'auto',
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: colors.borderStrong,
     paddingTop: 12,
     gap: 2,
   },
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '900',
     letterSpacing: 1,
-    backgroundColor: 'rgba(0,0,0,0.25)',
+    backgroundColor: colors.overlaySoft,
   },
   likeOverlay: {
     borderColor: colors.emerald,
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
   actionButton: {
     flex: 1,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     borderRadius: radius.lg,
     paddingVertical: 10,
@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
   },
   likeButton: {
     borderColor: colors.emerald,
-    backgroundColor: `${colors.emerald}22`,
+    backgroundColor: colors.emeraldSoft,
   },
   actionLabel: {
     color: colors.text,
@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
   },
   matchBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.78)',
+    backgroundColor: colors.overlayStrong,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
@@ -388,7 +388,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 360,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.card,
     borderRadius: radius.xl,
     padding: 18,
@@ -411,7 +411,7 @@ const styles = StyleSheet.create({
   matchButton: {
     flex: 1,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     borderRadius: radius.lg,
     paddingVertical: 12,

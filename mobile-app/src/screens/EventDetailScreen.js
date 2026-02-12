@@ -309,8 +309,8 @@ const styles = StyleSheet.create({
   },
   banner: {
     borderWidth: 1,
-    borderColor: '#7f1d1d',
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderColor: colors.dangerBorder,
+    backgroundColor: colors.dangerSoft,
     padding: 12,
     borderRadius: 14,
   },
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
   },
   card: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.card,
     borderRadius: 18,
     padding: 14,
@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '900',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     borderRadius: 999,
     paddingVertical: 6,
@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
   gridItem: {
     width: '48%',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     borderRadius: 12,
     padding: 10,
@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: colors.borderStrong,
     paddingTop: 10,
   },
   hostLabel: {
@@ -423,7 +423,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     borderRadius: 12,
     paddingVertical: 8,
@@ -468,16 +468,15 @@ const styles = StyleSheet.create({
   },
   safety: {
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.28)',
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    borderColor: colors.primaryBorder,
+    backgroundColor: colors.primarySoft,
     borderRadius: 14,
     padding: 10,
   },
   safetyText: {
-    color: '#fcd34d',
+    color: colors.secondary,
     fontSize: 12,
     fontWeight: '700',
     lineHeight: 17,
   },
 });
-

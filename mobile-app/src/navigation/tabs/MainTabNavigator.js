@@ -22,8 +22,8 @@ export default function MainTabNavigator() {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: colors.bg,
-          borderTopColor: colors.border,
+          backgroundColor: colors.bgElevated,
+          borderTopColor: colors.borderStrong,
           borderTopWidth: 1,
         },
         tabBarHideOnKeyboard: true,

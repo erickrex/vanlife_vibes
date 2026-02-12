@@ -170,28 +170,30 @@ export default function DiscoveryScreen({ mode = 'dating' }) {
   return (
     <Screen>
       <View style={styles.container}>
-        <View style={styles.header}>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.eyebrow, { color: accent }]}>{mode === 'dating' ? 'DISCOVERY' : 'COMMUNITY'}</Text>
-            <Text style={styles.headerTitle}>
-              {title} <Text style={{ color: accent }}>{icon}</Text>
-            </Text>
-            <Text style={styles.headerSubtitle}>{subtitle}</Text>
+        <View style={styles.headerShell}>
+          <View style={styles.header}>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.eyebrow, { color: accent }]}>{mode === 'dating' ? 'DISCOVERY' : 'COMMUNITY'}</Text>
+              <Text style={styles.headerTitle}>
+                {title} <Text style={{ color: accent }}>{icon}</Text>
+              </Text>
+              <Text style={styles.headerSubtitle}>{subtitle}</Text>
+            </View>
+            <Pressable
+              onPress={() => navigation.getParent()?.navigate('Profile')}
+              style={({ pressed }) => [styles.profileButton, pressed ? styles.pressed : null]}
+              accessibilityRole="button"
+              accessibilityLabel="Open profile"
+            >
+              <Text style={styles.profileIcon}>👤</Text>
+            </Pressable>
           </View>
-          <Pressable
-            onPress={() => navigation.getParent()?.navigate('Profile')}
-            style={({ pressed }) => [styles.profileButton, pressed ? styles.pressed : null]}
-            accessibilityRole="button"
-            accessibilityLabel="Open profile"
-          >
-            <Text style={styles.profileIcon}>👤</Text>
-          </Pressable>
         </View>
 
         <View style={styles.toolbar}>
           <Pressable
             onPress={() => setFiltersOpen((prev) => !prev)}
-            style={({ pressed }) => [styles.toolbarButton, pressed ? styles.pressed : null]}
+            style={({ pressed }) => [styles.toolbarButton, { borderColor: `${accent}66`, backgroundColor: `${accent}1a` }, pressed ? styles.pressed : null]}
             accessibilityRole="button"
             accessibilityLabel="Toggle filters"
           >
@@ -200,7 +202,7 @@ export default function DiscoveryScreen({ mode = 'dating' }) {
           </Pressable>
           <Pressable
             onPress={openMatches}
-            style={({ pressed }) => [styles.matchesButton, pressed ? styles.pressed : null]}
+            style={({ pressed }) => [styles.matchesButton, { borderColor: `${accent}88`, backgroundColor: `${accent}24` }, pressed ? styles.pressed : null]}
             accessibilityRole="button"
             accessibilityLabel="Open matches"
           >
@@ -326,6 +328,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 12,
   },
+  headerShell: {
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.bgElevated,
+    borderRadius: radius.xl,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
   toolbar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -353,8 +363,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     paddingVertical: 8,
     paddingHorizontal: 10,
-    backgroundColor: colors.panel,
-    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    borderColor: colors.borderStrong,
   },
   profileIcon: {
     fontSize: 18,
@@ -364,11 +374,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     borderRadius: radius.full,
     paddingVertical: 11,
     paddingHorizontal: 13,
-    backgroundColor: colors.panel,
+    backgroundColor: colors.bgElevated,
   },
   toolbarIcon: {
     fontSize: 14,
@@ -383,11 +393,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     borderRadius: radius.full,
     paddingVertical: 11,
     paddingHorizontal: 13,
-    backgroundColor: colors.panel,
+    backgroundColor: colors.bgElevated,
   },
   matchesIcon: {
     fontSize: 14,
@@ -406,7 +416,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   matchesBadgeText: {
-    color: '#ffffff',
+    color: colors.text,
     fontSize: 11,
     fontWeight: '900',
   },
@@ -426,8 +436,8 @@ const styles = StyleSheet.create({
   },
   banner: {
     borderWidth: 1,
-    borderColor: `${colors.danger}44`,
-    backgroundColor: `${colors.danger}18`,
+    borderColor: colors.dangerBorder,
+    backgroundColor: colors.dangerSoft,
     padding: 12,
     borderRadius: radius.lg,
   },

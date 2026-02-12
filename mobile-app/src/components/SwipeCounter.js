@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
     paddingVertical: 11,
     paddingHorizontal: 13,
     backgroundColor: colors.panel,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
   },
   premiumContainer: {
     borderColor: colors.primary,

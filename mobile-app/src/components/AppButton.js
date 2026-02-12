@@ -1,25 +1,8 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
-import { colors } from '../theme/colors';
-import { radius } from '../theme/tokens';
+import { componentTokens, radius } from '../theme/tokens';
 
-const VARIANTS = {
-  primary: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-    textColor: colors.primaryText,
-  },
-  secondary: {
-    backgroundColor: 'transparent',
-    borderColor: colors.border,
-    textColor: colors.text,
-  },
-  danger: {
-    backgroundColor: 'transparent',
-    borderColor: colors.danger,
-    textColor: colors.danger,
-  },
-};
+const VARIANTS = componentTokens.button.variants;
 
 export default function AppButton({ title, onPress, disabled, variant = 'primary', style }) {
   const v = VARIANTS[variant] || VARIANTS.primary;

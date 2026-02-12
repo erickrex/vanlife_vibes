@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
   section: { paddingHorizontal: 20, paddingTop: 4, gap: 10 },
   card: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.card,
     borderRadius: radius.lg,
     padding: 14,
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
   cardBody: { color: colors.muted, fontSize: 13, lineHeight: 19, marginTop: 4 },
   whySection: {
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: colors.borderStrong,
     marginTop: 20,
     paddingTop: 18,
     paddingHorizontal: 20,
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
   whyTitle: { color: colors.text, fontSize: 18, fontWeight: '900', textAlign: 'center', marginBottom: 4 },
   whyCard: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.card,
     borderRadius: radius.lg,
     padding: 14,

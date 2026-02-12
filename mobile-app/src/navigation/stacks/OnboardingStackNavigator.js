@@ -10,7 +10,7 @@ export default function OnboardingStackNavigator() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: colors.bg },
+        headerStyle: { backgroundColor: colors.bgElevated },
         headerTitleStyle: { color: colors.text },
         headerTintColor: colors.text,
         statusBarStyle: 'light',

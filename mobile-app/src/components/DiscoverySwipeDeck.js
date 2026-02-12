@@ -11,7 +11,7 @@ import {
 
 import { discoveryAPI } from '../services/api';
 import { colors } from '../theme/colors';
-import { radius } from '../theme/tokens';
+import { componentTokens, radius, shadow } from '../theme/tokens';
 import ProfileAvatar from './ProfileAvatar';
 import { buildCompatibilityChips } from '../utils/compatibility';
 
@@ -287,7 +287,7 @@ export default function DiscoverySwipeDeck({
           </Text>
         </Animated.View>
         <Animated.View pointerEvents="none" style={[styles.overlay, styles.overlayLeft, { opacity: passOpacity }]}>
-          <Text style={[styles.overlayText, { borderColor: colors.muted, color: colors.muted }]}>PASS</Text>
+          <Text style={[styles.overlayText, styles.passOverlayText]}>PASS</Text>
         </Animated.View>
 
         <CardContent profile={activeProfile} currentProfile={currentProfile} mode={mode} accentColor={accentColor} />
@@ -302,8 +302,8 @@ export default function DiscoverySwipeDeck({
           disabled={isProcessing}
           style={({ pressed }) => [styles.actionButton, styles.passButton, pressed ? styles.pressed : null, (isProcessing || swipesDisabled) ? styles.disabled : null]}
         >
-          <Text style={styles.actionEmoji}>✕</Text>
-          <Text style={styles.actionLabel}>Pass</Text>
+          <Text style={[styles.actionEmoji, { color: componentTokens.discovery.pass.iconColor }]}>✕</Text>
+          <Text style={[styles.actionLabel, { color: componentTokens.discovery.pass.labelColor }]}>Pass</Text>
         </Pressable>
         <Pressable
           onPress={() => {
@@ -313,13 +313,18 @@ export default function DiscoverySwipeDeck({
           disabled={isProcessing}
           style={({ pressed }) => [
             styles.actionButton,
-            { borderColor: accentColor || colors.primary, backgroundColor: `${(accentColor || colors.primary)}22` },
+            styles.likeButton,
+            {
+              borderColor: `${(accentColor || colors.primary)}cc`,
+              backgroundColor: `${(accentColor || colors.primary)}4d`,
+              shadowColor: accentColor || colors.primary,
+            },
             pressed ? styles.pressed : null,
             (isProcessing || swipesDisabled) ? styles.disabled : null,
           ]}
         >
-          <Text style={[styles.actionEmoji, { color: accentColor || colors.primary }]}>{rightActionIcon}</Text>
-          <Text style={[styles.actionLabel, { color: colors.text }]}>{rightActionLabel}</Text>
+          <Text style={[styles.actionEmoji, { color: componentTokens.discovery.like.iconColor }]}>{rightActionIcon}</Text>
+          <Text style={[styles.actionLabel, { color: componentTokens.discovery.like.labelColor }]}>{rightActionLabel}</Text>
         </Pressable>
       </View>
 
@@ -377,7 +382,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
   },
   progressSliceMuted: {
-    backgroundColor: colors.border,
+    backgroundColor: colors.borderStrong,
   },
   progressCount: {
     color: colors.muted,
@@ -394,7 +399,7 @@ const styles = StyleSheet.create({
     bottom: 102,
     borderRadius: radius.xl,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.card,
     overflow: 'hidden',
     shadowColor: '#000',
@@ -402,6 +407,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 14 },
     shadowRadius: 22,
     elevation: 9,
+    ...shadow.elevated,
   },
   nextCard: {
     transform: [{ scale: 0.965 }, { translateY: 8 }],
@@ -434,8 +440,13 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    height: 210,
-    backgroundColor: 'rgba(0,0,0,0.58)',
+    height: 220,
+    backgroundColor: colors.overlayMedium,
+  },
+  passOverlayText: {
+    borderColor: colors.danger,
+    color: colors.danger,
+    backgroundColor: colors.dangerSoft,
   },
   cardMeta: {
     position: 'absolute',
@@ -481,8 +492,8 @@ const styles = StyleSheet.create({
   },
   chip: {
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: 'rgba(30, 30, 34, 0.8)',
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.bgElevated,
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderRadius: radius.full,
@@ -515,7 +526,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '900',
     letterSpacing: 1,
-    backgroundColor: 'rgba(0,0,0,0.25)',
+    backgroundColor: colors.overlaySoft,
   },
   actions: {
     position: 'absolute',
@@ -533,29 +544,36 @@ const styles = StyleSheet.create({
     height: 84,
     borderRadius: 42,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     paddingVertical: 0,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 3,
     shadowColor: '#000',
-    shadowOpacity: 0.22,
-    shadowOffset: { width: 0, height: 8 },
-    shadowRadius: 14,
-    elevation: 8,
+    shadowOpacity: 0.24,
+    shadowOffset: { width: 0, height: 10 },
+    shadowRadius: 16,
+    elevation: 9,
   },
   passButton: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
+    backgroundColor: componentTokens.discovery.pass.backgroundColor,
+    borderColor: componentTokens.discovery.pass.borderColor,
+    shadowColor: componentTokens.discovery.pass.shadowColor,
+  },
+  likeButton: {
+    shadowOpacity: 0.28,
+    shadowOffset: { width: 0, height: 12 },
+    shadowRadius: 16,
+    elevation: 10,
   },
   actionEmoji: {
     fontSize: 30,
     fontWeight: '900',
-    color: colors.muted,
+    color: colors.text,
   },
   actionLabel: {
-    color: colors.muted,
+    color: colors.secondary,
     fontSize: 11,
     fontWeight: '900',
   },
@@ -567,7 +585,7 @@ const styles = StyleSheet.create({
   },
   matchBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.78)',
+    backgroundColor: colors.overlayStrong,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
@@ -576,7 +594,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 360,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.card,
     borderRadius: radius.xl,
     padding: 18,
@@ -609,7 +627,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 14,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     borderRadius: radius.lg,
     alignItems: 'center',
     justifyContent: 'center',

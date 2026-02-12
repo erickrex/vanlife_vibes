@@ -201,7 +201,7 @@ export default function SubscriptionScreen() {
                   ]}
                 >
                   {purchasing ? (
-                    <ActivityIndicator color="#001018" size="small" />
+                    <ActivityIndicator color={colors.primaryText} size="small" />
                   ) : (
                     <Text style={styles.subscribeText}>Subscribe to Premium</Text>
                   )}
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   badgeText: {
-    color: '#001018',
+    color: colors.primaryText,
     fontSize: 16,
     fontWeight: '900',
   },
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   subscribeText: {
-    color: '#001018',
+    color: colors.primaryText,
     fontSize: 16,
     fontWeight: '900',
   },
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 8,
@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
   },
   retryText: {
     color: colors.text,

@@ -112,7 +112,7 @@ function Toggle({ label, value, onChange, color = colors.primary }) {
       onPress={() => onChange(!value)}
       style={({ pressed }) => [
         styles.toggle,
-        { borderColor: value ? color : colors.border, backgroundColor: value ? `${color}22` : colors.panel },
+        { borderColor: value ? color : colors.borderStrong, backgroundColor: value ? `${color}22` : colors.panel },
         pressed ? styles.togglePressed : null,
       ]}
     >
@@ -804,7 +804,7 @@ const styles = StyleSheet.create({
   },
   card: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.card,
     borderRadius: 18,
     padding: 16,
@@ -827,8 +827,8 @@ const styles = StyleSheet.create({
   },
   banner: {
     borderWidth: 1,
-    borderColor: '#7f1d1d',
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderColor: colors.dangerBorder,
+    backgroundColor: colors.dangerSoft,
     padding: 12,
     borderRadius: 14,
   },
@@ -845,7 +845,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     borderRadius: 14,
   },
@@ -874,7 +874,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
   },
   avatarPreview: {
@@ -898,7 +898,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
   },
   coverPreview: {
@@ -922,7 +922,7 @@ const styles = StyleSheet.create({
   linkRow: {
     alignSelf: 'flex-start',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     borderRadius: 10,
     paddingVertical: 6,
@@ -955,7 +955,7 @@ const styles = StyleSheet.create({
   },
   picker: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     borderRadius: 14,
     paddingVertical: 12,
@@ -980,7 +980,7 @@ const styles = StyleSheet.create({
     paddingTop: 14,
     paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.borderStrong,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -994,7 +994,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 10,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     borderRadius: 12,
   },
   modalCloseText: {
@@ -1007,7 +1007,7 @@ const styles = StyleSheet.create({
   },
   promptRow: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.card,
     borderRadius: 16,
     padding: 14,

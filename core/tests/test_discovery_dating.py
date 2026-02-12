@@ -1,9 +1,4 @@
-"""
-Property-based tests for dating algorithm improvements.
-Uses Hypothesis to verify correctness properties across random inputs.
-
-# Feature: dating-algorithm-improvements
-"""
+"""Property-based tests for dating algorithm improvements."""
 import pytest
 from hypothesis import given, settings, assume
 from hypothesis import strategies as st
@@ -43,7 +38,6 @@ def _has_any_preference(prefs):
 def _forward_passes(user_prefs, candidate_prefs):
     """Does the candidate pass the forward filter (user's preferences)?"""
     cand_gender = candidate_prefs['gender']
-    # Null/blank gender always passes forward filter
     if cand_gender is None or cand_gender == '':
         return True
     mapping = {
@@ -57,11 +51,9 @@ def _forward_passes(user_prefs, candidate_prefs):
 def _reverse_passes(user_prefs, candidate_prefs):
     """Does the candidate pass the reverse filter (candidate interested in user)?"""
     user_gender = user_prefs['gender']
-    # If user has no gender set, reverse filter is skipped
     if user_gender is None or user_gender == '':
         return True
     cand_gender = candidate_prefs['gender']
-    # Candidates with null/blank gender also pass the reverse filter
     if cand_gender is None or cand_gender == '':
         return True
     mapping = {
@@ -73,30 +65,13 @@ def _reverse_passes(user_prefs, candidate_prefs):
 
 
 # --- Property 1: Bidirectional gender filter correctness ---
-# Feature: dating-algorithm-improvements, Property 1: Bidirectional gender filter correctness
 
 
 @pytest.mark.django_db(transaction=True)
 class TestBidirectionalGenderFilterProperty(TestCase):
-    """
-    Property 1: Bidirectional gender filter correctness
-
-    For any user profile with any combination of interested_in_* flags and any
-    set of candidate profiles with random genders, every profile returned by the
-    gender filter must satisfy both:
-      (a) the candidate's gender matches at least one of the user's interested_in_*
-          flags (or the candidate's gender is null/blank), AND
-      (b) the candidate's interested_in_* flags include the user's gender (or the
-          user's gender is null/blank).
-
-    Additionally, profiles with null/blank gender always pass the forward filter,
-    and users with all interested_in_* flags False receive an empty result.
-
-    Validates: Requirements 1.1, 1.2, 1.3, 1.4, 1.5
-    """
+    """Every returned profile satisfies both forward and reverse gender filters."""
 
     def _create_user_with_profile(self, username, prefs):
-        """Create a user and configure their profile with given preferences."""
         user = UserAccount.objects.create_user(
             username=username,
             email=f'{username}@test.com',
@@ -115,30 +90,21 @@ class TestBidirectionalGenderFilterProperty(TestCase):
     @given(user_prefs=profile_preferences(), candidates=candidate_list())
     @settings(max_examples=20)
     def test_gender_filter_bidirectional_correctness(self, user_prefs, candidates):
-        """
-        **Validates: Requirements 1.1, 1.2, 1.3, 1.4, 1.5**
-
-        Every returned profile satisfies both forward and reverse gender filters.
-        """
-        # Clean up from previous examples
+        """Every returned profile satisfies both forward and reverse gender filters."""
         UserAccount.objects.all().delete()
 
-        # Create the searching user
         user, user_profile = self._create_user_with_profile('searcher', user_prefs)
 
-        # Create candidate profiles
         candidate_profiles = []
         for i, cand_prefs in enumerate(candidates):
             _, cand_profile = self._create_user_with_profile(f'cand_{i}', cand_prefs)
             candidate_profiles.append((cand_profile, cand_prefs))
 
-        # Run the filter
         view = DiscoveryViewSet()
         base_qs = Profile.objects.exclude(user=user)
         result_qs = view._apply_gender_filters(base_qs, user_profile)
         result_ids = set(result_qs.values_list('id', flat=True))
 
-        # Property: if user has no preferences, result must be empty
         if not _has_any_preference(user_prefs):
             assert len(result_ids) == 0, (
                 "User with all interested_in_* flags False should get empty results"
@@ -152,18 +118,15 @@ class TestBidirectionalGenderFilterProperty(TestCase):
             should_be_included = should_pass_forward and should_pass_reverse
 
             if in_result:
-                # (a) Forward: candidate gender matches user's preferences
                 assert should_pass_forward, (
                     f"Candidate {cand_prefs} returned but fails forward filter "
                     f"for user {user_prefs}"
                 )
-                # (b) Reverse: candidate's preferences include user's gender
                 assert should_pass_reverse, (
                     f"Candidate {cand_prefs} returned but fails reverse filter "
                     f"for user {user_prefs}"
                 )
             else:
-                # If excluded, at least one direction must have failed
                 assert not should_be_included, (
                     f"Candidate {cand_prefs} excluded but should pass both filters "
                     f"for user {user_prefs}"
@@ -171,22 +134,13 @@ class TestBidirectionalGenderFilterProperty(TestCase):
 
 
 # --- Property 2: Bidirectional swipe gender validation ---
-# Feature: dating-algorithm-improvements, Property 2: Bidirectional swipe gender validation
 
 
 def _swipe_should_be_accepted(swiper_prefs, target_prefs):
-    """
-    Oracle: a dating swipe is accepted iff both directions pass.
-
-    Forward: target's gender must match swiper's interested_in_* flags
-             (skip if target gender is falsy — null or blank).
-    Reverse: swiper's gender must match target's interested_in_* flags
-             (skip if swiper gender is falsy — null or blank).
-    """
+    """Oracle: a dating swipe is accepted iff both directions pass."""
     target_gender = target_prefs['gender']
     swiper_gender = swiper_prefs['gender']
 
-    # Forward check
     if target_gender:
         mapping = {
             'man': swiper_prefs['interested_in_men'],
@@ -196,7 +150,6 @@ def _swipe_should_be_accepted(swiper_prefs, target_prefs):
         if not mapping.get(target_gender, False):
             return False
 
-    # Reverse check
     if swiper_gender:
         mapping = {
             'man': target_prefs['interested_in_men'],
@@ -211,22 +164,9 @@ def _swipe_should_be_accepted(swiper_prefs, target_prefs):
 
 @pytest.mark.django_db(transaction=True)
 class TestSwipeGenderValidationProperty(TestCase):
-    """
-    Property 2: Bidirectional swipe gender validation
-
-    For any swiper profile and target profile in dating mode, the swipe
-    validator accepts the swipe if and only if:
-      (a) the target's gender matches the swiper's interested_in_* flags
-          (or target gender is null), AND
-      (b) the target's interested_in_* flags include the swiper's gender
-          (or swiper gender is null).
-    Swipes violating either condition are rejected with a validation error.
-
-    Validates: Requirements 2.1, 2.2, 2.3
-    """
+    """Swipe validator accepts iff both forward and reverse gender checks pass."""
 
     def _create_user_with_profile(self, username, prefs):
-        """Create a user and configure their profile with given preferences."""
         user = UserAccount.objects.create_user(
             username=username,
             email=f'{username}@test.com',
@@ -245,19 +185,12 @@ class TestSwipeGenderValidationProperty(TestCase):
     @given(swiper_prefs=profile_preferences(), target_prefs=profile_preferences())
     @settings(max_examples=20, deadline=None)
     def test_swipe_gender_validation_bidirectional(self, swiper_prefs, target_prefs):
-        """
-        **Validates: Requirements 2.1, 2.2, 2.3**
-
-        The swipe validator accepts a dating swipe iff both forward and reverse
-        gender checks pass. Swipes violating either direction are rejected.
-        """
+        """Swipe accepted iff both forward and reverse gender checks pass."""
         from rest_framework.exceptions import ValidationError as DRFValidationError
         from core.serializers.matches import PersonSwipeSerializer
 
-        # Clean up from previous examples
         UserAccount.objects.all().delete()
 
-        # Create swiper and target
         _, swiper_profile = self._create_user_with_profile('swiper', swiper_prefs)
         _, target_profile = self._create_user_with_profile('target', target_prefs)
 
@@ -265,7 +198,6 @@ class TestSwipeGenderValidationProperty(TestCase):
         expected_accept = _swipe_should_be_accepted(swiper_prefs, target_prefs)
 
         if expected_accept:
-            # Should NOT raise
             try:
                 serializer._check_gender_compatibility(swiper_profile, target_profile)
             except DRFValidationError as exc:
@@ -276,7 +208,6 @@ class TestSwipeGenderValidationProperty(TestCase):
                     f"  error={exc.detail}"
                 )
         else:
-            # Should raise ValidationError
             try:
                 serializer._check_gender_compatibility(swiper_profile, target_profile)
                 raise AssertionError(
@@ -285,19 +216,15 @@ class TestSwipeGenderValidationProperty(TestCase):
                     f"  target={target_prefs}"
                 )
             except DRFValidationError:
-                pass  # Expected
+                pass
 
 
 # --- Unit Tests: Gender filter edge cases ---
-# Feature: dating-algorithm-improvements, Task 1.5
 
 
 @pytest.mark.django_db
 class TestGenderFilterEdgeCases:
-    """
-    Unit tests for gender filter edge cases.
-    Validates: Requirements 1.3, 1.4, 2.3
-    """
+    """Unit tests for gender filter edge cases."""
 
     def _create_user_with_profile(self, username, gender=None,
                                    interested_in_men=False,
@@ -319,25 +246,19 @@ class TestGenderFilterEdgeCases:
         return user, profile
 
     def test_null_gender_profiles_included_in_results(self):
-        """
-        **Validates: Requirement 1.3**
-        Profiles with null gender are always included by the forward filter.
-        """
+        """Profiles with null/blank gender are always included by the forward filter."""
         user, user_profile = self._create_user_with_profile(
             'searcher', gender='woman',
             interested_in_men=True,
         )
-        # Candidate with null gender
         _, null_profile = self._create_user_with_profile(
             'null_cand', gender=None,
             interested_in_women=True,
         )
-        # Candidate with blank gender
         _, blank_profile = self._create_user_with_profile(
             'blank_cand', gender='',
             interested_in_women=True,
         )
-        # Candidate with explicit gender that matches
         _, man_profile = self._create_user_with_profile(
             'man_cand', gender='man',
             interested_in_women=True,
@@ -353,10 +274,7 @@ class TestGenderFilterEdgeCases:
         assert man_profile.id in result_ids, "Matching-gender profile should be included"
 
     def test_all_false_preferences_returns_empty(self):
-        """
-        **Validates: Requirement 1.4**
-        User with all interested_in_* flags False gets an empty result.
-        """
+        """User with all interested_in_* flags False gets an empty result."""
         user, user_profile = self._create_user_with_profile(
             'no_prefs', gender='man',
             interested_in_men=False,
@@ -379,10 +297,7 @@ class TestGenderFilterEdgeCases:
         assert result.count() == 0, "All-False preferences should return empty list"
 
     def test_swipe_on_null_gender_target_allowed(self):
-        """
-        **Validates: Requirement 2.3**
-        A dating swipe on a target with null gender should be allowed.
-        """
+        """A dating swipe on a target with null gender should be allowed."""
         from rest_framework.exceptions import ValidationError as DRFValidationError
         from core.serializers.matches import PersonSwipeSerializer
 
@@ -396,14 +311,13 @@ class TestGenderFilterEdgeCases:
         )
 
         serializer = PersonSwipeSerializer()
-        # Should not raise — null gender target is always allowed
         try:
             serializer._check_gender_compatibility(swiper_profile, null_target)
         except DRFValidationError:
             pytest.fail("Swipe on null-gender target should be allowed")
 
 
-# Feature: dating-algorithm-improvements, Property 3: Combined score formula (two-term)
+# --- Property 3: Combined score formula (two-term) ---
 
 @st.composite
 def candidate_scores(draw):
@@ -423,15 +337,7 @@ def candidate_scores(draw):
 
 
 class TestCombinedScoreRankingProperty(TestCase):
-    """
-    Property 3: Combined score formula (two-term)
-
-    For any set of candidate profiles with known overlap scores and relevance
-    scores, the ranking by final_score = (overlap * 2.0) + (relevance * 1.0)
-    in descending order must match the ordering produced by sorting on this formula.
-
-    **Validates: Requirements 3.1, 3.2, 3.3**
-    """
+    """Ranking by final_score = (overlap * 2.0) + (relevance * 1.0) matches direct sort."""
 
     W_LOCATION = 2.0
     W_RELEVANCE = 1.0
@@ -442,28 +348,19 @@ class TestCombinedScoreRankingProperty(TestCase):
     @given(scores=candidate_scores())
     @settings(max_examples=20)
     def test_combined_score_ranking_matches_formula(self, scores):
-        """
-        **Validates: Requirements 3.1, 3.2, 3.3**
-
-        Given arbitrary (overlap, relevance) pairs, ranking by the combined
-        formula must produce the same order as a direct sort on final_score.
-        """
+        """Ranking by combined formula matches direct sort on final_score."""
         from core.views.profiles import W_LOCATION, W_RELEVANCE
 
-        # Verify the weight constants match the spec
         assert W_LOCATION == 2.0
         assert W_RELEVANCE == 1.0
 
-        # Simulate the ranking logic from _get_discovery_profiles
         ranked = []
         for overlap, relevance in scores:
             final_score = (overlap * W_LOCATION) + (relevance * W_RELEVANCE)
             ranked.append((overlap, relevance, final_score))
 
-        # Sort descending by final_score (same as the view does)
         ranked.sort(key=lambda x: x[2], reverse=True)
 
-        # Verify: the ordering matches a direct sort on the formula
         expected = sorted(scores, key=lambda s: (s[0] * W_LOCATION) + (s[1] * W_RELEVANCE), reverse=True)
 
         for i, ((exp_overlap, exp_relevance), (act_overlap, act_relevance, act_score)) in enumerate(zip(expected, ranked)):
@@ -477,13 +374,7 @@ class TestCombinedScoreRankingProperty(TestCase):
     )
     @settings(max_examples=20)
     def test_equal_overlap_higher_relevance_ranks_first(self, overlap, rel_a, rel_b):
-        """
-        **Validates: Requirement 3.2**
-
-        When two candidates have equal overlap, the one with higher relevance
-        score must rank first. Uses integers to match realistic domain
-        (overlap = day counts, relevance = point sums).
-        """
+        """Equal overlap: higher relevance ranks first."""
         assume(rel_a != rel_b)
 
         from core.views.profiles import W_LOCATION, W_RELEVANCE
@@ -492,9 +383,9 @@ class TestCombinedScoreRankingProperty(TestCase):
         score_b = (overlap * W_LOCATION) + (rel_b * W_RELEVANCE)
 
         if rel_a > rel_b:
-            assert score_a > score_b, "Higher relevance should produce higher combined score when overlap is equal"
+            assert score_a > score_b
         else:
-            assert score_b > score_a, "Higher relevance should produce higher combined score when overlap is equal"
+            assert score_b > score_a
 
     @given(
         relevance=st.integers(min_value=0, max_value=200),
@@ -503,13 +394,7 @@ class TestCombinedScoreRankingProperty(TestCase):
     )
     @settings(max_examples=20)
     def test_equal_relevance_higher_overlap_ranks_first(self, relevance, overlap_a, overlap_b):
-        """
-        **Validates: Requirement 3.3**
-
-        When two candidates have equal relevance scores, the one with higher
-        overlap score must rank first. Uses integers to match realistic domain
-        (overlap = day counts, relevance = point sums).
-        """
+        """Equal relevance: higher overlap ranks first."""
         assume(overlap_a != overlap_b)
 
         from core.views.profiles import W_LOCATION, W_RELEVANCE
@@ -518,20 +403,17 @@ class TestCombinedScoreRankingProperty(TestCase):
         score_b = (overlap_b * W_LOCATION) + (relevance * W_RELEVANCE)
 
         if overlap_a > overlap_b:
-            assert score_a > score_b, "Higher overlap should produce higher combined score when relevance is equal"
+            assert score_a > score_b
         else:
-            assert score_b > score_a, "Higher overlap should produce higher combined score when relevance is equal"
+            assert score_b > score_a
 
 
-# --- Unit Tests for RelevanceScorer Integration (Task 3.4) ---
+# --- Unit Tests: RelevanceScorer Integration ---
 
 
 @pytest.mark.django_db(transaction=True)
 class TestRelevanceScorerIntegration(TestCase):
-    """
-    Unit tests for RelevanceScorer integration into dating discovery.
-    Validates: Requirements 3.4, 3.5
-    """
+    """Unit tests for RelevanceScorer integration into dating discovery."""
 
     def _create_user_with_profile(self, username, gender='woman',
                                    interested_in_men=True,
@@ -554,26 +436,19 @@ class TestRelevanceScorerIntegration(TestCase):
         return user, profile
 
     def test_top_50_cap_applied_before_scoring(self):
-        """
-        **Validates: Requirement 3.4**
-        The discovery endpoint should apply the RelevanceScorer only to the
-        top 50 candidates after location-based filtering.
-        """
+        """RelevanceScorer is called at most 50 times (top-50 cap)."""
         from unittest.mock import patch, MagicMock
         from rest_framework.test import APIRequestFactory
         from rest_framework.test import force_authenticate
 
-        # Create the searching user
         user, user_profile = self._create_user_with_profile('searcher', gender='man')
 
-        # Create 55 candidate profiles (more than the 50 cap)
         for i in range(55):
             self._create_user_with_profile(
                 f'candidate_{i}', gender='woman',
                 interested_in_men=True,
             )
 
-        # Patch RelevanceScorer.calculate_score to track how many times it's called
         with patch('core.views.profiles.RelevanceScorer') as MockScorer:
             mock_instance = MagicMock()
             mock_instance.calculate_score.return_value = 10
@@ -588,18 +463,13 @@ class TestRelevanceScorerIntegration(TestCase):
             response = view(request)
 
             assert response.status_code == 200
-            # The scorer should be called at most 50 times (top-50 cap)
             assert mock_instance.calculate_score.call_count <= 50, (
                 f"RelevanceScorer was called {mock_instance.calculate_score.call_count} times, "
                 f"but should be capped at 50"
             )
 
     def test_relevance_score_in_api_response(self):
-        """
-        **Validates: Requirement 3.5**
-        The dating discovery API response should include a `relevance_score`
-        field for each profile.
-        """
+        """Dating discovery API response includes relevance_score (int) per profile."""
         from rest_framework.test import APIRequestFactory
         from rest_framework.test import force_authenticate
 
@@ -621,27 +491,18 @@ class TestRelevanceScorerIntegration(TestCase):
         assert len(profiles) >= 1, "Should have at least one candidate profile"
 
         for profile_data in profiles:
-            assert 'relevance_score' in profile_data, (
-                "Each profile in dating discovery should include 'relevance_score'"
-            )
-            # relevance_score should be a number (int), not None for dating mode
+            assert 'relevance_score' in profile_data
             assert isinstance(profile_data['relevance_score'], int), (
                 f"relevance_score should be an int, got {type(profile_data['relevance_score'])}"
             )
 
     def test_scorer_handles_missing_data_gracefully(self):
-        """
-        **Validates: Requirements 3.4, 3.5**
-        The RelevanceScorer should handle profiles with missing/null data
-        without crashing, returning a score of 0 or more.
-        """
+        """RelevanceScorer handles profiles with missing/null data without crashing."""
         from core.services.relevance import RelevanceScorer
 
-        # Create two profiles with minimal data (most fields blank/default)
         _, sparse_profile_a = self._create_user_with_profile('sparse_a')
         _, sparse_profile_b = self._create_user_with_profile('sparse_b')
 
-        # Set nullable fields to None, non-nullable CharField fields to ''
         for p in [sparse_profile_a, sparse_profile_b]:
             p.lifestyle_schedule = ''
             p.lifestyle_social = ''
@@ -654,16 +515,11 @@ class TestRelevanceScorerIntegration(TestCase):
         scorer = RelevanceScorer()
         score = scorer.calculate_score(sparse_profile_a, sparse_profile_b)
 
-        # Should not crash and should return a non-negative score
         assert isinstance(score, int), f"Score should be int, got {type(score)}"
         assert score >= 0, f"Score should be non-negative, got {score}"
 
     def test_scorer_handles_one_profile_missing_data(self):
-        """
-        **Validates: Requirements 3.4, 3.5**
-        When one profile has data and the other doesn't, the scorer should
-        skip those signals gracefully without penalizing.
-        """
+        """Scorer skips signals gracefully when one profile has missing data."""
         from core.services.relevance import RelevanceScorer
 
         _, full_profile = self._create_user_with_profile('full_user')
@@ -683,12 +539,10 @@ class TestRelevanceScorerIntegration(TestCase):
 
         scorer = RelevanceScorer()
 
-        # Score with full -> empty should not crash
         score_fe = scorer.calculate_score(full_profile, empty_profile)
         assert isinstance(score_fe, int)
         assert score_fe >= 0
 
-        # Score with empty -> full should not crash
         score_ef = scorer.calculate_score(empty_profile, full_profile)
         assert isinstance(score_ef, int)
         assert score_ef >= 0
@@ -727,16 +581,7 @@ def profile_fields(draw):
 
 
 class TestRelevanceScoreAdditivityProperty(TestCase):
-    """
-    Property 4: Relevance score additivity
-
-    For any pair of profiles, the total relevance score equals the sum of
-    individual signal contributions. Each signal contributes 0 when either
-    profile has a null/blank value for that field.
-
-    # Feature: dating-algorithm-improvements, Property 4: Relevance score additivity
-    **Validates: Requirements 4.1, 4.2, 4.3, 4.4, 4.6**
-    """
+    """Total relevance score equals sum of individual signal contributions."""
     _counter = 0
 
     @classmethod
@@ -745,7 +590,6 @@ class TestRelevanceScoreAdditivityProperty(TestCase):
         return cls._counter
 
     def _create_profile_with_fields(self, username, fields):
-        """Create a user and profile with the given field values."""
         user = UserAccount.objects.create_user(
             username=username,
             email=f'{username}@test.com',
@@ -761,17 +605,14 @@ class TestRelevanceScoreAdditivityProperty(TestCase):
         """Compute expected score as the sum of all individual signals."""
         score = 0
 
-        # 1. Shared hobbies: +10 per shared hobby
         user_hobbies = set(user_profile.hobbies.values_list('id', flat=True))
         target_hobbies = set(target_profile.hobbies.values_list('id', flat=True))
         score += len(user_hobbies & target_hobbies) * 10
 
-        # 2. Meetup interest level (based on target's meetup_interest)
         target_meetup = target_profile.meetup_interest
         if target_meetup:
             score += scorer.MEETUP_SCORES.get(target_meetup, 0)
 
-        # 3. Lifestyle compatibility: +5 per match
         if user_profile.lifestyle_schedule and target_profile.lifestyle_schedule:
             if user_profile.lifestyle_schedule == target_profile.lifestyle_schedule:
                 score += 5
@@ -784,7 +625,6 @@ class TestRelevanceScoreAdditivityProperty(TestCase):
             if user_profile.lifestyle_environment == target_profile.lifestyle_environment:
                 score += 5
 
-        # 4. Pet compatibility
         if user_profile.pet_friendly_only:
             if target_profile.has_pets:
                 score += 10
@@ -792,24 +632,14 @@ class TestRelevanceScoreAdditivityProperty(TestCase):
             if user_profile.has_pets and target_profile.has_pets:
                 score += 5
 
-        # 5. Travel pace match: +10
         if user_profile.travel_pace and target_profile.travel_pace:
             if user_profile.travel_pace == target_profile.travel_pace:
                 score += 10
 
-        # 6. Social vibe match: +10
         score += scorer.calculate_social_vibe_score(user_profile, target_profile)
-
-        # 7. Travel status match: +8
         score += scorer.calculate_travel_status_score(user_profile, target_profile)
-
-        # 8. Travel companions match: +5
         score += scorer.calculate_travel_companions_score(user_profile, target_profile)
-
-        # 9. Rig affinity: +5
         score += scorer.calculate_rig_affinity_score(user_profile, target_profile)
-
-        # 10. Shared prompts: +3 per shared prompt
         score += scorer.calculate_shared_prompts_score(user_profile, target_profile)
 
         return score
@@ -817,12 +647,7 @@ class TestRelevanceScoreAdditivityProperty(TestCase):
     @given(user_fields=profile_fields(), target_fields=profile_fields())
     @settings(max_examples=20)
     def test_relevance_score_equals_sum_of_signals(self, user_fields, target_fields):
-        """
-        The total relevance score must equal the sum of all individual signal
-        contributions for any pair of profiles.
-
-        **Validates: Requirements 4.1, 4.2, 4.3, 4.4, 4.6**
-        """
+        """Total score must equal sum of all individual signal contributions."""
         from core.services.relevance import RelevanceScorer
 
         uid = self._next_id()
@@ -843,12 +668,7 @@ class TestRelevanceScoreAdditivityProperty(TestCase):
     @given(user_fields=profile_fields(), target_fields=profile_fields())
     @settings(max_examples=20)
     def test_null_blank_fields_contribute_zero(self, user_fields, target_fields):
-        """
-        When either profile has a null/blank value for a signal field,
-        that signal must contribute 0 to the total score.
-
-        **Validates: Requirements 4.6**
-        """
+        """Null/blank fields contribute 0 to the total score."""
         from core.services.relevance import RelevanceScorer
 
         uid = self._next_id()
@@ -857,48 +677,37 @@ class TestRelevanceScoreAdditivityProperty(TestCase):
 
         scorer = RelevanceScorer()
 
-        # Social vibe: 0 when either is null/blank
         if not user_fields['social_vibe'] or not target_fields['social_vibe']:
             assert scorer.calculate_social_vibe_score(user_profile, target_profile) == 0
 
-        # Travel status: 0 when either is null/blank
         if not user_fields['travel_status'] or not target_fields['travel_status']:
             assert scorer.calculate_travel_status_score(user_profile, target_profile) == 0
 
-        # Travel companions: 0 when either is null/blank
         if not user_fields['travel_companions'] or not target_fields['travel_companions']:
             assert scorer.calculate_travel_companions_score(user_profile, target_profile) == 0
 
-        # Lifestyle schedule: 0 when either is null/blank
         if not user_fields['lifestyle_schedule'] or not target_fields['lifestyle_schedule']:
             u_sched = user_profile.lifestyle_schedule
             t_sched = target_profile.lifestyle_schedule
             if not u_sched or not t_sched:
-                # Inline signal should contribute 0 — verified via total score
                 pass
 
-        # Travel pace: 0 when either is null/blank
         if not user_fields['travel_pace'] or not target_fields['travel_pace']:
             u_pace = user_profile.travel_pace
             t_pace = target_profile.travel_pace
             if not u_pace or not t_pace:
                 pass
 
-        # Overall score should still be non-negative
         score = scorer.calculate_score(user_profile, target_profile)
         assert score >= 0, f"Score should be non-negative, got {score}"
 
 
-# Feature: dating-algorithm-improvements, Property 5: Shared prompts scoring
+# --- Property 5: Shared prompts scoring ---
 
 
 @st.composite
 def prompt_sets(draw):
-    """Generate two sets of prompt indices (representing prompt IDs) for two profiles.
-
-    We draw from a small universe of prompt indices (0-19) so there's a
-    reasonable chance of overlap, then create actual DB records in the test.
-    """
+    """Generate two sets of prompt indices for two profiles."""
     universe_size = draw(st.integers(min_value=0, max_value=20))
     user_prompts = draw(st.frozensets(st.integers(min_value=0, max_value=max(universe_size, 1) - 1), max_size=min(universe_size, 10)) if universe_size > 0 else st.just(frozenset()))
     target_prompts = draw(st.frozensets(st.integers(min_value=0, max_value=max(universe_size, 1) - 1), max_size=min(universe_size, 10)) if universe_size > 0 else st.just(frozenset()))
@@ -906,15 +715,7 @@ def prompt_sets(draw):
 
 
 class TestSharedPromptsScoringProperty(TestCase):
-    """
-    Property 5: Shared prompts scoring
-
-    For any pair of profiles with arbitrary sets of answered prompts,
-    the shared prompts score equals exactly 3 * |intersection of prompt IDs|.
-    Profiles with no prompts contribute 0.
-
-    **Validates: Requirements 4.5**
-    """
+    """Shared prompts score equals exactly 3 * |intersection of prompt IDs|."""
 
     _counter = 0
 
@@ -934,12 +735,7 @@ class TestSharedPromptsScoringProperty(TestCase):
     @given(data=prompt_sets())
     @settings(max_examples=20)
     def test_shared_prompts_score_equals_3_times_intersection(self, data):
-        """
-        The shared prompts score must equal exactly 3 * |intersection of prompt IDs|
-        for any pair of profiles with arbitrary prompt sets.
-
-        **Validates: Requirements 4.5**
-        """
+        """Score = 3 * |intersection of prompt IDs| for any prompt sets."""
         from core.services.relevance import RelevanceScorer
         from core.models import Prompt, ProfilePrompt
 
@@ -949,9 +745,7 @@ class TestSharedPromptsScoringProperty(TestCase):
         user_profile = self._create_profile(f'u_prompt_{uid}')
         target_profile = self._create_profile(f't_prompt_{uid}')
 
-        # Create the union of all needed prompt indices
         all_indices = user_indices | target_indices
-        # Create Prompt records for each index
         prompt_map = {}
         for idx in all_indices:
             prompt = Prompt.objects.create(
@@ -961,7 +755,6 @@ class TestSharedPromptsScoringProperty(TestCase):
             )
             prompt_map[idx] = prompt
 
-        # Create ProfilePrompt records for user
         for order, idx in enumerate(sorted(user_indices)):
             ProfilePrompt.objects.create(
                 profile=user_profile,
@@ -970,7 +763,6 @@ class TestSharedPromptsScoringProperty(TestCase):
                 display_order=order,
             )
 
-        # Create ProfilePrompt records for target
         for order, idx in enumerate(sorted(target_indices)):
             ProfilePrompt.objects.create(
                 profile=target_profile,
@@ -994,16 +786,11 @@ class TestSharedPromptsScoringProperty(TestCase):
     @given(data=prompt_sets())
     @settings(max_examples=20)
     def test_no_prompts_contribute_zero(self, data):
-        """
-        When either profile has no prompts, the shared prompts score must be 0.
-
-        **Validates: Requirements 4.5**
-        """
+        """When either profile has no prompts, shared prompts score is 0."""
         from core.services.relevance import RelevanceScorer
         from core.models import Prompt, ProfilePrompt
 
         user_indices, target_indices = data
-        # Force at least one side to be empty
         assume(len(user_indices) == 0 or len(target_indices) == 0)
 
         uid = self._next_id()
@@ -1045,15 +832,12 @@ class TestSharedPromptsScoringProperty(TestCase):
         )
 
 
-# ============================================================================
-# Unit Tests for New Scoring Signals (Task 5.5)
-# Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6
-# ============================================================================
+# --- Unit Tests: New Scoring Signals ---
 
 
 @pytest.mark.django_db
 class TestSocialVibeScore:
-    """Unit tests for calculate_social_vibe_score. Requirements: 4.1, 4.6"""
+    """Unit tests for calculate_social_vibe_score."""
 
     def _create_profile(self, username, social_vibe=None):
         user = UserAccount.objects.create_user(username=username, email=f'{username}@test.com', password='testpass123')
@@ -1095,7 +879,7 @@ class TestSocialVibeScore:
 
 @pytest.mark.django_db
 class TestTravelStatusScore:
-    """Unit tests for calculate_travel_status_score. Requirements: 4.2, 4.6"""
+    """Unit tests for calculate_travel_status_score."""
 
     def _create_profile(self, username, travel_status=None):
         user = UserAccount.objects.create_user(username=username, email=f'{username}@test.com', password='testpass123')
@@ -1137,7 +921,7 @@ class TestTravelStatusScore:
 
 @pytest.mark.django_db
 class TestTravelCompanionsScore:
-    """Unit tests for calculate_travel_companions_score. Requirements: 4.3, 4.6"""
+    """Unit tests for calculate_travel_companions_score."""
 
     def _create_profile(self, username, travel_companions=None):
         user = UserAccount.objects.create_user(username=username, email=f'{username}@test.com', password='testpass123')
@@ -1179,7 +963,7 @@ class TestTravelCompanionsScore:
 
 @pytest.mark.django_db
 class TestRigAffinityScore:
-    """Unit tests for calculate_rig_affinity_score. Requirements: 4.4, 4.6"""
+    """Unit tests for calculate_rig_affinity_score."""
 
     def _create_profile(self, username, has_van=False, rig_status=None):
         user = UserAccount.objects.create_user(username=username, email=f'{username}@test.com', password='testpass123')
@@ -1229,7 +1013,7 @@ class TestRigAffinityScore:
 
 @pytest.mark.django_db
 class TestSharedPromptsScore:
-    """Unit tests for calculate_shared_prompts_score. Requirements: 4.5, 4.6"""
+    """Unit tests for calculate_shared_prompts_score."""
 
     def _create_profile(self, username):
         user = UserAccount.objects.create_user(username=username, email=f'{username}@test.com', password='testpass123')
@@ -1295,7 +1079,6 @@ class TestSharedPromptsScore:
 
 
 # --- Property 6: Profile completeness score ---
-# Feature: dating-algorithm-improvements, Property 6: Profile completeness score
 
 
 @st.composite
@@ -1314,18 +1097,7 @@ def completeness_flags(draw):
 
 @pytest.mark.django_db(transaction=True)
 class TestProfileCompletenessScoreProperty(TestCase):
-    """
-    Property 6: Profile completeness score
-
-    For any profile with an arbitrary combination of filled/empty fields,
-    the completeness score equals the sum of:
-      15 (avatar_url present) + 5 (cover_url present) + 10 (>=2 photos)
-      + 10 (bio present and >20 chars) + 10 (>=3 hobbies)
-      + 5 (>=1 prompt) + 5 (>=1 in-town window).
-    An empty profile scores exactly 0, and a fully complete profile scores exactly 60.
-
-    **Validates: Requirements 5.1, 5.4**
-    """
+    """Completeness score equals sum of applicable weights (0-60 range)."""
 
     _id_counter = 0
 
@@ -1364,7 +1136,6 @@ class TestProfileCompletenessScoreProperty(TestCase):
 
         profile.save()
 
-        # Photos: create 2 if flagged
         if flags['has_2_photos']:
             for i in range(2):
                 ProfilePhoto.objects.create(
@@ -1374,7 +1145,6 @@ class TestProfileCompletenessScoreProperty(TestCase):
                     display_order=i,
                 )
 
-        # Hobbies: create 3 if flagged
         if flags['has_3_hobbies']:
             uid = self._next_id()
             for i in range(3):
@@ -1384,7 +1154,6 @@ class TestProfileCompletenessScoreProperty(TestCase):
                 )
                 ProfileHobby.objects.create(profile=profile, hobby_tag=tag)
 
-        # Prompt: create 1 if flagged
         if flags['has_prompt']:
             uid = self._next_id()
             prompt = Prompt.objects.create(
@@ -1399,7 +1168,6 @@ class TestProfileCompletenessScoreProperty(TestCase):
                 display_order=0,
             )
 
-        # InTownWindow: create 1 if flagged
         if flags['has_in_town_window']:
             today = date.today()
             InTownWindow.objects.create(
@@ -1410,7 +1178,6 @@ class TestProfileCompletenessScoreProperty(TestCase):
             )
 
     def _compute_expected_score(self, flags):
-        """Compute expected completeness score from flags."""
         score = 0
         if flags['has_avatar']:
             score += 15
@@ -1431,12 +1198,7 @@ class TestProfileCompletenessScoreProperty(TestCase):
     @given(flags=completeness_flags())
     @settings(max_examples=20)
     def test_completeness_score_matches_sum_of_weights(self, flags):
-        """
-        For any combination of filled/empty fields, the completeness score
-        equals the sum of applicable weights.
-
-        **Validates: Requirements 5.1, 5.4**
-        """
+        """Completeness score equals sum of applicable weights for any flag combo."""
         from core.services.relevance import RelevanceScorer
 
         uid = self._next_id()
@@ -1454,16 +1216,11 @@ class TestProfileCompletenessScoreProperty(TestCase):
     @given(data=st.data())
     @settings(max_examples=1)
     def test_empty_profile_scores_zero(self, data):
-        """
-        An empty profile (no fields filled) scores exactly 0.
-
-        **Validates: Requirements 5.4**
-        """
+        """An empty profile scores exactly 0."""
         from core.services.relevance import RelevanceScorer
 
         uid = self._next_id()
         profile = self._create_profile(f'comp_empty_{uid}')
-        # Don't populate anything — profile is empty by default
 
         scorer = RelevanceScorer()
         assert scorer.calculate_completeness_score(profile) == 0
@@ -1471,11 +1228,7 @@ class TestProfileCompletenessScoreProperty(TestCase):
     @given(data=st.data())
     @settings(max_examples=1)
     def test_fully_complete_profile_scores_60(self, data):
-        """
-        A fully complete profile scores exactly 60.
-
-        **Validates: Requirements 5.1**
-        """
+        """A fully complete profile scores exactly 60."""
         from core.services.relevance import RelevanceScorer
 
         all_true = {
@@ -1496,7 +1249,7 @@ class TestProfileCompletenessScoreProperty(TestCase):
         assert scorer.calculate_completeness_score(profile) == 60
 
 
-# Feature: dating-algorithm-improvements, Property 7: Combined score formula (three-term)
+# --- Property 7: Combined score formula (three-term) ---
 
 
 @st.composite
@@ -1514,16 +1267,7 @@ def three_term_candidate_scores(draw):
 
 @pytest.mark.django_db(transaction=True)
 class TestThreeTermCombinedScoreProperty(TestCase):
-    """
-    Property 7: Combined score formula (three-term)
-
-    For any set of candidate profiles with known overlap, relevance, and
-    completeness scores, the Discovery_Endpoint ranks them by
-    final_score = (overlap * 2.0) + (relevance * 1.0) + (completeness * 0.5)
-    in descending order. The ordering must match sorting on this formula.
-
-    **Validates: Requirements 5.2, 5.3**
-    """
+    """Three-term ranking: final = (overlap*2.0) + (relevance*1.0) + (completeness*0.5)."""
 
     W_LOCATION = 2.0
     W_RELEVANCE = 1.0
@@ -1535,30 +1279,20 @@ class TestThreeTermCombinedScoreProperty(TestCase):
     @given(scores=three_term_candidate_scores())
     @settings(max_examples=20)
     def test_three_term_ranking_matches_formula(self, scores):
-        """
-        Given arbitrary (overlap, relevance, completeness) triples, ranking by
-        the three-term combined formula must produce the same order as a direct
-        sort on final_score.
-
-        **Validates: Requirements 5.2, 5.3**
-        """
+        """Ranking by three-term formula matches direct sort on final_score."""
         from core.views.profiles import W_LOCATION, W_RELEVANCE, W_COMPLETENESS
 
-        # Verify the weight constants match the spec
         assert W_LOCATION == 2.0
         assert W_RELEVANCE == 1.0
         assert W_COMPLETENESS == 0.5
 
-        # Simulate the ranking logic from _get_discovery_profiles
         ranked = []
         for overlap, relevance, completeness in scores:
             final_score = (overlap * W_LOCATION) + (relevance * W_RELEVANCE) + (completeness * W_COMPLETENESS)
             ranked.append((overlap, relevance, completeness, final_score))
 
-        # Sort descending by final_score (same as the view does)
         ranked.sort(key=lambda x: x[3], reverse=True)
 
-        # Verify: the ordering matches a direct sort on the formula
         expected = sorted(
             scores,
             key=lambda s: (s[0] * W_LOCATION) + (s[1] * W_RELEVANCE) + (s[2] * W_COMPLETENESS),
@@ -1578,12 +1312,7 @@ class TestThreeTermCombinedScoreProperty(TestCase):
     )
     @settings(max_examples=20)
     def test_equal_overlap_and_relevance_higher_completeness_ranks_first(self, overlap, relevance, comp_a, comp_b):
-        """
-        When two candidates have equal overlap and equal relevance, the one
-        with higher completeness score must rank first.
-
-        **Validates: Requirement 5.3**
-        """
+        """Equal overlap+relevance: higher completeness ranks first."""
         assume(comp_a != comp_b)
 
         from core.views.profiles import W_LOCATION, W_RELEVANCE, W_COMPLETENESS
@@ -1592,15 +1321,9 @@ class TestThreeTermCombinedScoreProperty(TestCase):
         score_b = (overlap * W_LOCATION) + (relevance * W_RELEVANCE) + (comp_b * W_COMPLETENESS)
 
         if comp_a > comp_b:
-            assert score_a > score_b, (
-                "Higher completeness should produce higher combined score "
-                "when overlap and relevance are equal"
-            )
+            assert score_a > score_b
         else:
-            assert score_b > score_a, (
-                "Higher completeness should produce higher combined score "
-                "when overlap and relevance are equal"
-            )
+            assert score_b > score_a
 
     @given(
         overlap=st.integers(min_value=0, max_value=365),
@@ -1609,31 +1332,20 @@ class TestThreeTermCombinedScoreProperty(TestCase):
     )
     @settings(max_examples=20)
     def test_completeness_contributes_half_weight(self, overlap, relevance, completeness):
-        """
-        The completeness term contributes exactly completeness * 0.5 to the
-        final score, verifying the W_COMPLETENESS weight is applied correctly.
-
-        **Validates: Requirement 5.2**
-        """
+        """Completeness term contributes exactly completeness * 0.5."""
         from core.views.profiles import W_LOCATION, W_RELEVANCE, W_COMPLETENESS
 
         two_term = (overlap * W_LOCATION) + (relevance * W_RELEVANCE)
         three_term = (overlap * W_LOCATION) + (relevance * W_RELEVANCE) + (completeness * W_COMPLETENESS)
 
-        assert three_term - two_term == completeness * W_COMPLETENESS, (
-            f"Completeness contribution should be {completeness * W_COMPLETENESS}, "
-            f"got {three_term - two_term}"
-        )
+        assert three_term - two_term == completeness * W_COMPLETENESS
 
 
-# --- Unit Tests: Completeness Scoring (Task 7.5) ---
+# --- Unit Tests: Completeness Scoring ---
 
 
 class TestCompletenessScoring(TestCase):
-    """
-    Unit tests for profile completeness scoring.
-    Validates: Requirements 5.1, 5.2, 5.3, 5.4
-    """
+    """Unit tests for profile completeness scoring."""
 
     _id_counter = 0
 
@@ -1712,15 +1424,10 @@ class TestCompletenessScoring(TestCase):
         )
 
     def test_empty_profile_scores_0(self):
-        """
-        A profile with no completeness fields filled scores exactly 0.
-
-        **Validates: Requirement 5.4**
-        """
+        """Empty profile scores exactly 0."""
         from core.services.relevance import RelevanceScorer
 
         _, profile = self._create_user_with_profile('empty_comp')
-        # Ensure fields are blank
         profile.avatar_url = ''
         profile.cover_url = ''
         profile.bio = ''
@@ -1730,11 +1437,7 @@ class TestCompletenessScoring(TestCase):
         assert scorer.calculate_completeness_score(profile) == 0
 
     def test_fully_complete_profile_scores_60(self):
-        """
-        A profile with all completeness fields filled scores exactly 60.
-
-        **Validates: Requirement 5.1**
-        """
+        """Fully complete profile scores exactly 60."""
         from core.services.relevance import RelevanceScorer
 
         _, profile = self._create_user_with_profile('full_comp')
@@ -1744,33 +1447,15 @@ class TestCompletenessScoring(TestCase):
         assert scorer.calculate_completeness_score(profile) == 60
 
     def test_completeness_does_not_override_location_or_relevance(self):
-        """
-        A profile with high completeness but low overlap/relevance should
-        rank below a profile with low completeness but high overlap/relevance.
-        This verifies the weight hierarchy: W_LOCATION=2.0, W_RELEVANCE=1.0,
-        W_COMPLETENESS=0.5.
-
-        **Validates: Requirements 5.2, 5.3**
-        """
+        """High completeness but low overlap/relevance ranks below the inverse."""
         from core.views.profiles import W_LOCATION, W_RELEVANCE, W_COMPLETENESS
 
         # Profile A: high completeness (60), low overlap (0), low relevance (0)
-        completeness_a = 60
-        overlap_a = 0
-        relevance_a = 0
-        score_a = (overlap_a * W_LOCATION) + (relevance_a * W_RELEVANCE) + (completeness_a * W_COMPLETENESS)
+        score_a = (0 * W_LOCATION) + (0 * W_RELEVANCE) + (60 * W_COMPLETENESS)
 
         # Profile B: low completeness (0), moderate overlap (10), moderate relevance (20)
-        completeness_b = 0
-        overlap_b = 10
-        relevance_b = 20
-        score_b = (overlap_b * W_LOCATION) + (relevance_b * W_RELEVANCE) + (completeness_b * W_COMPLETENESS)
+        score_b = (10 * W_LOCATION) + (20 * W_RELEVANCE) + (0 * W_COMPLETENESS)
 
-        # score_a = 0 + 0 + 30 = 30
-        # score_b = 20 + 20 + 0 = 40
-        assert score_a == 30.0, f"Expected 30.0, got {score_a}"
-        assert score_b == 40.0, f"Expected 40.0, got {score_b}"
-        assert score_b > score_a, (
-            "Profile with higher overlap/relevance should rank above profile "
-            "with only high completeness"
-        )
+        assert score_a == 30.0
+        assert score_b == 40.0
+        assert score_b > score_a

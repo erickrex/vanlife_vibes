@@ -1419,8 +1419,8 @@ const styles = StyleSheet.create({
   },
   banner: {
     borderWidth: 1,
-    borderColor: '#7f1d1d',
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderColor: colors.dangerBorder,
+    backgroundColor: colors.dangerSoft,
     padding: 12,
     borderRadius: 14,
   },
@@ -1431,7 +1431,7 @@ const styles = StyleSheet.create({
   },
   card: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.card,
     borderRadius: 18,
     padding: 14,
@@ -1455,7 +1455,7 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     color: colors.text,
     borderRadius: 14,
@@ -1487,7 +1487,7 @@ const styles = StyleSheet.create({
   },
   segmentChip: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     borderRadius: 999,
     paddingHorizontal: 10,
@@ -1508,7 +1508,7 @@ const styles = StyleSheet.create({
   },
   toggle: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     borderRadius: 14,
     paddingVertical: 10,
@@ -1550,7 +1550,7 @@ const styles = StyleSheet.create({
   },
   hobbyChip: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     borderRadius: 999,
     paddingVertical: 7,
@@ -1574,7 +1574,7 @@ const styles = StyleSheet.create({
   },
   promptCard: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     borderRadius: 12,
     padding: 10,
@@ -1594,8 +1594,8 @@ const styles = StyleSheet.create({
   promptDelete: {
     alignSelf: 'flex-start',
     borderWidth: 1,
-    borderColor: '#7f1d1d',
-    backgroundColor: 'rgba(239, 68, 68, 0.14)',
+    borderColor: colors.dangerBorder,
+    backgroundColor: colors.dangerSoft,
     borderRadius: 10,
     paddingVertical: 5,
     paddingHorizontal: 10,
@@ -1623,7 +1623,7 @@ const styles = StyleSheet.create({
   linkRow: {
     alignSelf: 'flex-start',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     borderRadius: 10,
     paddingVertical: 6,
@@ -1639,7 +1639,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     borderRadius: 12,
     padding: 8,
@@ -1649,7 +1649,7 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.bg,
   },
   photoThumbWide: {
@@ -1667,8 +1667,8 @@ const styles = StyleSheet.create({
   },
   photoDelete: {
     borderWidth: 1,
-    borderColor: '#7f1d1d',
-    backgroundColor: 'rgba(239, 68, 68, 0.14)',
+    borderColor: colors.dangerBorder,
+    backgroundColor: colors.dangerSoft,
     borderRadius: 10,
     paddingVertical: 6,
     paddingHorizontal: 10,
@@ -1680,7 +1680,7 @@ const styles = StyleSheet.create({
   },
   photoActionButton: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.card,
     borderRadius: 8,
     paddingVertical: 4,

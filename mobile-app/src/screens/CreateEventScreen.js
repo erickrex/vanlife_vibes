@@ -390,8 +390,8 @@ const styles = StyleSheet.create({
   },
   banner: {
     borderWidth: 1,
-    borderColor: '#7f1d1d',
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderColor: colors.dangerBorder,
+    backgroundColor: colors.dangerSoft,
     padding: 12,
     borderRadius: 14,
   },
@@ -402,7 +402,7 @@ const styles = StyleSheet.create({
   },
   card: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.card,
     borderRadius: 18,
     padding: 14,
@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
   joinModeCard: {
     flex: 1,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     borderRadius: 14,
     padding: 12,
@@ -452,7 +452,7 @@ const styles = StyleSheet.create({
   },
   typeChip: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     borderRadius: 999,
     paddingVertical: 7,
@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     color: colors.text,
     borderRadius: 12,
@@ -483,7 +483,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   inputError: {
-    borderColor: '#7f1d1d',
+    borderColor: colors.dangerBorder,
   },
   textArea: {
     minHeight: 94,
@@ -495,7 +495,7 @@ const styles = StyleSheet.create({
   },
   timeChip: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     borderRadius: 12,
     paddingVertical: 7,
@@ -511,7 +511,7 @@ const styles = StyleSheet.create({
     height: 42,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     alignItems: 'center',
     justifyContent: 'center',
@@ -525,7 +525,7 @@ const styles = StyleSheet.create({
   spotsValue: {
     minWidth: 70,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     borderRadius: 12,
     paddingHorizontal: 14,
