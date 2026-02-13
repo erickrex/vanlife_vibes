@@ -1,6 +1,8 @@
 # core/views/events.py
 """ViewSets for event management."""
 
+import math
+
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -11,10 +13,12 @@ from django.db import transaction
 
 from core.models import (
     Profile,
+    City,
     Event,
     EventAttendee,
     EventSwipe,
     EventMessage,
+    InTownWindow,
 )
 from core.serializers.events import (
     EventSerializer,
@@ -37,6 +41,12 @@ class EventViewSet(MessageMixin, viewsets.ModelViewSet):
     message_model = EventMessage
     message_serializer_class = EventMessageSerializer
     message_create_serializer_class = EventMessageCreateSerializer
+    time_window_rank = {
+        'morning': 0,
+        'afternoon': 1,
+        'evening': 2,
+        'flexible': 3,
+    }
     
     def get_queryset(self):
         """Return events filtered by query parameters."""
@@ -96,6 +106,171 @@ class EventViewSet(MessageMixin, viewsets.ModelViewSet):
             return request.user.profile
         except Profile.DoesNotExist:
             return None
+
+    def _normalize_location(self, value):
+        return (value or '').strip().lower()
+
+    def _to_float(self, value):
+        if value is None:
+            return None
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return None
+
+    def _haversine_miles(self, lat1, lon1, lat2, lon2):
+        lat1 = self._to_float(lat1)
+        lon1 = self._to_float(lon1)
+        lat2 = self._to_float(lat2)
+        lon2 = self._to_float(lon2)
+        if lat1 is None or lon1 is None or lat2 is None or lon2 is None:
+            return None
+
+        radius_miles = 3958.8
+        phi1 = math.radians(lat1)
+        phi2 = math.radians(lat2)
+        delta_phi = math.radians(lat2 - lat1)
+        delta_lambda = math.radians(lon2 - lon1)
+        a = (
+            math.sin(delta_phi / 2) ** 2
+            + math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda / 2) ** 2
+        )
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+        return radius_miles * c
+
+    def _resolve_city(self, raw_location, cities_by_display_name, all_cities):
+        normalized = self._normalize_location(raw_location)
+        if not normalized:
+            return None
+
+        exact = cities_by_display_name.get(normalized)
+        if exact:
+            return exact
+
+        for city in all_cities:
+            normalized_display = self._normalize_location(city.display_name)
+            if normalized_display and (
+                normalized_display in normalized or normalized in normalized_display
+            ):
+                return city
+        return None
+
+    def _distance_to_closest_city(self, event_city, candidate_cities):
+        if event_city is None:
+            return None
+        min_distance = None
+        for city in candidate_cities:
+            if city is None:
+                continue
+            if city.id == event_city.id:
+                return 0.0
+            distance = self._haversine_miles(
+                event_city.latitude,
+                event_city.longitude,
+                city.latitude,
+                city.longitude,
+            )
+            if distance is None:
+                continue
+            if min_distance is None or distance < min_distance:
+                min_distance = distance
+        return min_distance
+
+    def _build_event_relevance_key(
+        self,
+        *,
+        event,
+        today,
+        user_windows,
+        cities_by_display_name,
+        all_cities,
+        nearby_miles,
+    ):
+        # No location timeline for this user: fall back to weekend/date ordering.
+        if not user_windows:
+            return (
+                5,
+                0 if event.event_date.weekday() >= 5 else 1,
+                max((event.event_date - today).days, 0),
+                self.time_window_rank.get(event.time_window, 9),
+                str(event.id),
+            )
+
+        event_location = self._normalize_location(event.location)
+        event_city = self._resolve_city(event.location, cities_by_display_name, all_cities)
+
+        overlap_windows = [
+            window for window in user_windows
+            if window.start_date <= event.event_date <= window.end_date
+        ]
+        overlap_city_names = {self._normalize_location(window.city_area) for window in overlap_windows}
+        all_city_names = {self._normalize_location(window.city_area) for window in user_windows}
+
+        same_city_overlap = event_location in overlap_city_names if event_location else False
+        same_city_any = event_location in all_city_names if event_location else False
+
+        overlap_cities = [
+            self._resolve_city(window.city_area, cities_by_display_name, all_cities)
+            for window in overlap_windows
+        ]
+        all_window_cities = [
+            self._resolve_city(window.city_area, cities_by_display_name, all_cities)
+            for window in user_windows
+        ]
+
+        overlap_distance = self._distance_to_closest_city(event_city, overlap_cities)
+        any_distance = self._distance_to_closest_city(event_city, all_window_cities)
+        nearby_overlap = overlap_distance is not None and overlap_distance <= nearby_miles
+        nearby_any = any_distance is not None and any_distance <= nearby_miles
+
+        if same_city_overlap:
+            group = 0
+        elif nearby_overlap:
+            group = 1
+        elif same_city_any:
+            group = 2
+        elif nearby_any:
+            group = 3
+        else:
+            group = 4
+
+        effective_distance = (
+            overlap_distance if overlap_distance is not None else any_distance
+        )
+
+        return (
+            group,
+            0 if event.event_date.weekday() >= 5 else 1,  # weekend boost within group
+            max((event.event_date - today).days, 0),       # sooner events first
+            effective_distance if effective_distance is not None else 100000,
+            self.time_window_rank.get(event.time_window, 9),
+            str(event.id),
+        )
+
+    def _rank_events_for_user(self, events, user_profile):
+        today = timezone.now().date()
+        user_windows = list(
+            InTownWindow.objects.filter(profile=user_profile, end_date__gte=today)
+            .order_by('start_date')
+        )
+        all_cities = list(City.objects.all())
+        cities_by_display_name = {
+            self._normalize_location(city.display_name): city
+            for city in all_cities
+        }
+        nearby_miles = 50
+
+        return sorted(
+            events,
+            key=lambda event: self._build_event_relevance_key(
+                event=event,
+                today=today,
+                user_windows=user_windows,
+                cities_by_display_name=cities_by_display_name,
+                all_cities=all_cities,
+                nearby_miles=nearby_miles,
+            )
+        )
     
     # -------------------------------------------------------------------------
     # MessageMixin hook implementations
@@ -176,8 +351,9 @@ class EventViewSet(MessageMixin, viewsets.ModelViewSet):
             }, status=status.HTTP_404_NOT_FOUND)
         
         queryset = self.get_queryset()
+        ranked_events = self._rank_events_for_user(list(queryset), user_profile)
         serializer = EventSerializer(
-            queryset,
+            ranked_events,
             many=True,
             context=self.get_serializer_context()
         )
@@ -818,5 +994,4 @@ class EventViewSet(MessageMixin, viewsets.ModelViewSet):
             'status': 'success',
             'data': serializer.data
         }, status=status.HTTP_200_OK)
-
 

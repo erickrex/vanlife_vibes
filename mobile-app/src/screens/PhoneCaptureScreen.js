@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import AppButton from '../components/AppButton';
 import FormTextInput from '../components/FormTextInput';
@@ -39,9 +39,13 @@ export default function PhoneCaptureScreen({ navigation }) {
     <Screen>
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={styles.container}>
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+        >
           <View style={styles.hero}>
             <Text style={styles.kicker}>US Onboarding</Text>
             <Text style={styles.title}>Can we have your phone number</Text>
@@ -83,7 +87,7 @@ export default function PhoneCaptureScreen({ navigation }) {
               </Text>
             </Pressable>
           </View>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </Screen>
   );
@@ -92,10 +96,10 @@ export default function PhoneCaptureScreen({ navigation }) {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   container: {
-    flex: 1,
+    flexGrow: 1,
     paddingHorizontal: 22,
     paddingTop: 34,
-    paddingBottom: 28,
+    paddingBottom: 34,
     justifyContent: 'space-between',
     gap: 20,
   },

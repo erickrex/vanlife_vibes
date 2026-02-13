@@ -53,7 +53,7 @@ export default function DiscoveryScreen({ mode = 'dating' }) {
 
   const accent = mode === 'dating' ? colors.rose : colors.blue;
   const title = mode === 'dating' ? 'Dating' : 'Friends';
-  const headerLabel = `Community - ${title}`;
+  const headerLabel = title;
 
   const loadMatchCount = useCallback(async () => {
     try {

@@ -810,6 +810,198 @@ export default function ProfileEditScreen() {
           </View>
 
           <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Profile Photos</Text>
+            <Text style={styles.emptyText}>
+              Upload, reorder, and remove avatar, cover, and gallery photos.
+            </Text>
+            <Text style={styles.metaText}>Gallery supports up to 6 photos.</Text>
+
+            <View style={styles.uploadActions}>
+              <AppButton
+                title={
+                  uploadingPhotoType === 'avatar'
+                    ? 'Uploading avatar…'
+                    : avatarPhoto
+                      ? 'Change Avatar'
+                      : 'Upload Avatar'
+                }
+                onPress={() => pickAndUploadPhoto('avatar')}
+                disabled={!!photoLoadingId || !!uploadingPhotoType || saving}
+                variant="secondary"
+                style={styles.uploadActionButton}
+              />
+              <AppButton
+                title={
+                  uploadingPhotoType === 'cover'
+                    ? 'Uploading cover…'
+                    : coverPhoto
+                      ? 'Change Cover'
+                      : 'Upload Cover'
+                }
+                onPress={() => pickAndUploadPhoto('cover')}
+                disabled={!!photoLoadingId || !!uploadingPhotoType || saving}
+                variant="secondary"
+                style={styles.uploadActionButton}
+              />
+              <AppButton
+                title={
+                  uploadingPhotoType === 'gallery'
+                    ? 'Uploading gallery photo…'
+                    : galleryPhotos.length >= 6
+                      ? 'Gallery Full (6/6)'
+                      : 'Add Gallery Photo'
+                }
+                onPress={() => pickAndUploadPhoto('gallery')}
+                disabled={!!photoLoadingId || !!uploadingPhotoType || saving || galleryPhotos.length >= 6}
+                variant="secondary"
+                style={styles.uploadActionButton}
+              />
+            </View>
+
+            <View style={styles.inlineStack}>
+              <Pressable
+                onPress={() => setShowAvatarUrlInput((prev) => !prev)}
+                disabled={saving}
+                style={({ pressed }) => [styles.linkRow, pressed ? styles.pressed : null, saving ? styles.disabled : null]}
+              >
+                <Text style={styles.linkText}>
+                  {showAvatarUrlInput ? 'Hide avatar URL input' : 'Or enter avatar URL manually'}
+                </Text>
+              </Pressable>
+              {showAvatarUrlInput ? (
+                <FormTextInput
+                  label="Avatar URL"
+                  value={avatarUrlInput}
+                  onChangeText={setAvatarUrlInput}
+                  placeholder="https://example.com/avatar.jpg"
+                  autoCapitalize="none"
+                  editable={!saving}
+                />
+              ) : null}
+
+              <Pressable
+                onPress={() => setShowCoverUrlInput((prev) => !prev)}
+                disabled={saving}
+                style={({ pressed }) => [styles.linkRow, pressed ? styles.pressed : null, saving ? styles.disabled : null]}
+              >
+                <Text style={styles.linkText}>
+                  {showCoverUrlInput ? 'Hide cover URL input' : 'Or enter cover URL manually'}
+                </Text>
+              </Pressable>
+              {showCoverUrlInput ? (
+                <FormTextInput
+                  label="Cover URL"
+                  value={coverUrlInput}
+                  onChangeText={setCoverUrlInput}
+                  placeholder="https://example.com/cover.jpg"
+                  autoCapitalize="none"
+                  editable={!saving}
+                />
+              ) : null}
+            </View>
+
+            {avatarPhoto ? (
+              <View style={styles.photoRow}>
+                <PhotoThumb uri={avatarPhoto.image} label="Avatar" />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.photoTitle}>Avatar</Text>
+                  <Text style={styles.photoMeta}>{`Order ${avatarPhoto.display_order || 0}`}</Text>
+                </View>
+                <Pressable
+                  onPress={() => removePhoto(avatarPhoto.id)}
+                  disabled={photoLoadingId === String(avatarPhoto.id) || saving}
+                  style={({ pressed }) => [
+                    styles.photoDelete,
+                    pressed ? styles.pressed : null,
+                    photoLoadingId === String(avatarPhoto.id) || saving ? styles.disabled : null,
+                  ]}
+                >
+                  <Text style={styles.promptDeleteText}>Delete</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <Text style={styles.emptyText}>No avatar photo set.</Text>
+            )}
+
+            {coverPhoto ? (
+              <View style={styles.photoRow}>
+                <PhotoThumb uri={coverPhoto.image} style={styles.photoThumbWide} label="Cover" />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.photoTitle}>Cover</Text>
+                  <Text style={styles.photoMeta}>{`Order ${coverPhoto.display_order || 0}`}</Text>
+                </View>
+                <Pressable
+                  onPress={() => removePhoto(coverPhoto.id)}
+                  disabled={photoLoadingId === String(coverPhoto.id) || saving}
+                  style={({ pressed }) => [
+                    styles.photoDelete,
+                    pressed ? styles.pressed : null,
+                    photoLoadingId === String(coverPhoto.id) || saving ? styles.disabled : null,
+                  ]}
+                >
+                  <Text style={styles.promptDeleteText}>Delete</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <Text style={styles.emptyText}>No cover photo set.</Text>
+            )}
+
+            <View style={styles.inlineStack}>
+              <Text style={styles.label}>Gallery</Text>
+              {galleryPhotos.length === 0 ? (
+                <Text style={styles.emptyText}>No gallery photos yet.</Text>
+              ) : (
+                galleryPhotos.map((photo, index) => (
+                  <View key={photo.id} style={styles.photoRow}>
+                    <PhotoThumb uri={photo.image} label={`#${index + 1}`} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.photoTitle}>{`Gallery #${index + 1}`}</Text>
+                      <Text style={styles.photoMeta}>{`Order ${photo.display_order || 0}`}</Text>
+                    </View>
+                    <View style={styles.photoActions}>
+                      <Pressable
+                        onPress={() => reorderPhoto(photo.id, -1)}
+                        disabled={photoLoadingId === String(photo.id) || saving || index === 0}
+                        style={({ pressed }) => [
+                          styles.photoActionButton,
+                          pressed ? styles.pressed : null,
+                          photoLoadingId === String(photo.id) || saving || index === 0 ? styles.disabled : null,
+                        ]}
+                      >
+                        <Text style={styles.photoActionText}>↑</Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => reorderPhoto(photo.id, 1)}
+                        disabled={photoLoadingId === String(photo.id) || saving || index === galleryPhotos.length - 1}
+                        style={({ pressed }) => [
+                          styles.photoActionButton,
+                          pressed ? styles.pressed : null,
+                          photoLoadingId === String(photo.id) || saving || index === galleryPhotos.length - 1 ? styles.disabled : null,
+                        ]}
+                      >
+                        <Text style={styles.photoActionText}>↓</Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => removePhoto(photo.id)}
+                        disabled={photoLoadingId === String(photo.id) || saving}
+                        style={({ pressed }) => [
+                          styles.photoDelete,
+                          pressed ? styles.pressed : null,
+                          photoLoadingId === String(photo.id) || saving ? styles.disabled : null,
+                        ]}
+                      >
+                        <Text style={styles.promptDeleteText}>Delete</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                ))
+              )}
+            </View>
+
+            {photoError ? <Text style={styles.errorText}>{photoError}</Text> : null}
+          </View>
+
+          <View style={styles.card}>
             <Text style={styles.sectionTitle}>Discovery</Text>
             <ToggleRow
               label="Dating discovery"
@@ -1191,197 +1383,6 @@ export default function ProfileEditScreen() {
             </View>
           </View>
 
-          <View style={styles.card}>
-            <Text style={styles.sectionTitle}>Profile Photos</Text>
-            <Text style={styles.emptyText}>
-              Upload, reorder, and remove avatar, cover, and gallery photos.
-            </Text>
-            <Text style={styles.metaText}>Gallery supports up to 6 photos.</Text>
-
-            <View style={styles.uploadActions}>
-              <AppButton
-                title={
-                  uploadingPhotoType === 'avatar'
-                    ? 'Uploading avatar…'
-                    : avatarPhoto
-                      ? 'Change Avatar'
-                      : 'Upload Avatar'
-                }
-                onPress={() => pickAndUploadPhoto('avatar')}
-                disabled={!!photoLoadingId || !!uploadingPhotoType || saving}
-                variant="secondary"
-                style={styles.uploadActionButton}
-              />
-              <AppButton
-                title={
-                  uploadingPhotoType === 'cover'
-                    ? 'Uploading cover…'
-                    : coverPhoto
-                      ? 'Change Cover'
-                      : 'Upload Cover'
-                }
-                onPress={() => pickAndUploadPhoto('cover')}
-                disabled={!!photoLoadingId || !!uploadingPhotoType || saving}
-                variant="secondary"
-                style={styles.uploadActionButton}
-              />
-              <AppButton
-                title={
-                  uploadingPhotoType === 'gallery'
-                    ? 'Uploading gallery photo…'
-                    : galleryPhotos.length >= 6
-                      ? 'Gallery Full (6/6)'
-                      : 'Add Gallery Photo'
-                }
-                onPress={() => pickAndUploadPhoto('gallery')}
-                disabled={!!photoLoadingId || !!uploadingPhotoType || saving || galleryPhotos.length >= 6}
-                variant="secondary"
-                style={styles.uploadActionButton}
-              />
-            </View>
-
-            <View style={styles.inlineStack}>
-              <Pressable
-                onPress={() => setShowAvatarUrlInput((prev) => !prev)}
-                disabled={saving}
-                style={({ pressed }) => [styles.linkRow, pressed ? styles.pressed : null, saving ? styles.disabled : null]}
-              >
-                <Text style={styles.linkText}>
-                  {showAvatarUrlInput ? 'Hide avatar URL input' : 'Or enter avatar URL manually'}
-                </Text>
-              </Pressable>
-              {showAvatarUrlInput ? (
-                <FormTextInput
-                  label="Avatar URL"
-                  value={avatarUrlInput}
-                  onChangeText={setAvatarUrlInput}
-                  placeholder="https://example.com/avatar.jpg"
-                  autoCapitalize="none"
-                  editable={!saving}
-                />
-              ) : null}
-
-              <Pressable
-                onPress={() => setShowCoverUrlInput((prev) => !prev)}
-                disabled={saving}
-                style={({ pressed }) => [styles.linkRow, pressed ? styles.pressed : null, saving ? styles.disabled : null]}
-              >
-                <Text style={styles.linkText}>
-                  {showCoverUrlInput ? 'Hide cover URL input' : 'Or enter cover URL manually'}
-                </Text>
-              </Pressable>
-              {showCoverUrlInput ? (
-                <FormTextInput
-                  label="Cover URL"
-                  value={coverUrlInput}
-                  onChangeText={setCoverUrlInput}
-                  placeholder="https://example.com/cover.jpg"
-                  autoCapitalize="none"
-                  editable={!saving}
-                />
-              ) : null}
-            </View>
-
-            {avatarPhoto ? (
-              <View style={styles.photoRow}>
-                <PhotoThumb uri={avatarPhoto.image} label="Avatar" />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.photoTitle}>Avatar</Text>
-                  <Text style={styles.photoMeta}>{`Order ${avatarPhoto.display_order || 0}`}</Text>
-                </View>
-                <Pressable
-                  onPress={() => removePhoto(avatarPhoto.id)}
-                  disabled={photoLoadingId === String(avatarPhoto.id) || saving}
-                  style={({ pressed }) => [
-                    styles.photoDelete,
-                    pressed ? styles.pressed : null,
-                    photoLoadingId === String(avatarPhoto.id) || saving ? styles.disabled : null,
-                  ]}
-                >
-                  <Text style={styles.promptDeleteText}>Delete</Text>
-                </Pressable>
-              </View>
-            ) : (
-              <Text style={styles.emptyText}>No avatar photo set.</Text>
-            )}
-
-            {coverPhoto ? (
-              <View style={styles.photoRow}>
-                <PhotoThumb uri={coverPhoto.image} style={styles.photoThumbWide} label="Cover" />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.photoTitle}>Cover</Text>
-                  <Text style={styles.photoMeta}>{`Order ${coverPhoto.display_order || 0}`}</Text>
-                </View>
-                <Pressable
-                  onPress={() => removePhoto(coverPhoto.id)}
-                  disabled={photoLoadingId === String(coverPhoto.id) || saving}
-                  style={({ pressed }) => [
-                    styles.photoDelete,
-                    pressed ? styles.pressed : null,
-                    photoLoadingId === String(coverPhoto.id) || saving ? styles.disabled : null,
-                  ]}
-                >
-                  <Text style={styles.promptDeleteText}>Delete</Text>
-                </Pressable>
-              </View>
-            ) : (
-              <Text style={styles.emptyText}>No cover photo set.</Text>
-            )}
-
-            <View style={styles.inlineStack}>
-              <Text style={styles.label}>Gallery</Text>
-              {galleryPhotos.length === 0 ? (
-                <Text style={styles.emptyText}>No gallery photos yet.</Text>
-              ) : (
-                galleryPhotos.map((photo, index) => (
-                  <View key={photo.id} style={styles.photoRow}>
-                    <PhotoThumb uri={photo.image} label={`#${index + 1}`} />
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.photoTitle}>{`Gallery #${index + 1}`}</Text>
-                      <Text style={styles.photoMeta}>{`Order ${photo.display_order || 0}`}</Text>
-                    </View>
-                    <View style={styles.photoActions}>
-                      <Pressable
-                        onPress={() => reorderPhoto(photo.id, -1)}
-                        disabled={photoLoadingId === String(photo.id) || saving || index === 0}
-                        style={({ pressed }) => [
-                          styles.photoActionButton,
-                          pressed ? styles.pressed : null,
-                          photoLoadingId === String(photo.id) || saving || index === 0 ? styles.disabled : null,
-                        ]}
-                      >
-                        <Text style={styles.photoActionText}>↑</Text>
-                      </Pressable>
-                      <Pressable
-                        onPress={() => reorderPhoto(photo.id, 1)}
-                        disabled={photoLoadingId === String(photo.id) || saving || index === galleryPhotos.length - 1}
-                        style={({ pressed }) => [
-                          styles.photoActionButton,
-                          pressed ? styles.pressed : null,
-                          photoLoadingId === String(photo.id) || saving || index === galleryPhotos.length - 1 ? styles.disabled : null,
-                        ]}
-                      >
-                        <Text style={styles.photoActionText}>↓</Text>
-                      </Pressable>
-                      <Pressable
-                        onPress={() => removePhoto(photo.id)}
-                        disabled={photoLoadingId === String(photo.id) || saving}
-                        style={({ pressed }) => [
-                          styles.photoDelete,
-                          pressed ? styles.pressed : null,
-                          photoLoadingId === String(photo.id) || saving ? styles.disabled : null,
-                        ]}
-                      >
-                        <Text style={styles.promptDeleteText}>Delete</Text>
-                      </Pressable>
-                    </View>
-                  </View>
-                ))
-              )}
-            </View>
-
-            {photoError ? <Text style={styles.errorText}>{photoError}</Text> : null}
-          </View>
 
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>Pets</Text>

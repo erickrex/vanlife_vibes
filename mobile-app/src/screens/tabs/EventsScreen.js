@@ -284,12 +284,22 @@ export default function EventsScreen() {
   }, [directViewMode, exhausted, hasActiveFilters, joinMode, swipeViewMode]);
 
   const renderHeader = () => (
-    <View style={styles.header}>
-      <View style={{ flex: 1 }}>
-        <Text style={styles.title}>Community - Campfire</Text>
+    <View style={styles.headerSection}>
+      <View style={styles.header}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.title}>Campfire</Text>
+        </View>
+        <Pressable
+          onPress={() => navigation.getParent()?.navigate('Profile')}
+          style={({ pressed }) => [styles.profileButton, pressed ? styles.pressed : null]}
+          accessibilityRole="button"
+          accessibilityLabel="Open profile"
+        >
+          <Text style={styles.profileIcon}>👤</Text>
+        </Pressable>
       </View>
 
-      <View style={styles.headerActions}>
+      <View style={styles.headerActionRow}>
         {shouldShowFilterToggle ? (
           <Pressable
             onPress={() => setShowFilters((prev) => !prev)}
@@ -302,15 +312,7 @@ export default function EventsScreen() {
             <Text style={styles.iconButtonText}>Filters</Text>
           </Pressable>
         ) : null}
-        <AppButton title="Create" onPress={openCreate} variant="primary" />
-        <Pressable
-          onPress={() => navigation.getParent()?.navigate('Profile')}
-          style={({ pressed }) => [styles.profileButton, pressed ? styles.pressed : null]}
-          accessibilityRole="button"
-          accessibilityLabel="Open profile"
-        >
-          <Text style={styles.profileIcon}>👤</Text>
-        </Pressable>
+        <AppButton title="Create" onPress={openCreate} variant="primary" style={styles.createButton} />
       </View>
     </View>
   );
@@ -494,6 +496,9 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 10,
   },
+  headerSection: {
+    gap: 8,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -505,10 +510,13 @@ const styles = StyleSheet.create({
     fontSize: 21,
     fontWeight: '900',
   },
-  headerActions: {
+  headerActionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  createButton: {
+    minWidth: 116,
   },
   profileButton: {
     borderWidth: 1,

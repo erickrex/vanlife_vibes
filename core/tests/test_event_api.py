@@ -9,7 +9,7 @@ from rest_framework.authtoken.models import Token
 from datetime import date, timedelta
 
 from core.models import (
-    UserAccount, Event, EventAttendee
+    UserAccount, Event, EventAttendee, Country, City, InTownWindow
 )
 
 
@@ -1790,3 +1790,225 @@ class EventMyMatchesEndpointTestCase(TestCase):
         # Creator should see all matched events they created
         self.assertIn(str(self.matched_event.id), event_ids)
         self.assertIn(str(self.matched_not_attendee.id), event_ids)
+
+
+class EventListRelevanceRankingTestCase(TestCase):
+    """Tests relevance ranking for GET /events/ based on location and in-town windows."""
+
+    def setUp(self):
+        self.viewer = UserAccount.objects.create_user(
+            username='campfireranker',
+            email='campfireranker@test.com',
+            password='testpass123'
+        )
+        self.viewer_profile = self.viewer.profile
+        self.viewer_profile.display_name = 'Campfire Ranker'
+        self.viewer_profile.save()
+        self.viewer_token = Token.objects.create(user=self.viewer)
+
+        self.creator = UserAccount.objects.create_user(
+            username='eventmaker',
+            email='eventmaker@test.com',
+            password='testpass123'
+        )
+        self.creator_profile = self.creator.profile
+        self.creator_profile.display_name = 'Event Maker'
+        self.creator_profile.save()
+
+        self.country, _ = Country.objects.get_or_create(
+            code='US',
+            defaults={'name': 'United States'},
+        )
+        self.la_city, _ = City.objects.get_or_create(
+            name='Los Angeles',
+            state_code='CA',
+            country=self.country,
+            defaults={
+                'display_name': 'Los Angeles, CA',
+                'latitude': 34.052235,
+                'longitude': -118.243683,
+                'timezone': 'America/Los_Angeles',
+            },
+        )
+        self.santa_monica_city, _ = City.objects.get_or_create(
+            name='Santa Monica',
+            state_code='CA',
+            country=self.country,
+            defaults={
+                'display_name': 'Santa Monica, CA',
+                'latitude': 34.019500,
+                'longitude': -118.491200,
+                'timezone': 'America/Los_Angeles',
+            },
+        )
+        self.phoenix_city, _ = City.objects.get_or_create(
+            name='Phoenix',
+            state_code='AZ',
+            country=self.country,
+            defaults={
+                'display_name': 'Phoenix, AZ',
+                'latitude': 33.448400,
+                'longitude': -112.074000,
+                'timezone': 'America/Phoenix',
+            },
+        )
+
+        # Normalize key fields even if these cities already existed.
+        self.la_city.display_name = 'Los Angeles, CA'
+        self.la_city.latitude = 34.052235
+        self.la_city.longitude = -118.243683
+        self.la_city.save(update_fields=['display_name', 'latitude', 'longitude'])
+
+        self.santa_monica_city.display_name = 'Santa Monica, CA'
+        self.santa_monica_city.latitude = 34.019500
+        self.santa_monica_city.longitude = -118.491200
+        self.santa_monica_city.save(update_fields=['display_name', 'latitude', 'longitude'])
+
+        self.phoenix_city.display_name = 'Phoenix, AZ'
+        self.phoenix_city.latitude = 33.448400
+        self.phoenix_city.longitude = -112.074000
+        self.phoenix_city.save(update_fields=['display_name', 'latitude', 'longitude'])
+
+        today = date.today()
+        saturday_delta = (5 - today.weekday()) % 7
+        if saturday_delta == 0:
+            saturday_delta = 7
+        self.next_saturday = today + timedelta(days=saturday_delta)
+        self.next_monday = self.next_saturday + timedelta(days=2)
+
+        # Viewer is in Los Angeles for the next month.
+        InTownWindow.objects.create(
+            profile=self.viewer_profile,
+            city_area='Los Angeles, CA',
+            start_date=today,
+            end_date=today + timedelta(days=30),
+        )
+
+        # Same city + in-window + weekend (should rank highest)
+        self.event_same_city_weekend = Event.objects.create(
+            created_by=self.creator_profile,
+            title='LA Weekend Campfire',
+            event_type='campfire',
+            join_mode='direct',
+            event_date=self.next_saturday,
+            time_window='evening',
+            location='Los Angeles, CA',
+            spots=12,
+            status='open',
+            is_platform_hosted=False,
+        )
+        EventAttendee.objects.create(
+            event=self.event_same_city_weekend,
+            user=self.creator_profile,
+            status='confirmed',
+            confirmed_at=timezone.now(),
+        )
+
+        # Same city + in-window + weekday (below weekend in same tier)
+        self.event_same_city_weekday = Event.objects.create(
+            created_by=self.creator_profile,
+            title='LA Weekday Coffee',
+            event_type='coffee',
+            join_mode='direct',
+            event_date=self.next_monday,
+            time_window='morning',
+            location='Los Angeles, CA',
+            spots=8,
+            status='open',
+            is_platform_hosted=True,
+        )
+        EventAttendee.objects.create(
+            event=self.event_same_city_weekday,
+            user=self.creator_profile,
+            status='confirmed',
+            confirmed_at=timezone.now(),
+        )
+
+        # Nearby city + in-window date (should come after same-city in-window)
+        self.event_nearby_city = Event.objects.create(
+            created_by=self.creator_profile,
+            title='Santa Monica Trail Meetup',
+            event_type='hiking',
+            join_mode='direct',
+            event_date=self.next_saturday,
+            time_window='morning',
+            location='Santa Monica, CA',
+            spots=10,
+            status='open',
+            is_platform_hosted=False,
+        )
+        EventAttendee.objects.create(
+            event=self.event_nearby_city,
+            user=self.creator_profile,
+            status='confirmed',
+            confirmed_at=timezone.now(),
+        )
+
+        # Same city but outside the in-town window (future)
+        self.event_same_city_far_future = Event.objects.create(
+            created_by=self.creator_profile,
+            title='LA Future Gathering',
+            event_type='potluck',
+            join_mode='direct',
+            event_date=today + timedelta(days=90),
+            time_window='afternoon',
+            location='Los Angeles, CA',
+            spots=10,
+            status='open',
+            is_platform_hosted=True,
+        )
+        EventAttendee.objects.create(
+            event=self.event_same_city_far_future,
+            user=self.creator_profile,
+            status='confirmed',
+            confirmed_at=timezone.now(),
+        )
+
+        # Far city (should be lower than same/nearby city events)
+        self.event_far_city = Event.objects.create(
+            created_by=self.creator_profile,
+            title='Phoenix Sunset Ride',
+            event_type='biking',
+            join_mode='direct',
+            event_date=self.next_saturday,
+            time_window='evening',
+            location='Phoenix, AZ',
+            spots=10,
+            status='open',
+            is_platform_hosted=False,
+        )
+        EventAttendee.objects.create(
+            event=self.event_far_city,
+            user=self.creator_profile,
+            status='confirmed',
+            confirmed_at=timezone.now(),
+        )
+
+        self.client = APIClient()
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.viewer_token.key}')
+
+    def test_events_list_prioritizes_same_city_then_nearby_then_far(self):
+        response = self.client.get('/api/v1/events/?join_mode=direct')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['status'], 'success')
+        returned_ids = [item['id'] for item in response.data['data']]
+
+        idx_same_weekend = returned_ids.index(str(self.event_same_city_weekend.id))
+        idx_same_weekday = returned_ids.index(str(self.event_same_city_weekday.id))
+        idx_nearby = returned_ids.index(str(self.event_nearby_city.id))
+        idx_far_future_same_city = returned_ids.index(str(self.event_same_city_far_future.id))
+        idx_far_city = returned_ids.index(str(self.event_far_city.id))
+
+        # Same city + in-town-window events rank highest.
+        self.assertLess(idx_same_weekend, idx_nearby)
+        self.assertLess(idx_same_weekday, idx_nearby)
+
+        # Weekend gets boosted ahead of weekday in the same relevance tier.
+        self.assertLess(idx_same_weekend, idx_same_weekday)
+
+        # Nearby city ranks above far city.
+        self.assertLess(idx_nearby, idx_far_city)
+
+        # Same city (even farther in future) still ranks above far city.
+        self.assertLess(idx_far_future_same_city, idx_far_city)
