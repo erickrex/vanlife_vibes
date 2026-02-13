@@ -26,7 +26,7 @@ class MessageMixin:
                 'message': 'Profile not found. Please contact support.'
             }, status=status.HTTP_404_NOT_FOUND)
         
-        # Get the parent object (match, plan, activity, friendship)
+        # Get the parent object (match, event, etc.)
         parent, error_response = self.get_message_parent(pk)
         if error_response:
             return error_response

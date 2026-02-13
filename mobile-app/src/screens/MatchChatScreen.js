@@ -16,6 +16,7 @@ import { useHeaderHeight } from '@react-navigation/elements';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import AppButton from '../components/AppButton';
+import DatePickerField from '../components/DatePickerField';
 import ProfileAvatar from '../components/ProfileAvatar';
 import Screen from '../components/Screen';
 import { useAuth } from '../contexts/AuthContext';
@@ -845,18 +846,18 @@ export default function MatchChatScreen() {
                   maxLength={100}
                 />
 
-                <TextInput
+                <DatePickerField
+                  label="In town until (YYYY-MM-DD)"
                   value={miniCardDraft.in_town_until}
-                  onChangeText={(value) =>
+                  onChange={(value) =>
                     setMiniCardDraft((prev) => ({
                       ...prev,
                       in_town_until: value,
                     }))
                   }
-                  placeholder="In town until (YYYY-MM-DD)"
-                  placeholderTextColor={colors.placeholder}
-                  style={styles.fieldInput}
-                  maxLength={10}
+                  placeholder="Select date"
+                  containerStyle={styles.fieldDateInput}
+                  clearable
                 />
 
                 <View style={styles.reasonRow}>
@@ -1093,6 +1094,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 12,
     fontSize: 14,
+  },
+  fieldDateInput: {
+    gap: 0,
   },
   modalActions: { flexDirection: 'row', gap: 10, marginTop: 2 },
   flexButton: { flex: 1 },

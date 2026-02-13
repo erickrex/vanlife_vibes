@@ -4,7 +4,7 @@ from hypothesis import given, settings, assume
 from hypothesis import strategies as st
 from hypothesis.extra.django import TestCase
 from core.models import UserAccount, Profile
-from core.views.profiles import DiscoveryViewSet
+from core.views.discovery import DiscoveryViewSet
 
 
 # --- Strategies ---
@@ -349,7 +349,7 @@ class TestCombinedScoreRankingProperty(TestCase):
     @settings(max_examples=20)
     def test_combined_score_ranking_matches_formula(self, scores):
         """Ranking by combined formula matches direct sort on final_score."""
-        from core.views.profiles import W_LOCATION, W_RELEVANCE
+        from core.views.discovery import W_LOCATION, W_RELEVANCE
 
         assert W_LOCATION == 2.0
         assert W_RELEVANCE == 1.0
@@ -377,7 +377,7 @@ class TestCombinedScoreRankingProperty(TestCase):
         """Equal overlap: higher relevance ranks first."""
         assume(rel_a != rel_b)
 
-        from core.views.profiles import W_LOCATION, W_RELEVANCE
+        from core.views.discovery import W_LOCATION, W_RELEVANCE
 
         score_a = (overlap * W_LOCATION) + (rel_a * W_RELEVANCE)
         score_b = (overlap * W_LOCATION) + (rel_b * W_RELEVANCE)
@@ -397,7 +397,7 @@ class TestCombinedScoreRankingProperty(TestCase):
         """Equal relevance: higher overlap ranks first."""
         assume(overlap_a != overlap_b)
 
-        from core.views.profiles import W_LOCATION, W_RELEVANCE
+        from core.views.discovery import W_LOCATION, W_RELEVANCE
 
         score_a = (overlap_a * W_LOCATION) + (relevance * W_RELEVANCE)
         score_b = (overlap_b * W_LOCATION) + (relevance * W_RELEVANCE)
@@ -449,7 +449,7 @@ class TestRelevanceScorerIntegration(TestCase):
                 interested_in_men=True,
             )
 
-        with patch('core.views.profiles.RelevanceScorer') as MockScorer:
+        with patch('core.views.discovery.RelevanceScorer') as MockScorer:
             mock_instance = MagicMock()
             mock_instance.calculate_score.return_value = 10
             mock_instance.calculate_completeness_score.return_value = 0
@@ -1280,7 +1280,7 @@ class TestThreeTermCombinedScoreProperty(TestCase):
     @settings(max_examples=20)
     def test_three_term_ranking_matches_formula(self, scores):
         """Ranking by three-term formula matches direct sort on final_score."""
-        from core.views.profiles import W_LOCATION, W_RELEVANCE, W_COMPLETENESS
+        from core.views.discovery import W_LOCATION, W_RELEVANCE, W_COMPLETENESS
 
         assert W_LOCATION == 2.0
         assert W_RELEVANCE == 1.0
@@ -1315,7 +1315,7 @@ class TestThreeTermCombinedScoreProperty(TestCase):
         """Equal overlap+relevance: higher completeness ranks first."""
         assume(comp_a != comp_b)
 
-        from core.views.profiles import W_LOCATION, W_RELEVANCE, W_COMPLETENESS
+        from core.views.discovery import W_LOCATION, W_RELEVANCE, W_COMPLETENESS
 
         score_a = (overlap * W_LOCATION) + (relevance * W_RELEVANCE) + (comp_a * W_COMPLETENESS)
         score_b = (overlap * W_LOCATION) + (relevance * W_RELEVANCE) + (comp_b * W_COMPLETENESS)
@@ -1333,7 +1333,7 @@ class TestThreeTermCombinedScoreProperty(TestCase):
     @settings(max_examples=20)
     def test_completeness_contributes_half_weight(self, overlap, relevance, completeness):
         """Completeness term contributes exactly completeness * 0.5."""
-        from core.views.profiles import W_LOCATION, W_RELEVANCE, W_COMPLETENESS
+        from core.views.discovery import W_LOCATION, W_RELEVANCE, W_COMPLETENESS
 
         two_term = (overlap * W_LOCATION) + (relevance * W_RELEVANCE)
         three_term = (overlap * W_LOCATION) + (relevance * W_RELEVANCE) + (completeness * W_COMPLETENESS)
@@ -1448,7 +1448,7 @@ class TestCompletenessScoring(TestCase):
 
     def test_completeness_does_not_override_location_or_relevance(self):
         """High completeness but low overlap/relevance ranks below the inverse."""
-        from core.views.profiles import W_LOCATION, W_RELEVANCE, W_COMPLETENESS
+        from core.views.discovery import W_LOCATION, W_RELEVANCE, W_COMPLETENESS
 
         # Profile A: high completeness (60), low overlap (0), low relevance (0)
         score_a = (0 * W_LOCATION) + (0 * W_RELEVANCE) + (60 * W_COMPLETENESS)

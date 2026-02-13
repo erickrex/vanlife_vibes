@@ -89,6 +89,7 @@ class EventSerializer(serializers.ModelSerializer):
             'time_window',
             'location',
             'status',
+            'is_platform_hosted',
             'created_at',
             'attendees',
             'attendee_count',

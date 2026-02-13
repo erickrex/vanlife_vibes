@@ -6,7 +6,7 @@ from django.test import TestCase
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from core.models import InTownWindow, UserAccount
-from core.views.profiles import DiscoveryViewSet
+from core.views.discovery import DiscoveryViewSet
 
 
 def _create_user_with_profile(username):
@@ -78,7 +78,7 @@ class TestFriendsDiscoveryRanking(TestCase):
         # overlap(A)=3 days -> location contribution = 6.
         # overlap(B)=0 days -> location contribution = 0.
         # With relevance below, B should still rank first.
-        with patch("core.views.profiles.RelevanceScorer") as mock_scorer_class:
+        with patch("core.views.discovery.RelevanceScorer") as mock_scorer_class:
             scorer = MagicMock()
 
             def relevance_side_effect(_user_profile, target_profile):

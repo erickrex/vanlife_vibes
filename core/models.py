@@ -2,6 +2,7 @@ import uuid
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 
 
 class UserAccount(AbstractUser):
@@ -44,6 +45,9 @@ class City(models.Model):
         related_name='cities'
     )
     display_name = models.CharField(max_length=120, unique=True)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    timezone = models.CharField(max_length=64, blank=True, default='')
 
     class Meta:
         db_table = 'city'
@@ -402,32 +406,6 @@ class ProfilePhoto(models.Model):
         return f"{self.photo_type} photo for {self.profile}"
 
 
-class Follow(models.Model):
-    """Follow relationship between user profiles"""
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    follower = models.ForeignKey(
-        Profile,
-        on_delete=models.CASCADE,
-        related_name='following_set'
-    )
-    following = models.ForeignKey(
-        Profile,
-        on_delete=models.CASCADE,
-        related_name='follower_set'
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = 'follow'
-        unique_together = ['follower', 'following']
-        indexes = [
-            models.Index(fields=['follower']),
-            models.Index(fields=['following']),
-        ]
-
-    def __str__(self):
-        return f"{self.follower.user.username} follows {self.following.user.username}"
-
 
 class HobbyTag(models.Model):
     """Predefined hobby tags for user profiles"""
@@ -621,7 +599,7 @@ class PersonMatch(models.Model):
 
 
 class DirectMessage(models.Model):
-    """Chat message between matched/friended users (text, icebreaker, or mini_card)."""
+    """Chat message between matched users (text, icebreaker, or mini_card)."""
     MESSAGE_TYPE_CHOICES = [
         ('text', 'Text'),
         ('mini_card', 'Mini Card'),
@@ -633,15 +611,6 @@ class DirectMessage(models.Model):
         PersonMatch,
         on_delete=models.CASCADE,
         related_name='messages',
-        null=True,
-        blank=True
-    )
-    friendship = models.ForeignKey(
-        'Friendship',
-        on_delete=models.CASCADE,
-        related_name='direct_messages',
-        null=True,
-        blank=True
     )
     sender = models.ForeignKey(
         Profile,
@@ -663,22 +632,11 @@ class DirectMessage(models.Model):
         ordering = ['created_at']
         indexes = [
             models.Index(fields=['match', 'created_at']),
-            models.Index(fields=['friendship', 'created_at']),
             models.Index(fields=['sender']),
-        ]
-        constraints = [
-            models.CheckConstraint(
-                check=(
-                    models.Q(match__isnull=False, friendship__isnull=True) |
-                    models.Q(match__isnull=True, friendship__isnull=False)
-                ),
-                name='direct_message_has_one_parent'
-            ),
         ]
 
     def __str__(self):
-        parent = f"match {self.match_id}" if self.match_id else f"friendship {self.friendship_id}"
-        return f"Message from {self.sender.user.username} in {parent}"
+        return f"Message from {self.sender.user.username} in match {self.match_id}"
 
 
 class UserReport(models.Model):
@@ -734,79 +692,8 @@ class UserReport(models.Model):
 
 
 
-class FriendRequest(models.Model):
-    """Friend request between two users. Accepted requests create a Friendship."""
-    STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('accepted', 'Accepted'),
-        ('declined', 'Declined'),
-    ]
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    from_user = models.ForeignKey(
-        Profile,
-        on_delete=models.CASCADE,
-        related_name='sent_friend_requests'
-    )
-    to_user = models.ForeignKey(
-        Profile,
-        on_delete=models.CASCADE,
-        related_name='received_friend_requests'
-    )
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    created_at = models.DateTimeField(auto_now_add=True)
-    responded_at = models.DateTimeField(null=True, blank=True)
-
-    class Meta:
-        db_table = 'friend_request'
-        unique_together = ['from_user', 'to_user']
-        indexes = [
-            models.Index(fields=['from_user', 'status']),
-            models.Index(fields=['to_user', 'status']),
-        ]
-
-    def __str__(self):
-        return f"Friend request from {self.from_user.user.username} to {self.to_user.user.username} ({self.status})"
 
 
-class Friendship(models.Model):
-    """Bidirectional friendship (user1.id < user2.id to prevent duplicates)."""
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user1 = models.ForeignKey(
-        Profile,
-        on_delete=models.CASCADE,
-        related_name='friendships_as_user1'
-    )
-    user2 = models.ForeignKey(
-        Profile,
-        on_delete=models.CASCADE,
-        related_name='friendships_as_user2'
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = 'friendship'
-        constraints = [
-            models.UniqueConstraint(fields=['user1', 'user2'], name='unique_friendship'),
-            models.CheckConstraint(check=models.Q(user1__lt=models.F('user2')), name='user1_lt_user2'),
-        ]
-        indexes = [
-            models.Index(fields=['user1']),
-            models.Index(fields=['user2']),
-        ]
-
-    def save(self, *args, **kwargs):
-        """Ensure user1.id < user2.id to prevent duplicate friendships."""
-        if self.user1_id and self.user2_id and self.user1_id > self.user2_id:
-            self.user1, self.user2 = self.user2, self.user1
-        super().save(*args, **kwargs)
-
-    def get_friend(self, profile):
-        """Return the other user in the friendship."""
-        return self.user2 if self.user1 == profile else self.user1
-
-    def __str__(self):
-        return f"Friendship: {self.user1.user.username} <-> {self.user2.user.username}"
 
 
 class AnalyticsEvent(models.Model):
@@ -919,6 +806,7 @@ class Event(models.Model):
     
     # Status
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='open')
+    is_platform_hosted = models.BooleanField(default=False)
     
     created_at = models.DateTimeField(auto_now_add=True)
     
@@ -930,6 +818,14 @@ class Event(models.Model):
             models.Index(fields=['join_mode', 'status']),
             models.Index(fields=['location']),
             models.Index(fields=['event_type']),
+            models.Index(fields=['is_platform_hosted', 'event_date']),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['event_date', 'location', 'join_mode'],
+                condition=Q(is_platform_hosted=True),
+                name='uniq_platform_event_per_city_day_mode',
+            ),
         ]
 
     def __str__(self):

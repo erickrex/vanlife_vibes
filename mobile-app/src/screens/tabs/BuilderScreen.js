@@ -19,6 +19,27 @@ import { colors } from '../../theme/colors';
 import { radius } from '../../theme/tokens';
 import { normalizeImageUrl } from '../../utils/imageUrl';
 
+const FREE_PLACEHOLDER_IMAGES = {
+  default:
+    'https://images.unsplash.com/photo-1670838895005-e73fad7f59af?auto=format&fit=crop&w=1200&q=80',
+  electrical:
+    'https://images.unsplash.com/photo-1751486289943-0428133c367c?auto=format&fit=crop&w=1200&q=80',
+  plumbing:
+    'https://images.unsplash.com/photo-1712264325709-dfb74bb01166?auto=format&fit=crop&w=1200&q=80',
+  carpentry:
+    'https://images.unsplash.com/photo-1745449064670-94bd0fc13df8?auto=format&fit=crop&w=1200&q=80',
+  mechanical:
+    'https://images.unsplash.com/photo-1717736712592-32616de7dda0?auto=format&fit=crop&w=1200&q=80',
+  painting:
+    'https://images.unsplash.com/photo-1693823462803-8921d3f5ea2c?auto=format&fit=crop&w=1200&q=80',
+  insulation:
+    'https://images.unsplash.com/photo-1761074342668-c38fc2e62e67?auto=format&fit=crop&w=1200&q=80',
+  solar:
+    'https://images.unsplash.com/photo-1619249722898-492c571615fe?auto=format&fit=crop&w=1200&q=80',
+  general:
+    'https://images.unsplash.com/photo-1670838895005-e73fad7f59af?auto=format&fit=crop&w=1200&q=80',
+};
+
 const CATEGORIES = [
   { value: '', label: 'All' },
   { value: 'electrical', label: '⚡ Electrical' },
@@ -38,7 +59,7 @@ const TYPE_TABS = [
 ];
 
 const MARKETPLACE_BENEFITS = [
-  'Browse builder listings by location relevance',
+  'Browse marketplace listings by location relevance',
   'Post your own service or project request',
   'Message listing owners and helpers',
   'Plus 20 daily discovery swipes',
@@ -49,27 +70,42 @@ function ListingCard({ item, onPress }) {
   const categoryLabel = CATEGORIES.find((option) => option.value === item.category)?.label || '🛠️ General';
   const categoryEmoji = categoryLabel.split(' ')[0] || '🛠️';
   const normalizedPhotoUrl = useMemo(() => normalizeImageUrl(item?.photo_url || ''), [item?.photo_url]);
+  const placeholderUrl = useMemo(
+    () => FREE_PLACEHOLDER_IMAGES[item?.category] || FREE_PLACEHOLDER_IMAGES.default,
+    [item?.category],
+  );
+  const [usingPlaceholder, setUsingPlaceholder] = useState(!normalizedPhotoUrl);
   const [photoFailed, setPhotoFailed] = useState(false);
-  const showPhoto = !!normalizedPhotoUrl && !photoFailed;
+  const resolvedPhotoUrl = usingPlaceholder ? placeholderUrl : normalizedPhotoUrl;
+  const showPhoto = !!resolvedPhotoUrl && !photoFailed;
 
   useEffect(() => {
+    setUsingPlaceholder(!normalizedPhotoUrl);
     setPhotoFailed(false);
-  }, [normalizedPhotoUrl]);
+  }, [normalizedPhotoUrl, placeholderUrl]);
+
+  const handleImageError = useCallback(() => {
+    if (!usingPlaceholder && placeholderUrl) {
+      setUsingPlaceholder(true);
+      return;
+    }
+    setPhotoFailed(true);
+  }, [usingPlaceholder, placeholderUrl]);
 
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
       <View style={styles.photoWrap}>
         {showPhoto ? (
           <Image
-            source={{ uri: normalizedPhotoUrl }}
+            source={{ uri: resolvedPhotoUrl }}
             style={styles.photo}
             resizeMode="cover"
-            onError={() => setPhotoFailed(true)}
+            onError={handleImageError}
           />
         ) : (
           <View style={styles.photoFallback}>
             <Text style={styles.photoFallbackEmoji}>{categoryEmoji}</Text>
-            <Text style={styles.photoFallbackText}>No photo</Text>
+            <Text style={styles.photoFallbackText}>Image unavailable</Text>
           </View>
         )}
       </View>
@@ -109,6 +145,7 @@ export default function BuilderScreen() {
   const [listings, setListings] = useState([]);
   const [myListings, setMyListings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [error, setError] = useState('');
   const [isPremium, setIsPremium] = useState(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState(null);
@@ -159,6 +196,7 @@ export default function BuilderScreen() {
       setError(err.message || 'Failed to load');
     } finally {
       setLoading(false);
+      setHasLoadedOnce(true);
     }
   }, [viewMode, loadBrowse, loadMyListings]);
 
@@ -195,7 +233,7 @@ export default function BuilderScreen() {
     <Screen>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Builder Marketplace</Text>
+          <Text style={styles.title}>Marketplace</Text>
           <View style={styles.headerActions}>
             {isPremium ? (
               <AppButton title="+ Post" onPress={() => navigation.navigate('CreateBuilderListing')} variant="primary" />
@@ -247,15 +285,19 @@ export default function BuilderScreen() {
                 </Pressable>
               ))}
             </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
+            <ScrollView
+              horizontal
+              style={styles.chipScroll}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.chipRow}
+            >
               {CATEGORIES.map((c) => (
                 <Pressable
                   key={c.value}
                   onPress={() => setCategory(c.value)}
-                  style={({ pressed }) => [
+                  style={[
                     styles.chip,
                     category === c.value && styles.chipActive,
-                    pressed && styles.pressed,
                   ]}
                 >
                   <Text style={[styles.chipText, category === c.value && styles.chipTextActive]}>
@@ -268,7 +310,7 @@ export default function BuilderScreen() {
         ) : null}
 
         {/* Content */}
-        {loading ? (
+        {loading && !hasLoadedOnce ? (
           <View style={styles.center}>
             <ActivityIndicator color={colors.muted} />
           </View>
@@ -279,9 +321,9 @@ export default function BuilderScreen() {
           </View>
         ) : !isPremium ? (
           <View style={styles.center}>
-            <Text style={styles.emptyTitle}>Builder Marketplace is Premium</Text>
+            <Text style={styles.emptyTitle}>Marketplace is Premium</Text>
             <Text style={styles.emptyBody}>
-              Upgrade to Premium to browse listings, post offers/requests, and message builders.
+              Upgrade to Premium to browse listings, post offers/requests, and message members.
             </Text>
             {subscriptionStatus?.requires_billing_details ? (
               <Text style={styles.trialReminder}>
@@ -309,7 +351,7 @@ export default function BuilderScreen() {
             </Text>
             <Text style={styles.emptyBody}>
               {viewMode === 'browse'
-                ? 'Be the first to post a builder service or request.'
+                ? 'Be the first to post a service or request.'
                 : 'Post a listing to offer or request van build help.'}
             </Text>
             <AppButton title="Post a Listing" onPress={() => navigation.navigate('CreateBuilderListing')} variant="primary" />
@@ -337,8 +379,8 @@ export default function BuilderScreen() {
         visible={showPaywall}
         onClose={() => setShowPaywall(false)}
         onSubscribed={handleSubscribed}
-        title="Unlock Builder Marketplace"
-        subtitle="Builder is a Premium-only marketplace. Upgrade to browse listings, post your own, and chat with owners."
+        title="Unlock Marketplace"
+        subtitle="Marketplace is Premium-only. Upgrade to browse listings, post your own, and chat with owners."
         benefits={MARKETPLACE_BENEFITS}
         ctaLabel="Upgrade to Premium"
       />
@@ -372,10 +414,11 @@ const styles = StyleSheet.create({
   typeTabActive: { borderColor: colors.primary, backgroundColor: `${colors.primary}26` },
   typeTabText: { color: colors.muted, fontWeight: '900', fontSize: 12 },
   typeTabTextActive: { color: colors.primary },
-  chipRow: { gap: 8, paddingVertical: 4 },
+  chipScroll: { maxHeight: 46 },
+  chipRow: { paddingVertical: 4, paddingRight: 4, alignItems: 'center' },
   chip: {
     borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.panel,
-    borderRadius: 999, paddingVertical: 7, paddingHorizontal: 11,
+    borderRadius: 999, minHeight: 36, paddingHorizontal: 14, marginRight: 8, justifyContent: 'center',
   },
   chipActive: { borderColor: colors.primary, backgroundColor: `${colors.primary}38` },
   chipText: { color: colors.muted, fontWeight: '800', fontSize: 12 },

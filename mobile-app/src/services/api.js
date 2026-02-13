@@ -1,5 +1,6 @@
 import axios from 'axios';
 import Constants from 'expo-constants';
+import { revenueCatClient } from './revenuecat';
 import { clearAuthToken, getAuthToken } from '../storage/authToken';
 
 let unauthorizedHandler = null;
@@ -235,7 +236,40 @@ export const subscriptionAPI = {
       customer_info: customerInfo,
       entitlement_id: entitlementId,
     }),
-  startTrial: () => api.post('/subscription/start-trial/'),
+  startTrial: async () => {
+    const is404Like = (err) => {
+      const message = (err?.message || '').toLowerCase();
+      return message.includes('404') || message.includes('not found');
+    };
+
+    try {
+      return await api.post('/subscription/start-trial/');
+    } catch (firstErr) {
+      if (!is404Like(firstErr)) throw firstErr;
+    }
+
+    try {
+      return await api.post('/subscription/start-trial');
+    } catch (secondErr) {
+      if (!is404Like(secondErr)) throw secondErr;
+    }
+
+    const offerings = await revenueCatClient.getOfferings();
+    const defaultPkg = offerings?.current?.availablePackages?.[0] ?? null;
+    if (!defaultPkg) {
+      throw new Error('No plans available for free trial right now.');
+    }
+
+    const purchaseResult = await revenueCatClient.purchase(defaultPkg);
+    if (!purchaseResult.success) {
+      if (purchaseResult.error === 'cancelled') {
+        return subscriptionAPI.getStatus();
+      }
+      throw new Error(purchaseResult.error || 'Unable to start free trial right now.');
+    }
+
+    return subscriptionAPI.sync(purchaseResult.customerInfo);
+  },
 };
 
 // Builder Marketplace API

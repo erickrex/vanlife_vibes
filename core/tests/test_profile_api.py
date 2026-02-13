@@ -10,7 +10,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from django.utils import timezone
 from core.models import (
-    UserAccount, Profile, Country, HobbyTag, Vehicle, Follow, Prompt
+    UserAccount, Profile, Country, HobbyTag, Vehicle, Prompt
 )
 
 
@@ -434,7 +434,6 @@ class ProfileRetrieveByIdTestCase(TestCase):
         self.assertEqual(profile_data['display_name'], 'Profile Owner')
         self.assertEqual(profile_data['bio'], 'I love van life!')
         self.assertIn('hobbies', profile_data)
-        self.assertIn('follower_count', profile_data)
         self.assertNotIn('restricted', profile_data)
 
     def test_retrieve_own_profile(self):
@@ -505,25 +504,6 @@ class ProfileRetrieveByIdTestCase(TestCase):
         self.assertEqual(profile_data['vehicle']['type'], 'van')
         self.assertEqual(profile_data['vehicle']['make'], 'Mercedes')
 
-    def test_retrieve_profile_shows_follow_indicators(self):
-        """Test retrieving a profile shows correct follow indicators"""
-        from core.models import Follow
-        
-        viewer_profile = Profile.objects.get(user=self.viewer)
-        
-        # Create mutual follow relationship
-        Follow.objects.create(follower=viewer_profile, following=self.target_profile)
-        Follow.objects.create(follower=self.target_profile, following=viewer_profile)
-        
-        response = self.client.get(f'/api/v1/profiles/{self.target_profile.id}/')
-        
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
-        profile_data = response.data['data']
-        self.assertTrue(profile_data['is_following'])
-        self.assertTrue(profile_data['is_followed_by'])
-        self.assertEqual(profile_data['follower_count'], 1)
-        self.assertEqual(profile_data['following_count'], 1)
 
 
 class HobbyTagsAPITestCase(TestCase):
@@ -940,268 +920,10 @@ class VehiclePhotoAPITestCase(TestCase):
         self.assertEqual(len(response.data['data']['photos']), 1)
 
 
-class FollowUnfollowAPITestCase(TestCase):
-    """
-    Test follow/unfollow endpoints.
-    
-    POST /profiles/{id}/follow/ - Follow a user
-    DELETE /profiles/{id}/follow/ - Unfollow a user
-    """
-
-    def setUp(self):
-        self.client = APIClient()
-        
-        # Create the follower user
-        self.follower_user = UserAccount.objects.create_user(
-            username='follower',
-            email='follower@example.com',
-            password='testpass123'
-        )
-        self.client.force_authenticate(user=self.follower_user)
-        self.follower_profile = Profile.objects.get(user=self.follower_user)
-        
-        # Create the target user to be followed
-        self.target_user = UserAccount.objects.create_user(
-            username='target',
-            email='target@example.com',
-            password='testpass123'
-        )
-        self.target_profile = Profile.objects.get(user=self.target_user)
-
-    def test_follow_user_success(self):
-        """Test POST /profiles/{id}/follow/ creates follow relationship"""
-        from core.models import Follow
-        
-        response = self.client.post(f'/api/v1/profiles/{self.target_profile.id}/follow/')
-        
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['status'], 'success')
-        self.assertEqual(response.data['message'], 'Successfully followed user')
-        self.assertTrue(response.data['data']['is_following'])
-        self.assertEqual(response.data['data']['follower_count'], 1)
-        
-        # Verify follow relationship exists in database
-        self.assertTrue(
-            Follow.objects.filter(
-                follower=self.follower_profile,
-                following=self.target_profile
-            ).exists()
-        )
-
-    def test_unfollow_user_success(self):
-        """Test DELETE /profiles/{id}/follow/ removes follow relationship"""
-        from core.models import Follow
-        
-        # First create a follow relationship
-        Follow.objects.create(
-            follower=self.follower_profile,
-            following=self.target_profile
-        )
-        
-        response = self.client.delete(f'/api/v1/profiles/{self.target_profile.id}/follow/')
-        
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status'], 'success')
-        self.assertEqual(response.data['message'], 'Successfully unfollowed user')
-        self.assertFalse(response.data['data']['is_following'])
-        self.assertEqual(response.data['data']['follower_count'], 0)
-        
-        # Verify follow relationship no longer exists
-        self.assertFalse(
-            Follow.objects.filter(
-                follower=self.follower_profile,
-                following=self.target_profile
-            ).exists()
-        )
-
-    def test_cannot_follow_self(self):
-        """Test users cannot follow themselves"""
-        response = self.client.post(f'/api/v1/profiles/{self.follower_profile.id}/follow/')
-        
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['status'], 'error')
-        self.assertEqual(response.data['message'], 'You cannot follow yourself')
-
-    def test_duplicate_follow_is_idempotent(self):
-        """Test duplicate follows are handled gracefully - idempotent"""
-        from core.models import Follow
-        
-        # First follow
-        response1 = self.client.post(f'/api/v1/profiles/{self.target_profile.id}/follow/')
-        self.assertEqual(response1.status_code, status.HTTP_201_CREATED)
-        
-        # Second follow (duplicate)
-        response2 = self.client.post(f'/api/v1/profiles/{self.target_profile.id}/follow/')
-        
-        # Should return 200 OK (not error) and indicate already following
-        self.assertEqual(response2.status_code, status.HTTP_200_OK)
-        self.assertEqual(response2.data['status'], 'success')
-        self.assertEqual(response2.data['message'], 'Already following user')
-        self.assertTrue(response2.data['data']['is_following'])
-        
-        # Verify only one follow relationship exists
-        self.assertEqual(
-            Follow.objects.filter(
-                follower=self.follower_profile,
-                following=self.target_profile
-            ).count(),
-            1
-        )
-
-    def test_unfollow_when_not_following(self):
-        """Test unfollowing when not following is handled gracefully"""
-        response = self.client.delete(f'/api/v1/profiles/{self.target_profile.id}/follow/')
-        
-        # Should return success (idempotent)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status'], 'success')
-
-    def test_follow_nonexistent_profile(self):
-        """Test following a non-existent profile returns 404"""
-        import uuid
-        fake_id = uuid.uuid4()
-        
-        response = self.client.post(f'/api/v1/profiles/{fake_id}/follow/')
-        
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-    def test_follow_requires_authentication(self):
-        """Test follow endpoint requires authentication"""
-        self.client.logout()
-        
-        response = self.client.post(f'/api/v1/profiles/{self.target_profile.id}/follow/')
-        
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
-class FollowersListAPITestCase(TestCase):
-    """
-    Test GET /profiles/{id}/followers/ endpoint.
-    """
-
-    def setUp(self):
-        self.client = APIClient()
-        
-        # Create the main user (viewer)
-        self.viewer = UserAccount.objects.create_user(
-            username='viewer',
-            email='viewer@example.com',
-            password='testpass123'
-        )
-        self.client.force_authenticate(user=self.viewer)
-        self.viewer_profile = Profile.objects.get(user=self.viewer)
-        
-        # Create a target user whose followers we'll list
-        self.target_user = UserAccount.objects.create_user(
-            username='target',
-            email='target@example.com',
-            password='testpass123'
-        )
-        self.target_profile = Profile.objects.get(user=self.target_user)
-        self.target_profile.display_name = 'Target User'
-        self.target_profile.save()
-
-    def test_get_followers_returns_follower_profiles(self):
-        """Test GET /profiles/{id}/followers/ returns list of follower profiles"""
-        from core.models import Follow
-        
-        # Create some followers
-        follower1 = UserAccount.objects.create_user(
-            username='follower1',
-            email='follower1@example.com',
-            password='testpass123'
-        )
-        follower1_profile = Profile.objects.get(user=follower1)
-        follower1_profile.display_name = 'Follower One'
-        follower1_profile.save()
-        
-        # Create follow relationships
-        Follow.objects.create(follower=follower1_profile, following=self.target_profile)
-        
-        response = self.client.get(f'/api/v1/profiles/{self.target_profile.id}/followers/')
-        
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status'], 'success')
-        self.assertEqual(len(response.data['data']), 1)
-        
-        # Verify response structure (id, display_name, avatar_url)
-        follower = response.data['data'][0]
-        self.assertIn('id', follower)
-        self.assertIn('display_name', follower)
-        self.assertIn('avatar_url', follower)
-
-    def test_get_followers_requires_authentication(self):
-        """Test GET /profiles/{id}/followers/ requires authentication"""
-        self.client.logout()
-        
-        response = self.client.get(f'/api/v1/profiles/{self.target_profile.id}/followers/')
-        
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
-class FollowingListAPITestCase(TestCase):
-    """
-    Test GET /profiles/{id}/following/ endpoint.
-    """
-
-    def setUp(self):
-        self.client = APIClient()
-        
-        # Create the main user (viewer)
-        self.viewer = UserAccount.objects.create_user(
-            username='viewer',
-            email='viewer@example.com',
-            password='testpass123'
-        )
-        self.client.force_authenticate(user=self.viewer)
-        self.viewer_profile = Profile.objects.get(user=self.viewer)
-        
-        # Create a target user whose following list we'll view
-        self.target_user = UserAccount.objects.create_user(
-            username='target',
-            email='target@example.com',
-            password='testpass123'
-        )
-        self.target_profile = Profile.objects.get(user=self.target_user)
-        self.target_profile.display_name = 'Target User'
-        self.target_profile.save()
-
-    def test_get_following_returns_followed_profiles(self):
-        """Test GET /profiles/{id}/following/ returns list of followed profiles"""
-        from core.models import Follow
-        
-        # Create some users for target to follow
-        followed1 = UserAccount.objects.create_user(
-            username='followed1',
-            email='followed1@example.com',
-            password='testpass123'
-        )
-        followed1_profile = Profile.objects.get(user=followed1)
-        followed1_profile.display_name = 'Followed One'
-        followed1_profile.save()
-        
-        # Create follow relationships (target follows these users)
-        Follow.objects.create(follower=self.target_profile, following=followed1_profile)
-        
-        response = self.client.get(f'/api/v1/profiles/{self.target_profile.id}/following/')
-        
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status'], 'success')
-        self.assertEqual(len(response.data['data']), 1)
-        
-        # Verify response structure
-        followed = response.data['data'][0]
-        self.assertIn('id', followed)
-        self.assertIn('display_name', followed)
-        self.assertIn('avatar_url', followed)
-
-    def test_get_following_requires_authentication(self):
-        """Test GET /profiles/{id}/following/ requires authentication"""
-        self.client.logout()
-        
-        response = self.client.get(f'/api/v1/profiles/{self.target_profile.id}/following/')
-        
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
 # ============================================================================

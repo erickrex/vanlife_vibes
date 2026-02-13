@@ -52,7 +52,7 @@ export default function LandingScreen({ navigation }) {
           </Text>
 
           <View style={styles.actions}>
-            <AppButton title="Get Started" onPress={() => navigation.navigate('Signup')} />
+            <AppButton title="Get Started" onPress={() => navigation.navigate('PhoneCapture')} />
             <AppButton title="Sign In" variant="secondary" onPress={() => navigation.navigate('Login')} />
           </View>
         </View>

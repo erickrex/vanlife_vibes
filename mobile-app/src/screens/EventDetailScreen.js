@@ -58,6 +58,7 @@ export default function EventDetailScreen() {
 
   const isDirectMode = event?.join_mode === 'direct';
   const isSwipeMode = event?.join_mode === 'swipe';
+  const isHosted = !!event?.is_platform_hosted;
   const myProfileId = myProfile?.id ? String(myProfile.id) : null;
   const isCreator = event?.created_by?.id ? String(event.created_by.id) === myProfileId : false;
 
@@ -141,7 +142,10 @@ export default function EventDetailScreen() {
 
         <View style={styles.card}>
           <View style={styles.titleRow}>
-            <Text style={styles.typeBadge}>{`${typeEmoji} ${typeInfo.label}`}</Text>
+            <View style={styles.typeBadgeRow}>
+              <Text style={styles.typeBadge}>{`${typeEmoji} ${typeInfo.label}`}</Text>
+              {isHosted ? <Text style={styles.hostedBadge}>Vanlife Vibes Host</Text> : null}
+            </View>
             <Text style={styles.status}>{event.status}</Text>
           </View>
           <Text style={styles.title}>{event.title}</Text>
@@ -179,7 +183,9 @@ export default function EventDetailScreen() {
           <View style={styles.hostRow}>
             <Text style={styles.hostLabel}>Hosted by</Text>
             <ProfileAvatar uri={event.created_by?.avatar_url} name={event.created_by?.display_name} size={30} />
-            <Text style={styles.hostName}>{event.created_by?.display_name || 'Anonymous'}</Text>
+            <Text style={styles.hostName}>
+              {isHosted ? 'Vanlife Vibes' : (event.created_by?.display_name || 'Anonymous')}
+            </Text>
           </View>
         </View>
 
@@ -332,6 +338,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  typeBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
+    flex: 1,
+    marginRight: 8,
+  },
   typeBadge: {
     color: colors.text,
     fontSize: 12,
@@ -342,6 +356,18 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     paddingVertical: 6,
     paddingHorizontal: 10,
+  },
+  hostedBadge: {
+    color: colors.blue,
+    fontSize: 10,
+    fontWeight: '900',
+    borderWidth: 1,
+    borderColor: `${colors.blue}88`,
+    backgroundColor: `${colors.blue}1f`,
+    borderRadius: 999,
+    paddingVertical: 5,
+    paddingHorizontal: 9,
+    overflow: 'hidden',
   },
   status: {
     color: colors.muted,

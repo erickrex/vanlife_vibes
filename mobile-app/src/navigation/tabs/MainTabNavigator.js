@@ -39,7 +39,7 @@ export default function MainTabNavigator() {
       <Tab.Screen name="Feed" component={FriendsFeedScreen} options={{ title: 'Friends' }} />
       <Tab.Screen name="Dating" component={DatingScreen} options={{ title: 'Dating' }} />
       <Tab.Screen name="Campfire" component={EventsScreen} options={{ title: 'Campfire' }} />
-      <Tab.Screen name="Builder" component={BuilderScreen} options={{ title: 'Builder' }} />
+      <Tab.Screen name="Builder" component={BuilderScreen} options={{ title: 'Marketplace' }} />
     </Tab.Navigator>
   );
 }

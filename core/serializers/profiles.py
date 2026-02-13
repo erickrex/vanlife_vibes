@@ -1100,7 +1100,7 @@ class FeedCardSerializer(serializers.ModelSerializer):
 
 
 class ProfileSummarySerializer(serializers.ModelSerializer):
-    """Compact profile for followers/following lists."""
+    """Compact profile summary for lists."""
     avatar_url = serializers.SerializerMethodField()
     
     class Meta:

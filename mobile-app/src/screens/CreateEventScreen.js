@@ -13,6 +13,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useHeaderHeight } from '@react-navigation/elements';
 
 import AppButton from '../components/AppButton';
+import DatePickerField from '../components/DatePickerField';
 import Screen from '../components/Screen';
 import { eventsAPI } from '../services/api';
 import { colors } from '../theme/colors';
@@ -58,6 +59,13 @@ export default function CreateEventScreen() {
     () => (formData.join_mode === 'swipe' ? colors.emerald : colors.blue),
     [formData.join_mode],
   );
+  const todayYyyyMmDd = useMemo(() => {
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }, []);
 
   const updateField = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -255,18 +263,16 @@ export default function CreateEventScreen() {
             />
             {errors.title ? <Text style={styles.errorField}>{errors.title}</Text> : null}
 
-            <Text style={styles.label}>Date (YYYY-MM-DD)</Text>
-            <TextInput
+            <DatePickerField
+              label="Date (YYYY-MM-DD)"
               value={formData.event_date}
-              onChangeText={(value) => updateField('event_date', value)}
-              placeholder="2026-02-10"
-              placeholderTextColor={colors.muted}
-              style={[styles.input, errors.event_date ? styles.inputError : null]}
-              autoCapitalize="none"
-              autoCorrect={false}
+              onChange={(value) => updateField('event_date', value)}
+              placeholder="Select event date"
               editable={!saving}
+              minimumDate={todayYyyyMmDd}
+              clearable
+              error={errors.event_date}
             />
-            {errors.event_date ? <Text style={styles.errorField}>{errors.event_date}</Text> : null}
 
             <Text style={styles.label}>Time window</Text>
             <View style={styles.timeWindowRow}>

@@ -14,6 +14,7 @@ import {
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
 import AppButton from '../../components/AppButton';
+import DatePickerField from '../../components/DatePickerField';
 import EventSwipeDeck from '../../components/EventSwipeDeck';
 import Screen from '../../components/Screen';
 import { eventsAPI } from '../../services/api';
@@ -51,11 +52,24 @@ function EventRow({ event, onPress }) {
   const attendeeCount = event?.attendee_count || 0;
   const spotsRemaining = event?.spots_remaining ?? Math.max((event?.spots || 0) - attendeeCount, 0);
   const status = EVENT_STATUS[event?.status]?.label || event?.status || 'open';
+  const isHosted = !!event?.is_platform_hosted;
 
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.eventCard, pressed ? styles.eventCardPressed : null]}>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.eventCard,
+        isHosted ? styles.eventCardHosted : null,
+        pressed ? styles.eventCardPressed : null,
+      ]}
+    >
       <View style={styles.eventCardHeader}>
-        <Text style={styles.eventType}>{`${typeEmoji} ${typeInfo.label}`}</Text>
+        <View style={styles.eventTypeWrap}>
+          <Text style={styles.eventType}>{`${typeEmoji} ${typeInfo.label}`}</Text>
+          {isHosted ? (
+            <Text style={styles.hostedBadge}>Vanlife Vibes Host</Text>
+          ) : null}
+        </View>
         <Text style={styles.eventStatus}>{status}</Text>
       </View>
 
@@ -328,15 +342,12 @@ export default function EventsScreen() {
         ))}
       </ScrollView>
 
-      <Text style={styles.filterLabel}>Date (YYYY-MM-DD)</Text>
-      <TextInput
+      <DatePickerField
+        label="Date (YYYY-MM-DD)"
         value={filters.date}
-        onChangeText={(value) => onFilterChange('date', value)}
-        placeholder="2026-02-10"
-        placeholderTextColor={colors.muted}
-        autoCapitalize="none"
-        autoCorrect={false}
-        style={styles.input}
+        onChange={(value) => onFilterChange('date', value)}
+        placeholder="Any date"
+        clearable
       />
 
       <Text style={styles.filterLabel}>Location</Text>
@@ -654,6 +665,10 @@ const styles = StyleSheet.create({
     padding: 14,
     gap: 8,
   },
+  eventCardHosted: {
+    borderColor: colors.blue,
+    backgroundColor: `${colors.blue}22`,
+  },
   eventCardPressed: {
     opacity: 0.9,
   },
@@ -662,10 +677,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  eventTypeWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
+    flex: 1,
+    marginRight: 8,
+  },
   eventType: {
     color: colors.text,
     fontWeight: '900',
     fontSize: 12,
+  },
+  hostedBadge: {
+    color: colors.blue,
+    borderWidth: 1,
+    borderColor: `${colors.blue}88`,
+    backgroundColor: `${colors.blue}1f`,
+    fontSize: 10,
+    fontWeight: '900',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+    overflow: 'hidden',
   },
   eventStatus: {
     color: colors.muted,

@@ -229,6 +229,13 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Custom User Model
 AUTH_USER_MODEL = "core.UserAccount"
 
+# OpenAI-hosted event planning
+OPENAI_API_KEY = config("OPENAI_API_KEY", default="")
+OPENAI_MODEL = config("OPENAI_MODEL", default="gpt-4o-mini")
+HOSTED_EVENT_RADIUS_MILES = config("HOSTED_EVENT_RADIUS_MILES", default=50, cast=int)
+HOSTED_EVENT_MIN_TRAVELERS = config("HOSTED_EVENT_MIN_TRAVELERS", default=3, cast=int)
+HOSTED_EVENT_SPOTS = config("HOSTED_EVENT_SPOTS", default=12, cast=int)
+
 # Django Rest Framework
 # https://www.django-rest-framework.org/api-guide/settings/
 

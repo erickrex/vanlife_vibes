@@ -15,9 +15,9 @@ from .profiles import (
     ProfileViewSet,
     VehicleViewSet,
     LocationViewSet,
-    FeedViewSet,
-    DiscoveryViewSet,
 )
+from .feed import FeedViewSet
+from .discovery import DiscoveryViewSet
 from .matches import PersonMatchViewSet
 from .events import EventViewSet
 from .health import health_check
@@ -27,7 +27,7 @@ from .builder import BuilderListingViewSet
 __all__ = [
     'MessageMixin',
     'AuthViewSet',
-    'AnalyticsViewSet', 
+    'AnalyticsViewSet',
     'ProfileViewSet',
     'VehicleViewSet',
     'LocationViewSet',

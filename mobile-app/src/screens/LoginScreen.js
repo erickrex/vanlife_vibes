@@ -109,7 +109,7 @@ export default function LoginScreen({ navigation }) {
               disabled={!canSubmit || submitting}
             />
 
-            <Pressable onPress={() => navigation.navigate('Signup')} style={styles.footerLink}>
+            <Pressable onPress={() => navigation.navigate('PhoneCapture')} style={styles.footerLink}>
               <Text style={styles.footerText}>
                 Don&apos;t have an account? <Text style={styles.footerTextStrong}>Sign up</Text>
               </Text>

@@ -1,0 +1,163 @@
+{
+  "dataset": "hosted_events_next_weekend_seed",
+  "version": 1,
+  "notes": "Predefined platform-hosted Campfire events for next weekend (Feb 21-22, 2026), shaped to mirror OpenAI auto-generated hosted events.",
+  "insert_ready": {
+    "target_model": "core.Event",
+    "host_profile_username": "vanlifevibes_host",
+    "expects_host_attendee": true,
+    "recommended_attendee_status": "confirmed"
+  },
+  "events": [
+    {
+      "created_by_username": "vanlifevibes_host",
+      "title": "Moab Red Rock Dog Walk Meetup",
+      "event_type": "dog_walk",
+      "description": "Vanlife Vibes hosted dog walk for travelers in Moab. Suggested spot: Mill Creek Parkway Trail near red rock viewpoints. Bring water, waste bags, and leash-friendly pups.",
+      "image_url": "https://images.unsplash.com/photo-1504712598893-24159a89200e?auto=format&fit=crop&w=1200&q=80",
+      "join_mode": "direct",
+      "spots": 12,
+      "event_date": "2026-02-21",
+      "time_window": "morning",
+      "location": "Moab, UT",
+      "status": "open",
+      "is_platform_hosted": true,
+      "auto_generation": {
+        "source": "openai_seed_preload",
+        "model": "gpt-4o-mini",
+        "city_timezone": "America/Denver",
+        "signal": {
+          "traveler_count": 5,
+          "dog_owner_count": 3,
+          "top_hobbies": ["hiking", "dog training", "photography"]
+        },
+        "location_hint": "Mill Creek Parkway Trail"
+      }
+    },
+    {
+      "created_by_username": "vanlifevibes_host",
+      "title": "Sunrise Pups on the Slickrock Edge",
+      "event_type": "dog_walk",
+      "description": "Community-hosted sunrise dog walk in Moab with mountain and canyon views. Suggested route: a dog-safe section near the Slickrock trail corridor with shaded rest stops.",
+      "image_url": "https://images.unsplash.com/photo-1450778869180-41d0601e046e?auto=format&fit=crop&w=1200&q=80",
+      "join_mode": "direct",
+      "spots": 12,
+      "event_date": "2026-02-22",
+      "time_window": "morning",
+      "location": "Moab, UT",
+      "status": "open",
+      "is_platform_hosted": true,
+      "auto_generation": {
+        "source": "openai_seed_preload",
+        "model": "gpt-4o-mini",
+        "city_timezone": "America/Denver",
+        "signal": {
+          "traveler_count": 4,
+          "dog_owner_count": 2,
+          "top_hobbies": ["hiking", "camping", "stargazing"]
+        },
+        "location_hint": "Slickrock Trail corridor"
+      }
+    },
+    {
+      "created_by_username": "vanlifevibes_host",
+      "title": "Griffith Park Golden Hour Hike",
+      "event_type": "hiking",
+      "description": "Vanlife Vibes hosted social hike for Los Angeles travelers. Suggested meetup: Griffith Park near Observatory trail access for skyline views and easy group pacing.",
+      "image_url": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
+      "join_mode": "direct",
+      "spots": 14,
+      "event_date": "2026-02-21",
+      "time_window": "afternoon",
+      "location": "Los Angeles, CA",
+      "status": "open",
+      "is_platform_hosted": true,
+      "auto_generation": {
+        "source": "openai_seed_preload",
+        "model": "gpt-4o-mini",
+        "city_timezone": "America/Los_Angeles",
+        "signal": {
+          "traveler_count": 7,
+          "dog_owner_count": 2,
+          "top_hobbies": ["hiking", "photography", "coffee"]
+        },
+        "location_hint": "Griffith Park"
+      }
+    },
+    {
+      "created_by_username": "vanlifevibes_host",
+      "title": "Runyon Canyon Pack Walk",
+      "event_type": "dog_walk",
+      "description": "Hosted dog-friendly meetup for LA travelers and locals. Suggested spot: Runyon Canyon lower loop with water breaks and friendly pace for mixed-size dogs.",
+      "image_url": "https://images.unsplash.com/photo-1525253086316-d0c936c814f8?auto=format&fit=crop&w=1200&q=80",
+      "join_mode": "direct",
+      "spots": 12,
+      "event_date": "2026-02-22",
+      "time_window": "morning",
+      "location": "Los Angeles, CA",
+      "status": "open",
+      "is_platform_hosted": true,
+      "auto_generation": {
+        "source": "openai_seed_preload",
+        "model": "gpt-4o-mini",
+        "city_timezone": "America/Los_Angeles",
+        "signal": {
+          "traveler_count": 6,
+          "dog_owner_count": 4,
+          "top_hobbies": ["dog training", "hiking", "fitness"]
+        },
+        "location_hint": "Runyon Canyon Park"
+      }
+    },
+    {
+      "created_by_username": "vanlifevibes_host",
+      "title": "Denver City Park Campfire Social",
+      "event_type": "campfire",
+      "description": "Vanlife Vibes hosted weekend social for travelers near Denver. Suggested meetup area: City Park picnic zone for intros, route sharing, and camp setup tips.",
+      "image_url": "https://images.unsplash.com/photo-1473116763249-2faaef81ccda?auto=format&fit=crop&w=1200&q=80",
+      "join_mode": "direct",
+      "spots": 14,
+      "event_date": "2026-02-21",
+      "time_window": "evening",
+      "location": "Denver, CO",
+      "status": "open",
+      "is_platform_hosted": true,
+      "auto_generation": {
+        "source": "openai_seed_preload",
+        "model": "gpt-4o-mini",
+        "city_timezone": "America/Denver",
+        "signal": {
+          "traveler_count": 5,
+          "dog_owner_count": 1,
+          "top_hobbies": ["camping", "cowork", "music"]
+        },
+        "location_hint": "City Park"
+      }
+    },
+    {
+      "created_by_username": "vanlifevibes_host",
+      "title": "Lady Bird Lake Sunset Bike Loop",
+      "event_type": "biking",
+      "description": "Hosted Sunday meetup for travelers in Austin. Suggested route: Lady Bird Lake trail loop for a relaxed social ride and post-ride hangout.",
+      "image_url": "https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=1200&q=80",
+      "join_mode": "direct",
+      "spots": 12,
+      "event_date": "2026-02-22",
+      "time_window": "evening",
+      "location": "Austin, TX",
+      "status": "open",
+      "is_platform_hosted": true,
+      "auto_generation": {
+        "source": "openai_seed_preload",
+        "model": "gpt-4o-mini",
+        "city_timezone": "America/Chicago",
+        "signal": {
+          "traveler_count": 4,
+          "dog_owner_count": 1,
+          "top_hobbies": ["biking", "coffee", "photography"]
+        },
+        "location_hint": "Lady Bird Lake Trail"
+      }
+    }
+  ]
+}

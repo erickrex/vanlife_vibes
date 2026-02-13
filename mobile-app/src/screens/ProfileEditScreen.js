@@ -17,6 +17,7 @@ import * as ImagePicker from 'expo-image-picker';
 
 import AppButton from '../components/AppButton';
 import CityAutocomplete from '../components/CityAutocomplete';
+import DatePickerField from '../components/DatePickerField';
 import FormTextInput from '../components/FormTextInput';
 import Screen from '../components/Screen';
 import { useAuth } from '../contexts/AuthContext';
@@ -960,19 +961,22 @@ export default function ProfileEditScreen() {
               editable={!saving}
             />
             <View style={styles.dateRow}>
-              <FormTextInput
+              <DatePickerField
                 label="Now in from (YYYY-MM-DD)"
                 value={nowInStartDate}
-                onChangeText={setNowInStartDate}
-                placeholder="2026-02-10"
+                onChange={setNowInStartDate}
+                placeholder="Select start date"
                 editable={!saving && !!nowInCity}
+                containerStyle={styles.dateField}
               />
-              <FormTextInput
+              <DatePickerField
                 label="Now in until (YYYY-MM-DD)"
                 value={nowInEndDate}
-                onChangeText={setNowInEndDate}
-                placeholder="2026-02-14"
+                onChange={setNowInEndDate}
+                placeholder="Select end date"
                 editable={!saving && !!nowInCity}
+                minimumDate={nowInStartDate}
+                containerStyle={styles.dateField}
               />
             </View>
             {isPremium ? (
@@ -985,19 +989,22 @@ export default function ProfileEditScreen() {
                   optional
                 />
                 <View style={styles.dateRow}>
-                  <FormTextInput
+                  <DatePickerField
                     label="Next week from (YYYY-MM-DD)"
                     value={nextWeekInStartDate}
-                    onChangeText={setNextWeekInStartDate}
-                    placeholder="2026-02-17"
+                    onChange={setNextWeekInStartDate}
+                    placeholder="Select start date"
                     editable={!saving && !!nextWeekInCity}
+                    containerStyle={styles.dateField}
                   />
-                  <FormTextInput
+                  <DatePickerField
                     label="Next week until (YYYY-MM-DD)"
                     value={nextWeekInEndDate}
-                    onChangeText={setNextWeekInEndDate}
-                    placeholder="2026-02-21"
+                    onChange={setNextWeekInEndDate}
+                    placeholder="Select end date"
                     editable={!saving && !!nextWeekInCity}
+                    minimumDate={nextWeekInStartDate}
+                    containerStyle={styles.dateField}
                   />
                 </View>
                 <CityAutocomplete
@@ -1008,19 +1015,22 @@ export default function ProfileEditScreen() {
                   optional
                 />
                 <View style={styles.dateRow}>
-                  <FormTextInput
+                  <DatePickerField
                     label="Next month from (YYYY-MM-DD)"
                     value={nextMonthInStartDate}
-                    onChangeText={setNextMonthInStartDate}
-                    placeholder="2026-03-12"
+                    onChange={setNextMonthInStartDate}
+                    placeholder="Select start date"
                     editable={!saving && !!nextMonthInCity}
+                    containerStyle={styles.dateField}
                   />
-                  <FormTextInput
+                  <DatePickerField
                     label="Next month until (YYYY-MM-DD)"
                     value={nextMonthInEndDate}
-                    onChangeText={setNextMonthInEndDate}
-                    placeholder="2026-03-20"
+                    onChange={setNextMonthInEndDate}
+                    placeholder="Select end date"
                     editable={!saving && !!nextMonthInCity}
+                    minimumDate={nextMonthInStartDate}
+                    containerStyle={styles.dateField}
                   />
                 </View>
               </>
@@ -1554,7 +1564,11 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   dateRow: {
+    flexDirection: 'row',
     gap: 10,
+  },
+  dateField: {
+    flex: 1,
   },
   premiumLocationLock: {
     borderWidth: 1,

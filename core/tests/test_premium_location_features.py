@@ -109,7 +109,7 @@ class PremiumLocationDiscoveryRankingTests(TestCase):
             end_date=self.next_sunday,
         )
 
-        with patch("core.views.profiles.RelevanceScorer") as mock_scorer_class:
+        with patch("core.views.discovery.RelevanceScorer") as mock_scorer_class:
             scorer = MagicMock()
             scorer.calculate_score.return_value = 0
             scorer.calculate_completeness_score.return_value = 0
@@ -159,7 +159,7 @@ class PremiumLocationDiscoveryRankingTests(TestCase):
             end_date=self.next_sunday,
         )
 
-        with patch("core.views.profiles.RelevanceScorer") as mock_scorer_class:
+        with patch("core.views.discovery.RelevanceScorer") as mock_scorer_class:
             scorer = MagicMock()
             scorer.calculate_score.return_value = 0
             scorer.calculate_completeness_score.return_value = 0

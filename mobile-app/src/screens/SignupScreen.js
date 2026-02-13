@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useHeaderHeight } from '@react-navigation/elements';
 
@@ -11,9 +11,10 @@ import { colors } from '../theme/colors';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export default function SignupScreen({ navigation }) {
+export default function SignupScreen({ navigation, route }) {
   const { signup } = useAuth();
   const headerHeight = useHeaderHeight();
+  const phoneNumber = route?.params?.phoneNumber;
 
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -66,6 +67,12 @@ export default function SignupScreen({ navigation }) {
       setErrors({ submit: result.error || 'Signup failed' });
     }
   };
+
+  useEffect(() => {
+    if (!phoneNumber) {
+      navigation.replace('PhoneCapture');
+    }
+  }, [navigation, phoneNumber]);
 
   return (
     <Screen>
