@@ -21,7 +21,6 @@ This folder provisions AWS infrastructure for the VanlifeVibes backend using AWS
 ## Install
 
 ```bash
-cd /Users/erickrea/Documents/reference_code/vanlife_vibes/infra
 npm install
 ```
 
@@ -30,7 +29,6 @@ npm install
 Set required context values. The only hard-required one is `ebSolutionStackName`.
 
 ```bash
-cd /Users/erickrea/Documents/reference_code/vanlife_vibes/infra
 
 npx cdk deploy \
   -c awsRegion=us-east-1 \

@@ -180,6 +180,7 @@ class Profile(models.Model):
         related_name='profile'
     )
     display_name = models.CharField(max_length=50, blank=True)
+    age = models.PositiveSmallIntegerField(blank=True, null=True)
     bio = models.TextField(max_length=500, blank=True)
     has_completed_onboarding = models.BooleanField(default=False)
     gender = models.CharField(

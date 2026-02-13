@@ -46,6 +46,32 @@ def normalize_media_url(value, request=None):
     return path
 
 
+def resolve_profile_photo_value(photo):
+    """
+    Resolve a ProfilePhoto URL/path.
+    Supports both local media-backed images and seeded absolute URL strings.
+    """
+    if not photo or not getattr(photo, 'image', None):
+        return ''
+
+    image_name = (getattr(photo.image, 'name', '') or '').strip()
+    if image_name.startswith((
+        'http://',
+        'https://',
+        'file://',
+        'content://',
+        'ph://',
+        'asset://',
+        'data:',
+    )):
+        return image_name
+
+    try:
+        return photo.image.url
+    except Exception:
+        return image_name
+
+
 class ProfileCardDataSerializer(serializers.ModelSerializer):
     """Compact profile serializer for profile card display."""
     avatar_url = serializers.SerializerMethodField()
@@ -53,8 +79,8 @@ class ProfileCardDataSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Profile
-        fields = ['id', 'display_name', 'avatar_url', 'has_van', 'vehicle', 'travel_status']
-        read_only_fields = ['id', 'display_name', 'avatar_url', 'has_van', 'vehicle', 'travel_status']
+        fields = ['id', 'display_name', 'age', 'avatar_url', 'has_van', 'vehicle', 'travel_status']
+        read_only_fields = ['id', 'display_name', 'age', 'avatar_url', 'has_van', 'vehicle', 'travel_status']
     
     def get_vehicle(self, obj):
         """Return vehicle type info if user has a van"""
@@ -119,6 +145,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
     avatar_url = serializers.SerializerMethodField()
     cover_url = serializers.SerializerMethodField()
+    gallery_photos = serializers.SerializerMethodField()
     
     # Nested serializers
     vehicle = serializers.SerializerMethodField()
@@ -152,11 +179,13 @@ class ProfileSerializer(serializers.ModelSerializer):
             'user_id',
             'username',
             'display_name',
+            'age',
             'bio',
             'has_completed_onboarding',
             'gender',
             'avatar_url',
             'cover_url',
+            'gallery_photos',
             'current_location',
             'home_base',
             'has_van',
@@ -225,6 +254,12 @@ class ProfileSerializer(serializers.ModelSerializer):
     def get_cover_url(self, obj):
         request = self.context.get('request')
         return normalize_media_url(obj.cover_url, request=request)
+
+    def get_gallery_photos(self, obj):
+        """Return up to 5 ordered gallery photo URLs."""
+        request = self.context.get('request')
+        photos = obj.photos.filter(photo_type='gallery').order_by('display_order', '-created_at')[:5]
+        return [normalize_media_url(resolve_profile_photo_value(photo), request=request) for photo in photos]
 
     def get_relevance_score(self, obj):
         """Return relevance_score if set during discovery ranking, else None."""
@@ -459,6 +494,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         model = Profile
         fields = [
             'display_name',
+            'age',
             'bio',
             'has_completed_onboarding',
             'gender',
@@ -503,6 +539,14 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
             'next_month_in_end_date',
             'hobby_ids',
         ]
+
+    def validate_age(self, value):
+        """Validate age range for profile display."""
+        if value is None:
+            return value
+        if value < 18 or value > 99:
+            raise serializers.ValidationError("Age must be between 18 and 99.")
+        return value
 
     
     def validate_display_name(self, value):
@@ -1334,11 +1378,16 @@ class ProfilePromptSerializer(serializers.ModelSerializer):
 
 class ProfilePhotoSerializer(serializers.ModelSerializer):
     """Read serializer for ProfilePhoto responses."""
+    image = serializers.SerializerMethodField()
     
     class Meta:
         model = ProfilePhoto
         fields = ['id', 'photo_type', 'image', 'display_order', 'created_at']
         read_only_fields = ['id', 'photo_type', 'image', 'display_order', 'created_at']
+
+    def get_image(self, obj):
+        request = self.context.get('request')
+        return normalize_media_url(resolve_profile_photo_value(obj), request=request)
 
 
 class ProfilePhotoUploadSerializer(serializers.Serializer):

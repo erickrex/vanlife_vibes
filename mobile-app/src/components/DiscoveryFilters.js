@@ -1,7 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors } from '../theme/colors';
-import { radius } from '../theme/tokens';
+import { componentTokens, radius } from '../theme/tokens';
+
+const FILTER_TOKENS = componentTokens.filter || {};
+const FILTER_BAR = FILTER_TOKENS.bar || {};
+const FILTER_ACTIVE = FILTER_TOKENS.active || {};
+const CARD_TOKENS = componentTokens.card?.shell || {};
 
 const TRAVEL_PACE_OPTIONS = [
   { value: '', label: 'Any pace', icon: '🌍' },
@@ -24,7 +29,7 @@ function FilterChip({ label, selected, onPress, disabled, accent }) {
       disabled={disabled}
       style={({ pressed }) => [
         styles.chip,
-        selected ? { backgroundColor: accent, borderColor: accent } : null,
+        selected ? { backgroundColor: accent, borderColor: accent, ...FILTER_ACTIVE } : null,
         pressed && !disabled ? styles.pressed : null,
         disabled ? styles.disabled : null,
       ]}
@@ -184,6 +189,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
+    ...FILTER_BAR,
   },
   headerIcon: {
     fontSize: 14,
@@ -222,6 +228,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.xl,
     padding: 14,
     gap: 16,
+    ...CARD_TOKENS,
   },
   section: {
     gap: 10,
@@ -243,6 +250,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
+    ...FILTER_BAR,
   },
   chipText: {
     color: colors.muted,

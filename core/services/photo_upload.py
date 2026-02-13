@@ -16,7 +16,7 @@ ALLOWED_CONTENT_TYPES = {
     'image/png',
     'image/webp',
 }
-MAX_GALLERY_PHOTOS = 6
+MAX_GALLERY_PHOTOS = 5
 
 
 def validate_photo_file(file):
@@ -64,7 +64,7 @@ def handle_photo_upload(profile, image_file, photo_type, display_order=None):
         ).count()
         if gallery_count >= MAX_GALLERY_PHOTOS:
             raise ValidationError(
-                "Maximum of 6 gallery photos allowed. Delete an existing photo first."
+                "Maximum of 5 gallery photos allowed. Delete an existing photo first."
             )
 
     # Create the new ProfilePhoto

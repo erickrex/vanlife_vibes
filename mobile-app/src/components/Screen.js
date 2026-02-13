@@ -9,6 +9,9 @@ export default function Screen({ children, style }) {
     <SafeAreaView style={[styles.safe, style]}>
       <View pointerEvents="none" style={styles.ambientWrap}>
         <View style={styles.ambientTop} />
+        <View style={styles.ambientContour} />
+        <View style={styles.ambientContourSecond} />
+        <View style={styles.ambientContourThird} />
         <View style={styles.ambientLeft} />
         <View style={styles.ambientRight} />
       </View>
@@ -27,17 +30,44 @@ const styles = StyleSheet.create({
   },
   ambientTop: {
     position: 'absolute',
-    top: -40,
-    left: -30,
-    right: -30,
-    height: 180,
+    top: -96,
+    left: -90,
+    right: -90,
+    height: 270,
     backgroundColor: componentTokens.screen.ambientTop,
-    borderRadius: 120,
+    borderRadius: 200,
+  },
+  ambientContour: {
+    position: 'absolute',
+    top: 90,
+    left: -120,
+    right: -120,
+    height: 1,
+    backgroundColor: componentTokens.screen.contour || colors.borderStrong,
+    opacity: 0.28,
+  },
+  ambientContourSecond: {
+    position: 'absolute',
+    top: 134,
+    left: -120,
+    right: -90,
+    height: 1,
+    backgroundColor: componentTokens.screen.contour || colors.borderStrong,
+    opacity: 0.18,
+  },
+  ambientContourThird: {
+    position: 'absolute',
+    top: 178,
+    left: -140,
+    right: -70,
+    height: 1,
+    backgroundColor: componentTokens.screen.contour || colors.borderStrong,
+    opacity: 0.12,
   },
   ambientLeft: {
     position: 'absolute',
     left: -90,
-    top: 180,
+    top: 240,
     width: 220,
     height: 220,
     borderRadius: 110,
@@ -45,11 +75,11 @@ const styles = StyleSheet.create({
   },
   ambientRight: {
     position: 'absolute',
-    right: -100,
-    bottom: 120,
-    width: 240,
-    height: 240,
-    borderRadius: 120,
+    right: -120,
+    bottom: 46,
+    width: 280,
+    height: 280,
+    borderRadius: 140,
     backgroundColor: componentTokens.screen.ambientRight,
   },
   inner: {

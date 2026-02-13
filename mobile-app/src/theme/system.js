@@ -1,115 +1,124 @@
-// CampSiteModern design system
-// Source of truth for palettes, semantic colors, and component tokens.
+// DesertSunrise design system
+// Warm, optimistic visual language with soft surfaces and energetic CTAs.
+
+function alpha(hex, opacityHex) {
+  return `${hex}${opacityHex}`;
+}
 
 const THEMES = {
-  campsiteModern: {
+  desertSunrise: {
     palette: {
-      // Foundations
-      charcoal900: '#0f1214',
-      charcoal850: '#14191d',
-      charcoal800: '#181f24',
-      charcoal700: '#202a31',
-      charcoal600: '#2a3640',
-      charcoal500: '#3a4854',
+      // Foundation layers
+      sand100: '#fff5ec',
+      sand150: '#fdf0e4',
+      sand200: '#f7e3d2',
+      sand300: '#efd0ba',
+      clay350: '#e4bea2',
+      clay450: '#cc9a7d',
 
       // Text neutrals
-      sandstone100: '#f8f5ef',
-      sandstone200: '#e8dfd0',
-      sandstone400: '#b7ad9f',
-      sandstone500: '#8b8379',
+      dusk900: '#3e2b31',
+      dusk700: '#5f4850',
+      dusk500: '#7c646d',
+      dusk400: '#927983',
 
       // Brand accents
-      amber400: '#f6a623',
-      amber500: '#d68117',
-      rose400: '#ff5f87',
-      blue400: '#5aa8ff',
-      emerald400: '#43d17f',
-      red400: '#ff6b6b',
+      peach400: '#f59b87',
+      amber400: '#f3b45e',
+      rust500: '#d46f54',
+      rose400: '#e784a8',
+      lilac400: '#8f83cf',
+      mint400: '#5cb69f',
+      red400: '#d95f57',
     },
     radius: {
       sm: 8,
       md: 12,
       lg: 16,
-      xl: 20,
+      xl: 22,
       full: 999,
     },
     spacing: {
       xs: 4,
       sm: 8,
-      md: 12,
-      lg: 16,
-      xl: 20,
-      xxl: 24,
+      md: 14,
+      lg: 18,
+      xl: 24,
+      xxl: 28,
+      xxxl: 36,
     },
     shadow: {
       card: {
-        shadowColor: '#000',
-        shadowOpacity: 0.2,
+        shadowColor: '#8f5e4a',
+        shadowOpacity: 0.14,
         shadowOffset: { width: 0, height: 5 },
-        shadowRadius: 13,
-        elevation: 5,
+        shadowRadius: 12,
+        elevation: 4,
       },
       elevated: {
-        shadowColor: '#000',
-        shadowOpacity: 0.3,
+        shadowColor: '#9a634f',
+        shadowOpacity: 0.18,
         shadowOffset: { width: 0, height: 10 },
-        shadowRadius: 22,
-        elevation: 10,
+        shadowRadius: 20,
+        elevation: 7,
       },
     },
   },
 };
 
-const ACTIVE_THEME_NAME = process.env.EXPO_PUBLIC_APP_THEME || 'campsiteModern';
-
-function alpha(hex, opacityHex) {
-  return `${hex}${opacityHex}`;
-}
+const ACTIVE_THEME_NAME = process.env.EXPO_PUBLIC_APP_THEME || 'desertSunrise';
 
 function buildTheme(config) {
   const p = config.palette;
 
   const colors = {
     // Core surfaces
-    bg: p.charcoal900,
-    bgElevated: p.charcoal850,
-    panel: p.charcoal800,
-    card: p.charcoal700,
-    surface: p.charcoal600,
-    border: p.charcoal500,
-    borderStrong: alpha(p.sandstone200, '44'),
-    primaryBorder: alpha(p.amber400, '66'),
-    dangerBorder: alpha(p.red400, '66'),
-    successBorder: alpha(p.emerald400, '66'),
+    bg: p.sand100,
+    bgElevated: p.sand150,
+    panel: p.sand200,
+    card: p.sand150,
+    surface: p.sand300,
+    border: p.clay350,
+    borderStrong: alpha(p.clay450, '66'),
+    primaryBorder: alpha(p.rust500, '7a'),
+    dangerBorder: alpha(p.red400, '85'),
+    successBorder: alpha(p.mint400, '85'),
 
     // Text
-    text: p.sandstone100,
-    secondary: p.sandstone200,
-    muted: p.sandstone400,
-    placeholder: p.sandstone500,
+    text: p.dusk900,
+    secondary: p.dusk700,
+    muted: p.dusk500,
+    placeholder: p.dusk400,
 
     // Brand + state
-    primary: p.amber400,
-    primaryMuted: p.amber500,
-    primaryText: '#1f1406',
-    primarySoft: alpha(p.amber400, '22'),
-    primarySoftStrong: alpha(p.amber400, '38'),
-    blue: p.blue400,
+    primary: p.peach400,
+    primaryMuted: p.amber400,
+    primaryText: '#3a1d17',
+    primarySoft: alpha(p.peach400, '24'),
+    primarySoftStrong: alpha(p.peach400, '38'),
+    blue: p.lilac400,
     rose: p.rose400,
     amber: p.amber400,
-    emerald: p.emerald400,
-    emeraldSoft: alpha(p.emerald400, '22'),
+    emerald: p.mint400,
+    emeraldSoft: alpha(p.mint400, '22'),
     danger: p.red400,
-    dangerSoft: alpha(p.red400, '1e'),
-    focusRing: p.amber400,
+    dangerSoft: alpha(p.red400, '24'),
+    focusRing: p.rose400,
 
-    // Ambient/glow helpers
-    glowAmber: alpha(p.amber400, '4d'),
-    glowBlue: alpha(p.blue400, '4d'),
-    glowRose: alpha(p.rose400, '4d'),
-    overlaySoft: 'rgba(0,0,0,0.25)',
-    overlayMedium: 'rgba(0,0,0,0.58)',
-    overlayStrong: 'rgba(0,0,0,0.78)',
+    // Ambient / overlays
+    glowAmber: alpha(p.amber400, '66'),
+    glowBlue: alpha(p.lilac400, '44'),
+    glowRose: alpha(p.rose400, '52'),
+    overlaySoft: 'rgba(34,18,15,0.20)',
+    overlayMedium: 'rgba(34,18,15,0.48)',
+    overlayStrong: 'rgba(34,18,15,0.72)',
+
+    // Text and surfaces shown on top of dark media/photo overlays.
+    onImageText: '#fff8f2',
+    onImageSecondary: 'rgba(255,243,233,0.92)',
+    onImageChipBg: 'rgba(28,16,13,0.42)',
+    onImageChipBorder: 'rgba(255,232,214,0.48)',
+    onImageOverlayStrong: 'rgba(22,12,10,0.62)',
   };
 
   return {
@@ -124,16 +133,30 @@ function buildTheme(config) {
     },
     components: {
       screen: {
-        ambientTop: alpha(colors.amber, '1f'),
-        ambientLeft: alpha(colors.blue, '14'),
-        ambientRight: alpha(colors.rose, '14'),
+        ambientTop: alpha(colors.amber, '30'),
+        ambientLeft: alpha(colors.rose, '22'),
+        ambientRight: alpha(colors.primary, '24'),
+        contour: alpha(colors.borderStrong, '7f'),
       },
       button: {
+        base: {
+          minHeight: 50,
+          paddingVertical: 12,
+          paddingHorizontal: 18,
+          borderRadius: config.radius.lg,
+        },
+        text: {
+          fontSize: 16,
+          fontWeight: '800',
+          letterSpacing: 0.15,
+        },
         variants: {
           primary: {
             backgroundColor: colors.primary,
-            borderColor: colors.primary,
+            borderColor: colors.primaryBorder,
             textColor: colors.primaryText,
+            topGlow: alpha(colors.amber, '52'),
+            bottomGlow: alpha(colors.rose, '38'),
           },
           secondary: {
             backgroundColor: colors.panel,
@@ -142,18 +165,57 @@ function buildTheme(config) {
           },
           danger: {
             backgroundColor: colors.dangerSoft,
-            borderColor: colors.danger,
+            borderColor: colors.dangerBorder,
             textColor: colors.danger,
           },
         },
       },
+      input: {
+        label: {
+          color: colors.secondary,
+          fontSize: 12,
+          fontWeight: '700',
+          letterSpacing: 0.3,
+        },
+        field: {
+          minHeight: 48,
+          borderRadius: config.radius.lg,
+          borderWidth: 1,
+          borderColor: colors.borderStrong,
+          backgroundColor: alpha(colors.card, 'f2'),
+          color: colors.text,
+          paddingHorizontal: 14,
+          paddingVertical: 12,
+          fontSize: 15,
+        },
+      },
+      card: {
+        shell: {
+          borderWidth: 1,
+          borderColor: colors.borderStrong,
+          backgroundColor: colors.card,
+          borderRadius: config.radius.xl,
+        },
+      },
+      filter: {
+        bar: {
+          borderWidth: 1,
+          borderColor: colors.borderStrong,
+          borderRadius: config.radius.lg,
+          backgroundColor: colors.panel,
+        },
+        active: {
+          borderColor: colors.primaryBorder,
+          backgroundColor: alpha(colors.primary, '30'),
+        },
+      },
       discovery: {
         pass: {
-          backgroundColor: colors.surface,
+          backgroundColor: colors.panel,
           borderColor: colors.borderStrong,
           iconColor: colors.danger,
           labelColor: colors.secondary,
-          shadowColor: alpha(colors.danger, '66'),
+          shadowColor: alpha(colors.danger, '4d'),
         },
         like: {
           iconColor: colors.text,
@@ -164,7 +226,7 @@ function buildTheme(config) {
   };
 }
 
-const rawTheme = THEMES[ACTIVE_THEME_NAME] || THEMES.campsiteModern;
+const rawTheme = THEMES[ACTIVE_THEME_NAME] || THEMES.desertSunrise;
 
 export const theme = buildTheme(rawTheme);
 export const availableThemes = Object.keys(THEMES);

@@ -73,6 +73,20 @@ export function buildCompatibilityChips(currentProfile, targetProfile, max = 4) 
   const overlapCity = getCityOverlap(currentProfile.in_town_windows || [], targetProfile.in_town_windows || []);
   if (overlapCity) chips.push(`Window overlap in ${overlapCity}`);
 
+  if (chips.length === 0) {
+    if (targetProfile?.now_in_city) {
+      chips.push(`Currently in ${targetProfile.now_in_city}`);
+    } else if (targetProfile?.travel_pace) {
+      const paceLabel = {
+        slow: 'Slow travel pace',
+        mixed: 'Mixed travel pace',
+        fast: 'Fast travel pace',
+      }[targetProfile.travel_pace] || 'Travel pace match';
+      chips.push(paceLabel);
+    } else {
+      chips.push('Compatible traveler');
+    }
+  }
+
   return [...new Set(chips)].slice(0, max);
 }
-

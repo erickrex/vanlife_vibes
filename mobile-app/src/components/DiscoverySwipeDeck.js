@@ -22,19 +22,49 @@ function prettyMode(mode) {
   return mode === 'friends' ? 'Friends' : 'Dating';
 }
 
-function CardContent({ profile, currentProfile, mode, accentColor }) {
-  const chips = useMemo(() => buildCompatibilityChips(currentProfile, profile, 3), [currentProfile, profile]);
+function firstNameFromDisplayName(value) {
+  if (!value || typeof value !== 'string') return '';
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+  return trimmed.split(/\s+/)[0] || '';
+}
 
-  const displayName = profile?.display_name || profile?.username || 'Unknown';
+function buildSwipePhotos(profile) {
+  const candidates = [
+    normalizeImageUrl(profile?.cover_url || ''),
+    normalizeImageUrl(profile?.avatar_url || ''),
+    ...(Array.isArray(profile?.gallery_photos) ? profile.gallery_photos.map((url) => normalizeImageUrl(url || '')) : []),
+  ];
+  const unique = [];
+  for (const url of candidates) {
+    if (!url) continue;
+    if (!unique.includes(url)) unique.push(url);
+    if (unique.length >= 5) break;
+  }
+  return unique;
+}
+
+function CardContent({ profile, currentProfile, photoUrls = [], photoIndex = 0 }) {
+  const chips = useMemo(() => buildCompatibilityChips(currentProfile, profile, 5), [currentProfile, profile]);
+
+  const rawDisplayName = profile?.display_name || profile?.username || 'Unknown';
+  const firstName = firstNameFromDisplayName(rawDisplayName) || 'Unknown';
+  const age = Number.isInteger(profile?.age) ? profile.age : null;
+  const displayName = age ? `${firstName}, ${age}` : firstName;
   const location = profile?.now_in_city || profile?.current_location || '';
   const bio = profile?.bio || '';
-  const coverUrl = useMemo(() => normalizeImageUrl(profile?.cover_url || ''), [profile?.cover_url]);
-  const avatarUrl = useMemo(() => normalizeImageUrl(profile?.avatar_url || ''), [profile?.avatar_url]);
-  const [activePhotoUrl, setActivePhotoUrl] = useState(coverUrl || avatarUrl || '');
+  const [failedUrls, setFailedUrls] = useState([]);
 
   useEffect(() => {
-    setActivePhotoUrl(coverUrl || avatarUrl || '');
-  }, [avatarUrl, coverUrl]);
+    setFailedUrls([]);
+  }, [profile?.id, photoUrls]);
+
+  const usablePhotoUrls = useMemo(
+    () => photoUrls.filter((url) => !!url && !failedUrls.includes(url)),
+    [failedUrls, photoUrls],
+  );
+  const safePhotoIndex = usablePhotoUrls.length > 0 ? Math.max(0, Math.min(photoIndex, usablePhotoUrls.length - 1)) : 0;
+  const activePhotoUrl = usablePhotoUrls[safePhotoIndex] || '';
 
   const overlapBadge = useMemo(() => {
     const windows = profile?.overlap_windows;
@@ -56,34 +86,36 @@ function CardContent({ profile, currentProfile, mode, accentColor }) {
             style={styles.photo}
             resizeMode="cover"
             onError={() => {
-              if (activePhotoUrl === coverUrl && avatarUrl && avatarUrl !== coverUrl) {
-                setActivePhotoUrl(avatarUrl);
-                return;
-              }
-              setActivePhotoUrl('');
+              setFailedUrls((prev) => (prev.includes(activePhotoUrl) ? prev : [...prev, activePhotoUrl]));
             }}
           />
         ) : (
           <View style={styles.photoFallback}>
-            <Text style={styles.photoFallbackText}>{displayName.slice(0, 1).toUpperCase()}</Text>
+            <Text style={styles.photoFallbackText}>{firstName.slice(0, 1).toUpperCase()}</Text>
           </View>
         )}
+        {photoUrls.length > 1 ? (
+          <View style={styles.photoPagerRow}>
+            {photoUrls.map((url, index) => (
+              <View
+                key={`${profile?.id || 'profile'}-photo-${index}-${url}`}
+                style={[
+                  styles.photoPagerSlice,
+                  index === safePhotoIndex ? styles.photoPagerSliceActive : null,
+                ]}
+              />
+            ))}
+          </View>
+        ) : null}
         <View style={styles.photoOverlay} />
       </View>
 
       <View style={styles.cardMeta}>
-        <View style={styles.topMetaRow}>
-          <View style={[styles.modeBadge, { borderColor: `${accentColor || colors.primary}80`, backgroundColor: `${accentColor || colors.primary}30` }]}>
-            <Text style={[styles.modeBadgeText, { color: accentColor || colors.primary }]}>
-              {mode === 'friends' ? 'FRIENDS' : 'DATING'}
-            </Text>
+        {overlapBadge ? (
+          <View style={styles.overlapBadge}>
+            <Text style={styles.overlapBadgeText}>{overlapBadge}</Text>
           </View>
-          {overlapBadge ? (
-            <View style={styles.overlapBadge}>
-              <Text style={styles.overlapBadgeText}>{overlapBadge}</Text>
-            </View>
-          ) : null}
-        </View>
+        ) : null}
         <Text style={styles.name} numberOfLines={1}>
           {displayName}
         </Text>
@@ -100,12 +132,15 @@ function CardContent({ profile, currentProfile, mode, accentColor }) {
         ) : null}
 
         {chips.length > 0 ? (
-          <View style={styles.chipRow}>
-            {chips.map((chip) => (
-              <View key={chip} style={styles.chip}>
-                <Text style={styles.chipText}>{chip}</Text>
-              </View>
-            ))}
+          <View style={styles.chipsWrap}>
+            <Text style={styles.chipsLabel}>Why you might match</Text>
+            <View style={styles.chipRow}>
+              {chips.map((chip) => (
+                <View key={chip} style={styles.chip}>
+                  <Text style={styles.chipText}>{chip}</Text>
+                </View>
+              ))}
+            </View>
           </View>
         ) : null}
       </View>
@@ -141,6 +176,7 @@ export default function DiscoverySwipeDeck({
   const position = useRef(new Animated.ValueXY()).current;
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [photoIndexes, setPhotoIndexes] = useState({});
 
   const [matchVisible, setMatchVisible] = useState(false);
   const [matchedProfile, setMatchedProfile] = useState(null);
@@ -159,8 +195,51 @@ export default function DiscoverySwipeDeck({
 
   useEffect(() => {
     setCurrentIndex(0);
+    setPhotoIndexes({});
     position.setValue({ x: 0, y: 0 });
   }, [profiles, position]);
+
+  const profilePhotoMap = useMemo(() => {
+    const map = {};
+    for (const profile of profiles) {
+      map[String(profile?.id)] = buildSwipePhotos(profile);
+    }
+    return map;
+  }, [profiles]);
+
+  const getPhotoUrls = useCallback(
+    (profile) => profilePhotoMap[String(profile?.id)] || [],
+    [profilePhotoMap],
+  );
+
+  const getPhotoIndex = useCallback(
+    (profile) => {
+      const profileId = String(profile?.id || '');
+      const urls = getPhotoUrls(profile);
+      const current = photoIndexes[profileId] || 0;
+      if (urls.length <= 1) return 0;
+      return Math.max(0, Math.min(current, urls.length - 1));
+    },
+    [getPhotoUrls, photoIndexes],
+  );
+
+  const changePhoto = useCallback(
+    (profile, direction) => {
+      const profileId = String(profile?.id || '');
+      if (!profileId) return;
+      const urls = getPhotoUrls(profile);
+      if (urls.length <= 1) return;
+      setPhotoIndexes((prev) => {
+        const current = prev[profileId] || 0;
+        const next = direction < 0
+          ? (current - 1 + urls.length) % urls.length
+          : (current + 1) % urls.length;
+        if (next === current) return prev;
+        return { ...prev, [profileId]: next };
+      });
+    },
+    [getPhotoUrls],
+  );
 
   useEffect(() => {
     if (profiles.length > 0 && currentIndex >= profiles.length) {
@@ -356,13 +435,23 @@ export default function DiscoverySwipeDeck({
 
   const panResponder = useMemo(() => {
     return PanResponder.create({
-      onStartShouldSetPanResponder: () => !isProcessing && !swipesDisabled,
-      onMoveShouldSetPanResponder: (_, gesture) => !isProcessing && !swipesDisabled && (Math.abs(gesture.dx) > 4 || Math.abs(gesture.dy) > 4),
+      onStartShouldSetPanResponder: () => !isProcessing,
+      onMoveShouldSetPanResponder: (_, gesture) => !isProcessing && (Math.abs(gesture.dx) > 4 || Math.abs(gesture.dy) > 4),
       onPanResponderMove: Animated.event([null, { dx: position.x, dy: position.y }], {
         useNativeDriver: false,
       }),
       onPanResponderRelease: (_, gesture) => {
-        if (isProcessing || swipesDisabled) return;
+        if (isProcessing) return;
+        const isTap = Math.abs(gesture.dx) < 6 && Math.abs(gesture.dy) < 6;
+        if (isTap && activeProfile) {
+          changePhoto(activeProfile, 1);
+          return;
+        }
+        if (swipesDisabled) {
+          onSwipeLimitReached?.();
+          resetPosition();
+          return;
+        }
         if (gesture.dx > swipeThreshold) {
           forceSwipe('right');
           return;
@@ -374,7 +463,7 @@ export default function DiscoverySwipeDeck({
         resetPosition();
       },
     });
-  }, [forceSwipe, isProcessing, position.x, position.y, swipesDisabled, swipeThreshold]);
+  }, [activeProfile, changePhoto, forceSwipe, isProcessing, position.x, position.y, swipesDisabled, swipeThreshold]);
 
   const closeMatch = () => {
     setMatchVisible(false);
@@ -395,7 +484,7 @@ export default function DiscoverySwipeDeck({
     <View
       style={styles.deck}
       onLayout={(event) => {
-        const nextWidth = event.nativeEvent.layout.width;
+        const { width: nextWidth } = event.nativeEvent.layout;
         if (nextWidth && Math.abs(nextWidth - width) > 1) setWidth(nextWidth);
       }}
     >
@@ -418,7 +507,12 @@ export default function DiscoverySwipeDeck({
 
       {nextProfile ? (
         <View style={[styles.card, styles.nextCard]}>
-          <CardContent profile={nextProfile} currentProfile={currentProfile} mode={mode} accentColor={accentColor} />
+          <CardContent
+            profile={nextProfile}
+            currentProfile={currentProfile}
+            photoUrls={getPhotoUrls(nextProfile)}
+            photoIndex={getPhotoIndex(nextProfile)}
+          />
         </View>
       ) : null}
 
@@ -432,7 +526,12 @@ export default function DiscoverySwipeDeck({
           <Text style={[styles.overlayText, styles.passOverlayText]}>PASS</Text>
         </Animated.View>
 
-        <CardContent profile={activeProfile} currentProfile={currentProfile} mode={mode} accentColor={accentColor} />
+        <CardContent
+          profile={activeProfile}
+          currentProfile={currentProfile}
+          photoUrls={getPhotoUrls(activeProfile)}
+          photoIndex={getPhotoIndex(activeProfile)}
+        />
       </Animated.View>
 
       <View style={styles.actions}>
@@ -564,7 +663,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    marginBottom: 8,
+    marginBottom: 4,
   },
   progressRow: {
     flex: 1,
@@ -588,16 +687,16 @@ const styles = StyleSheet.create({
   },
   card: {
     position: 'absolute',
-    top: 14,
+    top: 18,
     left: 0,
     right: 0,
-    bottom: 102,
+    bottom: 84,
     borderRadius: radius.xl,
     borderWidth: 1,
     borderColor: colors.borderStrong,
     backgroundColor: colors.card,
     overflow: 'hidden',
-    shadowColor: '#000',
+    shadowColor: colors.bg,
     shadowOpacity: 0.28,
     shadowOffset: { width: 0, height: 14 },
     shadowRadius: 22,
@@ -605,8 +704,8 @@ const styles = StyleSheet.create({
     ...shadow.elevated,
   },
   nextCard: {
-    transform: [{ scale: 0.965 }, { translateY: 8 }],
-    opacity: 0.52,
+    transform: [{ scale: 0.975 }, { translateY: 6 }],
+    opacity: 0.58,
   },
   cardInner: {
     flex: 1,
@@ -630,13 +729,31 @@ const styles = StyleSheet.create({
     fontSize: 54,
     fontWeight: '900',
   },
+  photoPagerRow: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    right: 10,
+    flexDirection: 'row',
+    gap: 4,
+    zIndex: 3,
+  },
+  photoPagerSlice: {
+    flex: 1,
+    height: 3,
+    borderRadius: radius.full,
+    backgroundColor: 'rgba(255,255,255,0.28)',
+  },
+  photoPagerSliceActive: {
+    backgroundColor: 'rgba(255,255,255,0.9)',
+  },
   photoOverlay: {
     position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
-    height: 220,
-    backgroundColor: colors.overlayMedium,
+    height: '36%',
+    backgroundColor: 'rgba(22,12,10,0.52)',
   },
   passOverlayText: {
     borderColor: colors.danger,
@@ -648,34 +765,18 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    padding: 16,
-    gap: 10,
-  },
-  topMetaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  modeBadge: {
-    borderWidth: 1,
-    borderRadius: radius.full,
-    paddingVertical: 4,
-    paddingHorizontal: 9,
-  },
-  modeBadgeText: {
-    fontSize: 10,
-    fontWeight: '900',
-    letterSpacing: 0.7,
+    paddingHorizontal: 14,
+    paddingBottom: 14,
+    paddingTop: 10,
+    gap: 4,
   },
   overlapBadge: {
     borderWidth: 1,
     borderColor: `${colors.emerald}80`,
-    backgroundColor: `${colors.emerald}30`,
+    backgroundColor: `${colors.emerald}26`,
     borderRadius: radius.full,
-    paddingVertical: 4,
-    paddingHorizontal: 9,
+    paddingVertical: 3,
+    paddingHorizontal: 8,
   },
   overlapBadgeText: {
     color: colors.emerald,
@@ -684,34 +785,59 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   name: {
-    color: colors.text,
-    fontSize: 22,
+    color: colors.onImageText || colors.text,
+    fontSize: 28,
     fontWeight: '900',
+    textShadowColor: 'rgba(0,0,0,0.55)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   location: {
-    color: colors.secondary,
+    color: colors.onImageSecondary || colors.secondary,
+    fontSize: 14,
     fontWeight: '700',
+    textShadowColor: 'rgba(0,0,0,0.45)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   bio: {
-    color: colors.secondary,
-    lineHeight: 18,
+    color: colors.onImageSecondary || colors.secondary,
+    fontSize: 14,
+    lineHeight: 19,
+    textShadowColor: 'rgba(0,0,0,0.4)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  chipsWrap: {
+    gap: 4,
+  },
+  chipsLabel: {
+    color: colors.onImageSecondary || colors.secondary,
+    fontSize: 11,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+    textShadowColor: 'rgba(0,0,0,0.35)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
   },
   chipRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 6,
+    marginTop: 2,
   },
   chip: {
     borderWidth: 1,
-    borderColor: colors.borderStrong,
-    backgroundColor: colors.bgElevated,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
+    borderColor: colors.onImageChipBorder || colors.borderStrong,
+    backgroundColor: colors.onImageChipBg || colors.bgElevated,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
     borderRadius: radius.full,
   },
   chipText: {
-    color: colors.text,
-    fontSize: 12,
+    color: colors.onImageText || colors.text,
+    fontSize: 11,
     fontWeight: '800',
   },
   overlay: {
@@ -738,17 +864,17 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    bottom: 0,
+    bottom: 2,
     flexDirection: 'row',
-    gap: 22,
+    gap: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: 6,
+    paddingTop: 4,
   },
   actionButton: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     borderWidth: 1,
     borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
@@ -756,7 +882,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 3,
-    shadowColor: '#000',
+    shadowColor: colors.bg,
     shadowOpacity: 0.24,
     shadowOffset: { width: 0, height: 10 },
     shadowRadius: 16,

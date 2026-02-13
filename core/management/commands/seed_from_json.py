@@ -12,6 +12,7 @@ from core.models import (
     HobbyTag,
     InTownWindow,
     Profile,
+    ProfilePhoto,
     ProfileHobby,
     ProfilePrompt,
     Prompt,
@@ -23,6 +24,76 @@ User = get_user_model()
 
 class Command(BaseCommand):
     help = 'Seed users from core/seed_data.json'
+
+    @staticmethod
+    def _clean_seed_urls(values):
+        """Return de-duplicated non-empty URL strings in original order."""
+        cleaned = []
+        seen = set()
+
+        for raw in values or []:
+            if not isinstance(raw, str):
+                continue
+            value = raw.strip()
+            if not value or value in seen:
+                continue
+            cleaned.append(value)
+            seen.add(value)
+
+        return cleaned
+
+    def _sync_profile_photos(self, profile, user_payload):
+        """
+        Keep seeded profile photos deterministic:
+        - 1 avatar
+        - 1 cover
+        - enough gallery photos to reach 5 total (normally 3 gallery photos)
+        """
+        avatar_url = (user_payload.get('avatar_url') or '').strip()
+        cover_url = (user_payload.get('cover_url') or '').strip()
+
+        provided_gallery_urls = self._clean_seed_urls(user_payload.get('gallery_urls', []))
+        fallback_gallery_urls = [
+            f'https://picsum.photos/seed/{profile.user.username}-gallery-{idx}/900/1200'
+            for idx in range(1, 6)
+        ]
+        gallery_pool = self._clean_seed_urls(provided_gallery_urls + fallback_gallery_urls)
+
+        base_count = 0
+        if avatar_url:
+            base_count += 1
+        if cover_url:
+            base_count += 1
+        required_gallery_count = max(0, 5 - base_count)
+        gallery_urls = gallery_pool[:required_gallery_count]
+
+        ProfilePhoto.objects.filter(
+            profile=profile,
+            photo_type__in=['avatar', 'cover', 'gallery'],
+        ).delete()
+
+        if avatar_url:
+            ProfilePhoto.objects.create(
+                profile=profile,
+                photo_type='avatar',
+                image=avatar_url,
+                display_order=0,
+            )
+        if cover_url:
+            ProfilePhoto.objects.create(
+                profile=profile,
+                photo_type='cover',
+                image=cover_url,
+                display_order=0,
+            )
+
+        for display_order, gallery_url in enumerate(gallery_urls):
+            ProfilePhoto.objects.create(
+                profile=profile,
+                photo_type='gallery',
+                image=gallery_url,
+                display_order=display_order,
+            )
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -120,6 +191,7 @@ class Command(BaseCommand):
             profile, _ = Profile.objects.update_or_create(
                 user=user, defaults=profile_fields,
             )
+            self._sync_profile_photos(profile, u)
 
             # Hobbies
             profile.hobbies.clear()

@@ -21,7 +21,7 @@ npm run start
 
 This project is configured with:
 
-- Android package: `com.erickrea.vanlifevibes`
+- Android package: `com.erickrhein.vanlifevibes`
 
 To create a cloud build you can install on your Android phone:
 

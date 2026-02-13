@@ -147,6 +147,7 @@ class DiscoveryViewSet(viewsets.GenericViewSet):
             queryset = queryset.filter(looking_for_friends=True)
 
         queryset = self._apply_filters(queryset, request, user_profile)
+        queryset = queryset.select_related('user').prefetch_related('in_town_windows', 'hobbies', 'photos')
 
         user_is_premium = SwipeLimitService.is_premium(user_profile)
         user_windows = self._filter_rankable_windows(
@@ -188,7 +189,7 @@ class DiscoveryViewSet(viewsets.GenericViewSet):
             return error_response
 
         user_profile = self._get_user_profile(request)
-        serializer = ProfileSerializer(profiles, many=True)
+        serializer = ProfileSerializer(profiles, many=True, context={'request': request})
 
         return Response({
             'status': 'success',
@@ -207,7 +208,7 @@ class DiscoveryViewSet(viewsets.GenericViewSet):
             return error_response
 
         user_profile = self._get_user_profile(request)
-        serializer = ProfileSerializer(profiles, many=True)
+        serializer = ProfileSerializer(profiles, many=True, context={'request': request})
 
         return Response({
             'status': 'success',

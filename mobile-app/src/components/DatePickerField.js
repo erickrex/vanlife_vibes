@@ -8,7 +8,11 @@ import {
 } from 'react-native';
 
 import { colors } from '../theme/colors';
-import { radius } from '../theme/tokens';
+import { componentTokens, radius } from '../theme/tokens';
+
+const INPUT_TOKENS = componentTokens.input || {};
+const INPUT_LABEL = INPUT_TOKENS.label || {};
+const INPUT_FIELD = INPUT_TOKENS.field || {};
 
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -277,8 +281,10 @@ const styles = StyleSheet.create({
   },
   label: {
     color: colors.secondary,
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+    ...INPUT_LABEL,
   },
   input: {
     minHeight: 48,
@@ -291,6 +297,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 10,
+    ...INPUT_FIELD,
   },
   inputValue: {
     color: colors.text,
@@ -335,7 +342,7 @@ const styles = StyleSheet.create({
     borderColor: colors.borderStrong,
     borderRadius: radius.xl,
     backgroundColor: colors.card,
-    padding: 14,
+    padding: 16,
     gap: 10,
   },
   calendarHeader: {
@@ -417,9 +424,9 @@ const styles = StyleSheet.create({
     width: 64,
   },
   actionButton: {
-    minWidth: 64,
+    minWidth: 72,
     paddingHorizontal: 12,
-    paddingVertical: 9,
+    paddingVertical: 10,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.borderStrong,

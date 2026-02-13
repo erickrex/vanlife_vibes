@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { colors } from '../theme/colors';
-import { radius } from '../theme/tokens';
+import { componentTokens, radius } from '../theme/tokens';
+
+const INPUT_TOKENS = componentTokens.input || {};
+const INPUT_LABEL = INPUT_TOKENS.label || {};
+const INPUT_FIELD = INPUT_TOKENS.field || {};
 
 export default function FormTextInput({
   label,
@@ -45,6 +49,7 @@ export default function FormTextInput({
         onBlur={() => setFocused(false)}
         style={[
           styles.input,
+          INPUT_FIELD,
           focused ? styles.inputFocused : null,
           error ? styles.inputError : null,
           style,
@@ -64,8 +69,10 @@ const styles = StyleSheet.create({
   },
   label: {
     color: colors.secondary,
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+    ...INPUT_LABEL,
   },
   input: {
     borderWidth: 1,
@@ -74,7 +81,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     borderRadius: radius.lg,
     paddingHorizontal: 14,
-    paddingVertical: 13,
+    paddingVertical: 12,
     fontSize: 15,
   },
   inputFocused: {

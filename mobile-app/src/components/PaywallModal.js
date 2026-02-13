@@ -11,7 +11,9 @@ import {
 import { revenueCatClient } from '../services/revenuecat';
 import { subscriptionAPI } from '../services/api';
 import { colors } from '../theme/colors';
-import { radius } from '../theme/tokens';
+import { componentTokens, radius } from '../theme/tokens';
+
+const CARD_TOKENS = componentTokens.card?.shell || {};
 
 const BENEFITS = [
   '20 daily swipes',
@@ -224,6 +226,7 @@ const styles = StyleSheet.create({
     padding: 22,
     alignItems: 'center',
     gap: 12,
+    ...CARD_TOKENS,
   },
   title: {
     color: colors.text,
@@ -282,8 +285,10 @@ const styles = StyleSheet.create({
   trialButton: {
     width: '100%',
     paddingVertical: 14,
-    borderRadius: radius.lg,
+    borderRadius: radius.md,
     backgroundColor: colors.primary,
+    borderWidth: 1,
+    borderColor: colors.primaryBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -295,8 +300,10 @@ const styles = StyleSheet.create({
   subscribeButton: {
     width: '100%',
     paddingVertical: 14,
-    borderRadius: radius.lg,
+    borderRadius: radius.md,
     backgroundColor: colors.primary,
+    borderWidth: 1,
+    borderColor: colors.primaryBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },

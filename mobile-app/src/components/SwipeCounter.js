@@ -1,7 +1,9 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { colors } from '../theme/colors';
-import { radius } from '../theme/tokens';
+import { componentTokens, radius } from '../theme/tokens';
+
+const FILTER_BAR = componentTokens.filter?.bar || {};
 
 export default function SwipeCounter({ remainingSwipes, isPremium }) {
   if (isPremium) {
@@ -32,11 +34,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderRadius: radius.full,
-    paddingVertical: 11,
-    paddingHorizontal: 13,
+    borderRadius: radius.lg,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     backgroundColor: colors.panel,
     borderColor: colors.borderStrong,
+    ...FILTER_BAR,
   },
   premiumContainer: {
     borderColor: colors.primary,

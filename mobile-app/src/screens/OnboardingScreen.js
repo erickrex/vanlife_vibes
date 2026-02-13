@@ -187,6 +187,7 @@ export default function OnboardingScreen() {
   const [lookingForFriends, setLookingForFriends] = useState(true);
   const [lookingForDating, setLookingForDating] = useState(false);
   const [displayName, setDisplayName] = useState('');
+  const [age, setAge] = useState('');
   const [bio, setBio] = useState('');
   const [gender, setGender] = useState('');
   const [interestedInMen, setInterestedInMen] = useState(false);
@@ -245,6 +246,7 @@ export default function OnboardingScreen() {
         setIsPremium(!!subscriptionData?.is_premium);
         setSubscriptionStatus(subscriptionData);
         setDisplayName(profileData.display_name || '');
+        setAge(profileData?.age ? String(profileData.age) : '');
         setBio(profileData.bio || '');
         setGender(profileData.gender || '');
         const initialAvatarUrl = normalizePhotoUrl(profileData.avatar_url || '');
@@ -319,6 +321,9 @@ export default function OnboardingScreen() {
     }
     if (stepId === 'basics') {
       if (!displayName.trim()) return 'Display name is required.';
+      const parsedAge = Number(age);
+      if (!age.trim() || !Number.isInteger(parsedAge)) return 'Age is required.';
+      if (parsedAge < 18 || parsedAge > 99) return 'Age must be between 18 and 99.';
       if (!gender) return 'Please choose your gender.';
       return '';
     }
@@ -351,6 +356,7 @@ export default function OnboardingScreen() {
   }, [
     getStepValidationError,
     displayName,
+    age,
     gender,
     hasPets,
     lookingForDating,
@@ -507,6 +513,7 @@ export default function OnboardingScreen() {
       setSaving(true);
       const payload = {
         display_name: displayName.trim(),
+        age: Number(age),
         bio: bio.trim(),
         avatar_url: avatarUrl.trim() || null,
         cover_url: coverUrl.trim() || null,
@@ -607,6 +614,15 @@ export default function OnboardingScreen() {
                 onChangeText={setDisplayName}
                 placeholder="What should people call you?"
                 autoCapitalize="words"
+              />
+
+              <FormTextInput
+                label="Age"
+                value={age}
+                onChangeText={(value) => setAge(value.replace(/[^0-9]/g, ''))}
+                placeholder="18"
+                keyboardType="number-pad"
+                autoCapitalize="none"
               />
 
               <FormTextInput

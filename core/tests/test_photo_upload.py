@@ -146,9 +146,9 @@ gallery_upload_attempts = st.integers(min_value=1, max_value=15)
 @settings(max_examples=100, deadline=None)
 def test_gallery_photo_count_invariant(num_attempts):
     """
-    For any profile, the number of gallery photos SHALL never exceed 6.
+    For any profile, the number of gallery photos SHALL never exceed 5.
     After any sequence of gallery uploads (including rejected ones),
-    ProfilePhoto.objects.filter(profile=p, photo_type='gallery').count() <= 6.
+    ProfilePhoto.objects.filter(profile=p, photo_type='gallery').count() <= 5.
     """
     from rest_framework.exceptions import ValidationError as DRFValidationError
 
@@ -175,7 +175,7 @@ def test_gallery_photo_count_invariant(num_attempts):
             profile=profile, photo_type="gallery"
         ).count()
 
-        assert gallery_count <= 6, (
+        assert gallery_count <= 5, (
             f"Gallery photo count invariant violated: found {gallery_count} "
             f"gallery photos after attempt {i + 1} of {num_attempts}"
         )
@@ -184,7 +184,7 @@ def test_gallery_photo_count_invariant(num_attempts):
     final_count = ProfilePhoto.objects.filter(
         profile=profile, photo_type="gallery"
     ).count()
-    assert final_count <= 6, (
+    assert final_count <= 5, (
         f"Gallery photo count invariant violated at end: found {final_count} "
         f"gallery photos after {num_attempts} upload attempts"
     )
@@ -436,7 +436,7 @@ def test_upload_creates_retrievable_record(photo_type, image_format):
 distinct_display_orders = st.lists(
     st.integers(min_value=0, max_value=100),
     min_size=2,
-    max_size=6,
+    max_size=5,
     unique=True,
 )
 

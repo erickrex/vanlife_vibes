@@ -1,73 +1,281 @@
 {
   "constants": {
-    "gender_choices": ["man", "woman", "non_binary"],
-    "travel_status_choices": ["full-time", "part-time", "weekender", "aspiring"],
-    "travel_companions_choices": ["solo", "couple", "family", "with_pets"],
-    "work_status_choices": ["remote_worker", "retired", "seasonal_worker", "unemployed", "other"],
-    "travel_pace_choices": ["slow", "mixed", "fast"],
-    "profile_type_choices": ["solo", "couple", "group"],
-    "meetup_interest_choices": ["actively_looking", "open_to_it", "selective", "solo_mode"],
-    "rig_status_choices": ["van", "rv", "truck_camper", "skoolie", "car", "no_vehicle", "other"],
-    "social_vibe_choices": ["introvert", "balanced", "social"],
-    "lifestyle_schedule_choices": ["early_bird", "night_owl"],
-    "lifestyle_social_choices": ["quiet", "party"],
-    "lifestyle_environment_choices": ["outdoors", "city_mix"],
-    "pet_type_choices": ["dog", "cat", "other"],
-    "relationship_status_choices": ["single", "in_relationship", "married", "its_complicated", "prefer_not_to_say"],
-    "looking_for_friend_type_choices": ["any", "singles_only", "couples_only", "no_preference"]
+    "gender_choices": [
+      "man",
+      "woman",
+      "non_binary"
+    ],
+    "travel_status_choices": [
+      "full-time",
+      "part-time",
+      "weekender",
+      "aspiring"
+    ],
+    "travel_companions_choices": [
+      "solo",
+      "couple",
+      "family",
+      "with_pets"
+    ],
+    "work_status_choices": [
+      "remote_worker",
+      "retired",
+      "seasonal_worker",
+      "unemployed",
+      "other"
+    ],
+    "travel_pace_choices": [
+      "slow",
+      "mixed",
+      "fast"
+    ],
+    "profile_type_choices": [
+      "solo",
+      "couple",
+      "group"
+    ],
+    "meetup_interest_choices": [
+      "actively_looking",
+      "open_to_it",
+      "selective",
+      "solo_mode"
+    ],
+    "rig_status_choices": [
+      "van",
+      "rv",
+      "truck_camper",
+      "skoolie",
+      "car",
+      "no_vehicle",
+      "other"
+    ],
+    "social_vibe_choices": [
+      "introvert",
+      "balanced",
+      "social"
+    ],
+    "lifestyle_schedule_choices": [
+      "early_bird",
+      "night_owl"
+    ],
+    "lifestyle_social_choices": [
+      "quiet",
+      "party"
+    ],
+    "lifestyle_environment_choices": [
+      "outdoors",
+      "city_mix"
+    ],
+    "pet_type_choices": [
+      "dog",
+      "cat",
+      "other"
+    ],
+    "relationship_status_choices": [
+      "single",
+      "in_relationship",
+      "married",
+      "its_complicated",
+      "prefer_not_to_say"
+    ],
+    "looking_for_friend_type_choices": [
+      "any",
+      "singles_only",
+      "couples_only",
+      "no_preference"
+    ]
   },
   "hobby_tags": [
-    {"name": "Hiking", "slug": "hiking"},
-    {"name": "Photography", "slug": "photography"},
-    {"name": "Rock Climbing", "slug": "rock_climbing"},
-    {"name": "Yoga", "slug": "yoga"},
-    {"name": "Cooking", "slug": "cooking"},
-    {"name": "Mountain Biking", "slug": "mountain_biking"},
-    {"name": "Surfing", "slug": "surfing"},
-    {"name": "Stargazing", "slug": "stargazing"},
-    {"name": "Reading", "slug": "reading"},
-    {"name": "Writing", "slug": "writing"},
-    {"name": "Coffee", "slug": "coffee"},
-    {"name": "Camping", "slug": "camping"},
-    {"name": "Remote Work", "slug": "remote_work"},
-    {"name": "Music", "slug": "music"},
-    {"name": "Painting", "slug": "painting"},
-    {"name": "Dog Training", "slug": "dog_training"},
-    {"name": "Kayaking", "slug": "kayaking"},
-    {"name": "Fishing", "slug": "fishing"},
-    {"name": "Birdwatching", "slug": "birdwatching"},
-    {"name": "Meditation", "slug": "meditation"}
+    {
+      "name": "Hiking",
+      "slug": "hiking"
+    },
+    {
+      "name": "Photography",
+      "slug": "photography"
+    },
+    {
+      "name": "Rock Climbing",
+      "slug": "rock_climbing"
+    },
+    {
+      "name": "Yoga",
+      "slug": "yoga"
+    },
+    {
+      "name": "Cooking",
+      "slug": "cooking"
+    },
+    {
+      "name": "Mountain Biking",
+      "slug": "mountain_biking"
+    },
+    {
+      "name": "Surfing",
+      "slug": "surfing"
+    },
+    {
+      "name": "Stargazing",
+      "slug": "stargazing"
+    },
+    {
+      "name": "Reading",
+      "slug": "reading"
+    },
+    {
+      "name": "Writing",
+      "slug": "writing"
+    },
+    {
+      "name": "Coffee",
+      "slug": "coffee"
+    },
+    {
+      "name": "Camping",
+      "slug": "camping"
+    },
+    {
+      "name": "Remote Work",
+      "slug": "remote_work"
+    },
+    {
+      "name": "Music",
+      "slug": "music"
+    },
+    {
+      "name": "Painting",
+      "slug": "painting"
+    },
+    {
+      "name": "Dog Training",
+      "slug": "dog_training"
+    },
+    {
+      "name": "Kayaking",
+      "slug": "kayaking"
+    },
+    {
+      "name": "Fishing",
+      "slug": "fishing"
+    },
+    {
+      "name": "Birdwatching",
+      "slug": "birdwatching"
+    },
+    {
+      "name": "Meditation",
+      "slug": "meditation"
+    }
   ],
   "prompts": [
-    {"prompt_name": "next_stop_journey", "prompt_question": "What's the next stop on your journey?", "prompt_type": "travel"},
-    {"prompt_name": "always_down_team_up", "prompt_question": "I'm always down to team up for...", "prompt_type": "travel"},
-    {"prompt_name": "looking_for_travel_buddy", "prompt_question": "I'm looking for a travel buddy to...", "prompt_type": "travel"},
-    {"prompt_name": "best_hidden_gem", "prompt_question": "Best hidden gem I've found on the road?", "prompt_type": "travel"},
-    {"prompt_name": "perfect_vanlife_meetup", "prompt_question": "My perfect van life meetup looks like...", "prompt_type": "travel"},
-    {"prompt_name": "best_part_meeting_vanlifers", "prompt_question": "The best part about meeting other van lifers is...", "prompt_type": "travel"},
-    {"prompt_name": "ideal_vanlife_date", "prompt_question": "My ideal van life date is...", "prompt_type": "dating"},
-    {"prompt_name": "well_get_along_if", "prompt_question": "We'll get along if you love...", "prompt_type": "dating"},
-    {"prompt_name": "impress_me_road_trip", "prompt_question": "On a road trip, you can impress me if you...", "prompt_type": "dating"},
-    {"prompt_name": "quickest_way_to_heart", "prompt_question": "The quickest way to my heart is...", "prompt_type": "dating"},
-    {"prompt_name": "dating_me_means", "prompt_question": "Dating me means...", "prompt_type": "dating"},
-    {"prompt_name": "swipe_right_if", "prompt_question": "Swipe right if...", "prompt_type": "dating"},
-    {"prompt_name": "most_romantic_spot", "prompt_question": "Most romantic spot I've camped at?", "prompt_type": "dating"},
-    {"prompt_name": "friend_need", "prompt_question": "I'm the friend you need to...", "prompt_type": "friendship"},
-    {"prompt_name": "go_to_campfire_story", "prompt_question": "My go-to campfire story is...", "prompt_type": "friendship"},
-    {"prompt_name": "best_vanlife_hack", "prompt_question": "My best van life hack is...", "prompt_type": "friendship"},
-    {"prompt_name": "friends_know_me_as", "prompt_question": "My friends know me as...", "prompt_type": "friendship"},
-    {"prompt_name": "instant_friends_if", "prompt_question": "We'll be instant friends if...", "prompt_type": "friendship"},
-    {"prompt_name": "motto_i_travel_by", "prompt_question": "The motto I travel by is...", "prompt_type": "friendship"},
-    {"prompt_name": "traveling_with_my_pet", "prompt_question": "Traveling with my pet has taught me...", "prompt_type": "friendship"}
+    {
+      "prompt_name": "next_stop_journey",
+      "prompt_question": "What's the next stop on your journey?",
+      "prompt_type": "travel"
+    },
+    {
+      "prompt_name": "always_down_team_up",
+      "prompt_question": "I'm always down to team up for...",
+      "prompt_type": "travel"
+    },
+    {
+      "prompt_name": "looking_for_travel_buddy",
+      "prompt_question": "I'm looking for a travel buddy to...",
+      "prompt_type": "travel"
+    },
+    {
+      "prompt_name": "best_hidden_gem",
+      "prompt_question": "Best hidden gem I've found on the road?",
+      "prompt_type": "travel"
+    },
+    {
+      "prompt_name": "perfect_vanlife_meetup",
+      "prompt_question": "My perfect van life meetup looks like...",
+      "prompt_type": "travel"
+    },
+    {
+      "prompt_name": "best_part_meeting_vanlifers",
+      "prompt_question": "The best part about meeting other van lifers is...",
+      "prompt_type": "travel"
+    },
+    {
+      "prompt_name": "ideal_vanlife_date",
+      "prompt_question": "My ideal van life date is...",
+      "prompt_type": "dating"
+    },
+    {
+      "prompt_name": "well_get_along_if",
+      "prompt_question": "We'll get along if you love...",
+      "prompt_type": "dating"
+    },
+    {
+      "prompt_name": "impress_me_road_trip",
+      "prompt_question": "On a road trip, you can impress me if you...",
+      "prompt_type": "dating"
+    },
+    {
+      "prompt_name": "quickest_way_to_heart",
+      "prompt_question": "The quickest way to my heart is...",
+      "prompt_type": "dating"
+    },
+    {
+      "prompt_name": "dating_me_means",
+      "prompt_question": "Dating me means...",
+      "prompt_type": "dating"
+    },
+    {
+      "prompt_name": "swipe_right_if",
+      "prompt_question": "Swipe right if...",
+      "prompt_type": "dating"
+    },
+    {
+      "prompt_name": "most_romantic_spot",
+      "prompt_question": "Most romantic spot I've camped at?",
+      "prompt_type": "dating"
+    },
+    {
+      "prompt_name": "friend_need",
+      "prompt_question": "I'm the friend you need to...",
+      "prompt_type": "friendship"
+    },
+    {
+      "prompt_name": "go_to_campfire_story",
+      "prompt_question": "My go-to campfire story is...",
+      "prompt_type": "friendship"
+    },
+    {
+      "prompt_name": "best_vanlife_hack",
+      "prompt_question": "My best van life hack is...",
+      "prompt_type": "friendship"
+    },
+    {
+      "prompt_name": "friends_know_me_as",
+      "prompt_question": "My friends know me as...",
+      "prompt_type": "friendship"
+    },
+    {
+      "prompt_name": "instant_friends_if",
+      "prompt_question": "We'll be instant friends if...",
+      "prompt_type": "friendship"
+    },
+    {
+      "prompt_name": "motto_i_travel_by",
+      "prompt_question": "The motto I travel by is...",
+      "prompt_type": "friendship"
+    },
+    {
+      "prompt_name": "traveling_with_my_pet",
+      "prompt_question": "Traveling with my pet has taught me...",
+      "prompt_type": "friendship"
+    }
   ],
   "users": [
-
     {
       "username": "aaron",
       "email": "aaron@example.com",
       "password": "testpass123",
       "display_name": "Aaron Mitchell",
-      "bio": "Solo van lifer balancing remote work with adventure. Slow travel enthusiast who loves finding quiet spots off the beaten path. 🌄",
+      "bio": "Solo van lifer balancing remote work with adventure. Slow travel enthusiast who loves finding quiet spots off the beaten path. \ud83c\udf04",
       "gender": "man",
       "profile_type": "solo",
       "looking_for_dating": true,
@@ -95,16 +303,42 @@
       "cover_url": "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&h=400&fit=crop",
       "current_location": "Moab, UT",
       "home_base": "Denver, CO",
-      "hobbies": ["hiking", "photography", "remote_work", "stargazing"],
+      "hobbies": [
+        "hiking",
+        "photography",
+        "remote_work",
+        "stargazing"
+      ],
       "in_town_windows": [
-        {"city_area": "Moab, UT", "start_date": "2026-02-11", "end_date": "2026-02-25"},
-        {"city_area": "Durango, CO", "start_date": "2026-02-25", "end_date": "2026-03-11"},
-        {"city_area": "Joshua Tree, CA", "start_date": "2026-03-11", "end_date": "2026-04-12"}
+        {
+          "city_area": "Moab, UT",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-25"
+        },
+        {
+          "city_area": "Durango, CO",
+          "start_date": "2026-02-25",
+          "end_date": "2026-03-11"
+        },
+        {
+          "city_area": "Joshua Tree, CA",
+          "start_date": "2026-03-11",
+          "end_date": "2026-04-12"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "next_stop_journey", "answer": "Southern Utah - chasing red rock sunsets and quiet BLM spots"},
-        {"prompt_name": "ideal_vanlife_date", "answer": "Stargazing by a campfire after cooking dinner together"},
-        {"prompt_name": "best_vanlife_hack", "answer": "magnetic spice jars on the wall"}
+        {
+          "prompt_name": "next_stop_journey",
+          "answer": "Southern Utah - chasing red rock sunsets and quiet BLM spots"
+        },
+        {
+          "prompt_name": "ideal_vanlife_date",
+          "answer": "Stargazing by a campfire after cooking dinner together"
+        },
+        {
+          "prompt_name": "best_vanlife_hack",
+          "answer": "magnetic spice jars on the wall"
+        }
       ],
       "vehicle": {
         "vehicle_type": "van",
@@ -113,14 +347,19 @@
         "year": 2021,
         "build_status": "full",
         "nickname": "The Wanderer"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/aaron-gallery-1/900/1200",
+        "https://picsum.photos/seed/aaron-gallery-2/900/1200",
+        "https://picsum.photos/seed/aaron-gallery-3/900/1200"
+      ]
     },
     {
       "username": "maya",
       "email": "maya@example.com",
       "password": "testpass123",
       "display_name": "Maya Chen",
-      "bio": "Digital nomad chasing sunsets and good coffee. Currently exploring the Southwest one canyon at a time. ☕🏜️",
+      "bio": "Digital nomad chasing sunsets and good coffee. Currently exploring the Southwest one canyon at a time. \u2615\ud83c\udfdc\ufe0f",
       "gender": "woman",
       "profile_type": "solo",
       "looking_for_dating": true,
@@ -148,16 +387,42 @@
       "cover_url": "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=800&h=400&fit=crop",
       "current_location": "Zion NP, UT",
       "home_base": "San Francisco, CA",
-      "hobbies": ["photography", "yoga", "coffee", "hiking"],
+      "hobbies": [
+        "photography",
+        "yoga",
+        "coffee",
+        "hiking"
+      ],
       "in_town_windows": [
-        {"city_area": "Zion NP, UT", "start_date": "2026-02-11", "end_date": "2026-02-22"},
-        {"city_area": "Big Sur, CA", "start_date": "2026-02-22", "end_date": "2026-03-08"},
-        {"city_area": "Lake Tahoe, CA", "start_date": "2026-03-08", "end_date": "2026-04-08"}
+        {
+          "city_area": "Zion NP, UT",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-22"
+        },
+        {
+          "city_area": "Big Sur, CA",
+          "start_date": "2026-02-22",
+          "end_date": "2026-03-08"
+        },
+        {
+          "city_area": "Lake Tahoe, CA",
+          "start_date": "2026-03-08",
+          "end_date": "2026-04-08"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "next_stop_journey", "answer": "California coast for some beach time and surfing"},
-        {"prompt_name": "well_get_along_if", "answer": "chasing sunsets and waking up for sunrises"},
-        {"prompt_name": "motto_i_travel_by", "answer": "Collect moments, not things"}
+        {
+          "prompt_name": "next_stop_journey",
+          "answer": "California coast for some beach time and surfing"
+        },
+        {
+          "prompt_name": "well_get_along_if",
+          "answer": "chasing sunsets and waking up for sunrises"
+        },
+        {
+          "prompt_name": "motto_i_travel_by",
+          "answer": "Collect moments, not things"
+        }
       ],
       "vehicle": {
         "vehicle_type": "van",
@@ -166,7 +431,12 @@
         "year": 2022,
         "build_status": "full",
         "nickname": "Home Base"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/maya-gallery-1/900/1200",
+        "https://picsum.photos/seed/maya-gallery-2/900/1200",
+        "https://picsum.photos/seed/maya-gallery-3/900/1200"
+      ]
     },
     {
       "username": "jake",
@@ -201,16 +471,42 @@
       "cover_url": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop",
       "current_location": "Boulder, CO",
       "home_base": "Salt Lake City, UT",
-      "hobbies": ["rock_climbing", "camping", "cooking", "music"],
+      "hobbies": [
+        "rock_climbing",
+        "camping",
+        "cooking",
+        "music"
+      ],
       "in_town_windows": [
-        {"city_area": "Boulder, CO", "start_date": "2026-02-11", "end_date": "2026-02-28"},
-        {"city_area": "Moab, UT", "start_date": "2026-02-28", "end_date": "2026-03-14"},
-        {"city_area": "Red Rock Canyon, NV", "start_date": "2026-03-14", "end_date": "2026-04-14"}
+        {
+          "city_area": "Boulder, CO",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-28"
+        },
+        {
+          "city_area": "Moab, UT",
+          "start_date": "2026-02-28",
+          "end_date": "2026-03-14"
+        },
+        {
+          "city_area": "Red Rock Canyon, NV",
+          "start_date": "2026-03-14",
+          "end_date": "2026-04-14"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "always_down_team_up", "answer": "sunrise hikes and coffee with a view"},
-        {"prompt_name": "swipe_right_if", "answer": "you also love national parks and hiking"},
-        {"prompt_name": "go_to_campfire_story", "answer": "that time I got my van stuck in mud with cows watching"}
+        {
+          "prompt_name": "always_down_team_up",
+          "answer": "sunrise hikes and coffee with a view"
+        },
+        {
+          "prompt_name": "swipe_right_if",
+          "answer": "you also love national parks and hiking"
+        },
+        {
+          "prompt_name": "go_to_campfire_story",
+          "answer": "that time I got my van stuck in mud with cows watching"
+        }
       ],
       "vehicle": {
         "vehicle_type": "van",
@@ -219,7 +515,12 @@
         "year": 2020,
         "build_status": "full",
         "nickname": "The Nomad"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/jake-gallery-1/900/1200",
+        "https://picsum.photos/seed/jake-gallery-2/900/1200",
+        "https://picsum.photos/seed/jake-gallery-3/900/1200"
+      ]
     },
     {
       "username": "sofia",
@@ -254,16 +555,42 @@
       "cover_url": "https://images.unsplash.com/photo-1533587851505-d119e13fa0d7?w=800&h=400&fit=crop",
       "current_location": "Big Sur, CA",
       "home_base": "Los Angeles, CA",
-      "hobbies": ["photography", "hiking", "surfing", "yoga"],
+      "hobbies": [
+        "photography",
+        "hiking",
+        "surfing",
+        "yoga"
+      ],
       "in_town_windows": [
-        {"city_area": "Big Sur, CA", "start_date": "2026-02-11", "end_date": "2026-02-24"},
-        {"city_area": "Santa Barbara, CA", "start_date": "2026-02-24", "end_date": "2026-03-10"},
-        {"city_area": "Bryce Canyon, UT", "start_date": "2026-03-10", "end_date": "2026-04-10"}
+        {
+          "city_area": "Big Sur, CA",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-24"
+        },
+        {
+          "city_area": "Santa Barbara, CA",
+          "start_date": "2026-02-24",
+          "end_date": "2026-03-10"
+        },
+        {
+          "city_area": "Bryce Canyon, UT",
+          "start_date": "2026-03-10",
+          "end_date": "2026-04-10"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "best_hidden_gem", "answer": "A beach in Big Sur that locals keep secret"},
-        {"prompt_name": "quickest_way_to_heart", "answer": "surprising me with a scenic detour"},
-        {"prompt_name": "friend_need", "answer": "go on a spontaneous hike"}
+        {
+          "prompt_name": "best_hidden_gem",
+          "answer": "A beach in Big Sur that locals keep secret"
+        },
+        {
+          "prompt_name": "quickest_way_to_heart",
+          "answer": "surprising me with a scenic detour"
+        },
+        {
+          "prompt_name": "friend_need",
+          "answer": "go on a spontaneous hike"
+        }
       ],
       "vehicle": {
         "vehicle_type": "van",
@@ -272,7 +599,12 @@
         "year": 2023,
         "build_status": "full",
         "nickname": "Sprinter Life"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/sofia-gallery-1/900/1200",
+        "https://picsum.photos/seed/sofia-gallery-2/900/1200",
+        "https://picsum.photos/seed/sofia-gallery-3/900/1200"
+      ]
     },
     {
       "username": "marcus",
@@ -307,16 +639,42 @@
       "cover_url": "https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?w=800&h=400&fit=crop",
       "current_location": "Capitol Reef, UT",
       "home_base": "Phoenix, AZ",
-      "hobbies": ["fishing", "stargazing", "reading", "cooking"],
+      "hobbies": [
+        "fishing",
+        "stargazing",
+        "reading",
+        "cooking"
+      ],
       "in_town_windows": [
-        {"city_area": "Capitol Reef, UT", "start_date": "2026-02-11", "end_date": "2026-02-25"},
-        {"city_area": "Valley of Fire, NV", "start_date": "2026-02-25", "end_date": "2026-03-11"},
-        {"city_area": "Death Valley, CA", "start_date": "2026-03-11", "end_date": "2026-04-11"}
+        {
+          "city_area": "Capitol Reef, UT",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-25"
+        },
+        {
+          "city_area": "Valley of Fire, NV",
+          "start_date": "2026-02-25",
+          "end_date": "2026-03-11"
+        },
+        {
+          "city_area": "Death Valley, CA",
+          "start_date": "2026-03-11",
+          "end_date": "2026-04-11"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "next_stop_journey", "answer": "Nevada desert for stargazing and solitude"},
-        {"prompt_name": "most_romantic_spot", "answer": "A hot spring in the mountains under the stars"},
-        {"prompt_name": "traveling_with_my_pet", "answer": "dogs make the best co-pilots and conversation starters"}
+        {
+          "prompt_name": "next_stop_journey",
+          "answer": "Nevada desert for stargazing and solitude"
+        },
+        {
+          "prompt_name": "most_romantic_spot",
+          "answer": "A hot spring in the mountains under the stars"
+        },
+        {
+          "prompt_name": "traveling_with_my_pet",
+          "answer": "dogs make the best co-pilots and conversation starters"
+        }
       ],
       "vehicle": {
         "vehicle_type": "rv",
@@ -325,7 +683,12 @@
         "year": 2019,
         "build_status": "stock",
         "nickname": "The View"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/marcus-gallery-1/900/1200",
+        "https://picsum.photos/seed/marcus-gallery-2/900/1200",
+        "https://picsum.photos/seed/marcus-gallery-3/900/1200"
+      ]
     },
     {
       "username": "emma",
@@ -360,16 +723,42 @@
       "cover_url": "https://images.unsplash.com/photo-1561361513-2d000a50f0dc?w=800&h=400&fit=crop",
       "current_location": "Sedona, AZ",
       "home_base": "Portland, OR",
-      "hobbies": ["writing", "reading", "coffee", "hiking"],
+      "hobbies": [
+        "writing",
+        "reading",
+        "coffee",
+        "hiking"
+      ],
       "in_town_windows": [
-        {"city_area": "Salt Lake City, UT", "start_date": "2026-02-11", "end_date": "2026-02-22"},
-        {"city_area": "Mendocino, CA", "start_date": "2026-02-22", "end_date": "2026-03-08"},
-        {"city_area": "Steamboat Springs, CO", "start_date": "2026-03-08", "end_date": "2026-04-08"}
+        {
+          "city_area": "Salt Lake City, UT",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-22"
+        },
+        {
+          "city_area": "Mendocino, CA",
+          "start_date": "2026-02-22",
+          "end_date": "2026-03-08"
+        },
+        {
+          "city_area": "Steamboat Springs, CO",
+          "start_date": "2026-03-08",
+          "end_date": "2026-04-08"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "perfect_vanlife_meetup", "answer": "Coffee and trail planning at a scenic overlook"},
-        {"prompt_name": "dating_me_means", "answer": "accepting that my van is my home and I love it"},
-        {"prompt_name": "friends_know_me_as", "answer": "the laid-back hammock enthusiast"}
+        {
+          "prompt_name": "perfect_vanlife_meetup",
+          "answer": "Coffee and trail planning at a scenic overlook"
+        },
+        {
+          "prompt_name": "dating_me_means",
+          "answer": "accepting that my van is my home and I love it"
+        },
+        {
+          "prompt_name": "friends_know_me_as",
+          "answer": "the laid-back hammock enthusiast"
+        }
       ],
       "vehicle": {
         "vehicle_type": "van",
@@ -378,14 +767,19 @@
         "year": 2022,
         "build_status": "full",
         "nickname": "The Office"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/emma-gallery-1/900/1200",
+        "https://picsum.photos/seed/emma-gallery-2/900/1200",
+        "https://picsum.photos/seed/emma-gallery-3/900/1200"
+      ]
     },
     {
       "username": "river",
       "email": "river@example.com",
       "password": "testpass123",
       "display_name": "River Stone",
-      "bio": "Nomadic soul seeking community on the road. Let's share a campfire and swap stories! 🔥",
+      "bio": "Nomadic soul seeking community on the road. Let's share a campfire and swap stories! \ud83d\udd25",
       "gender": "non_binary",
       "profile_type": "solo",
       "looking_for_dating": false,
@@ -413,16 +807,42 @@
       "cover_url": "https://images.unsplash.com/photo-1527786356703-4b100091cd2c?w=800&h=400&fit=crop",
       "current_location": "Kanab, UT",
       "home_base": "",
-      "hobbies": ["camping", "music", "cooking", "stargazing"],
+      "hobbies": [
+        "camping",
+        "music",
+        "cooking",
+        "stargazing"
+      ],
       "in_town_windows": [
-        {"city_area": "Kanab, UT", "start_date": "2026-02-11", "end_date": "2026-02-28"},
-        {"city_area": "Black Rock Desert, NV", "start_date": "2026-02-28", "end_date": "2026-03-14"},
-        {"city_area": "Yosemite, CA", "start_date": "2026-03-14", "end_date": "2026-04-14"}
+        {
+          "city_area": "Kanab, UT",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-28"
+        },
+        {
+          "city_area": "Black Rock Desert, NV",
+          "start_date": "2026-02-28",
+          "end_date": "2026-03-14"
+        },
+        {
+          "city_area": "Yosemite, CA",
+          "start_date": "2026-03-14",
+          "end_date": "2026-04-14"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "best_part_meeting_vanlifers", "answer": "The instant understanding of this crazy lifestyle"},
-        {"prompt_name": "instant_friends_if", "answer": "you wave at other van dwellers on the highway"},
-        {"prompt_name": "go_to_campfire_story", "answer": "the epic sunset that made me quit my job"}
+        {
+          "prompt_name": "best_part_meeting_vanlifers",
+          "answer": "The instant understanding of this crazy lifestyle"
+        },
+        {
+          "prompt_name": "instant_friends_if",
+          "answer": "you wave at other van dwellers on the highway"
+        },
+        {
+          "prompt_name": "go_to_campfire_story",
+          "answer": "the epic sunset that made me quit my job"
+        }
       ],
       "vehicle": {
         "vehicle_type": "skoolie",
@@ -431,7 +851,12 @@
         "year": 2018,
         "build_status": "full",
         "nickname": "Big Yellow"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/river-gallery-1/900/1200",
+        "https://picsum.photos/seed/river-gallery-2/900/1200",
+        "https://picsum.photos/seed/river-gallery-3/900/1200"
+      ]
     },
     {
       "username": "alex",
@@ -466,16 +891,42 @@
       "cover_url": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=400&fit=crop",
       "current_location": "Telluride, CO",
       "home_base": "Austin, TX",
-      "hobbies": ["hiking", "mountain_biking", "coffee", "photography"],
+      "hobbies": [
+        "hiking",
+        "mountain_biking",
+        "coffee",
+        "photography"
+      ],
       "in_town_windows": [
-        {"city_area": "Telluride, CO", "start_date": "2026-02-11", "end_date": "2026-02-24"},
-        {"city_area": "Arches NP, UT", "start_date": "2026-02-24", "end_date": "2026-03-10"},
-        {"city_area": "Mammoth Lakes, CA", "start_date": "2026-03-10", "end_date": "2026-04-10"}
+        {
+          "city_area": "Telluride, CO",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-24"
+        },
+        {
+          "city_area": "Arches NP, UT",
+          "start_date": "2026-02-24",
+          "end_date": "2026-03-10"
+        },
+        {
+          "city_area": "Mammoth Lakes, CA",
+          "start_date": "2026-03-10",
+          "end_date": "2026-04-10"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "always_down_team_up", "answer": "coffee shop hopping in small towns"},
-        {"prompt_name": "best_vanlife_hack", "answer": "a good headlamp changes everything"},
-        {"prompt_name": "instant_friends_if", "answer": "you've ever driven hours for a good taco"}
+        {
+          "prompt_name": "always_down_team_up",
+          "answer": "coffee shop hopping in small towns"
+        },
+        {
+          "prompt_name": "best_vanlife_hack",
+          "answer": "a good headlamp changes everything"
+        },
+        {
+          "prompt_name": "instant_friends_if",
+          "answer": "you've ever driven hours for a good taco"
+        }
       ],
       "vehicle": {
         "vehicle_type": "van",
@@ -484,15 +935,19 @@
         "year": 2020,
         "build_status": "partial",
         "nickname": "Freedom Machine"
-      }
-    }
-,
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/alex-gallery-1/900/1200",
+        "https://picsum.photos/seed/alex-gallery-2/900/1200",
+        "https://picsum.photos/seed/alex-gallery-3/900/1200"
+      ]
+    },
     {
       "username": "luna",
       "email": "luna@example.com",
       "password": "testpass123",
       "display_name": "Luna Park",
-      "bio": "Yoga instructor on wheels. Teaching classes wherever I park. Namaste from the road! 🧘‍♀️",
+      "bio": "Yoga instructor on wheels. Teaching classes wherever I park. Namaste from the road! \ud83e\uddd8\u200d\u2640\ufe0f",
       "gender": "woman",
       "profile_type": "solo",
       "looking_for_dating": false,
@@ -520,16 +975,42 @@
       "cover_url": "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&h=400&fit=crop",
       "current_location": "St. George, UT",
       "home_base": "Bend, OR",
-      "hobbies": ["yoga", "meditation", "hiking", "cooking"],
+      "hobbies": [
+        "yoga",
+        "meditation",
+        "hiking",
+        "cooking"
+      ],
       "in_town_windows": [
-        {"city_area": "St. George, UT", "start_date": "2026-02-11", "end_date": "2026-02-25"},
-        {"city_area": "Aspen, CO", "start_date": "2026-02-25", "end_date": "2026-03-11"},
-        {"city_area": "San Diego, CA", "start_date": "2026-03-11", "end_date": "2026-04-11"}
+        {
+          "city_area": "St. George, UT",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-25"
+        },
+        {
+          "city_area": "Aspen, CO",
+          "start_date": "2026-02-25",
+          "end_date": "2026-03-11"
+        },
+        {
+          "city_area": "San Diego, CA",
+          "start_date": "2026-03-11",
+          "end_date": "2026-04-11"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "perfect_vanlife_meetup", "answer": "Sunrise yoga session with fellow travelers"},
-        {"prompt_name": "friends_know_me_as", "answer": "the early-riser sunrise chaser"},
-        {"prompt_name": "motto_i_travel_by", "answer": "Less stuff, more life"}
+        {
+          "prompt_name": "perfect_vanlife_meetup",
+          "answer": "Sunrise yoga session with fellow travelers"
+        },
+        {
+          "prompt_name": "friends_know_me_as",
+          "answer": "the early-riser sunrise chaser"
+        },
+        {
+          "prompt_name": "motto_i_travel_by",
+          "answer": "Less stuff, more life"
+        }
       ],
       "vehicle": {
         "vehicle_type": "van",
@@ -538,7 +1019,12 @@
         "year": 2021,
         "build_status": "full",
         "nickname": "Rolling Thunder"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/luna-gallery-1/900/1200",
+        "https://picsum.photos/seed/luna-gallery-2/900/1200",
+        "https://picsum.photos/seed/luna-gallery-3/900/1200"
+      ]
     },
     {
       "username": "kai",
@@ -573,16 +1059,42 @@
       "cover_url": "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=800&h=400&fit=crop",
       "current_location": "San Diego, CA",
       "home_base": "Honolulu, HI",
-      "hobbies": ["surfing", "photography", "camping", "music"],
+      "hobbies": [
+        "surfing",
+        "photography",
+        "camping",
+        "music"
+      ],
       "in_town_windows": [
-        {"city_area": "San Diego, CA", "start_date": "2026-02-11", "end_date": "2026-02-22"},
-        {"city_area": "Santa Barbara, CA", "start_date": "2026-02-22", "end_date": "2026-03-08"},
-        {"city_area": "Morro Bay, CA", "start_date": "2026-03-08", "end_date": "2026-04-08"}
+        {
+          "city_area": "San Diego, CA",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-22"
+        },
+        {
+          "city_area": "Santa Barbara, CA",
+          "start_date": "2026-02-22",
+          "end_date": "2026-03-08"
+        },
+        {
+          "city_area": "Morro Bay, CA",
+          "start_date": "2026-03-08",
+          "end_date": "2026-04-08"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "looking_for_travel_buddy", "answer": "drive the Pacific Coast Highway"},
-        {"prompt_name": "friend_need", "answer": "start a campfire and share some stories"},
-        {"prompt_name": "instant_friends_if", "answer": "you appreciate a good sunset as much as I do"}
+        {
+          "prompt_name": "looking_for_travel_buddy",
+          "answer": "drive the Pacific Coast Highway"
+        },
+        {
+          "prompt_name": "friend_need",
+          "answer": "start a campfire and share some stories"
+        },
+        {
+          "prompt_name": "instant_friends_if",
+          "answer": "you appreciate a good sunset as much as I do"
+        }
       ],
       "vehicle": {
         "vehicle_type": "van",
@@ -591,14 +1103,19 @@
         "year": 2019,
         "build_status": "partial",
         "nickname": "The Cruiser"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/kai-gallery-1/900/1200",
+        "https://picsum.photos/seed/kai-gallery-2/900/1200",
+        "https://picsum.photos/seed/kai-gallery-3/900/1200"
+      ]
     },
     {
       "username": "brenda",
       "email": "brenda@example.com",
       "password": "testpass123",
       "display_name": "Brenda Foster",
-      "bio": "RV life with my adventure pup Luna 🐕 Love basecamping and exploring dog-friendly trails!",
+      "bio": "RV life with my adventure pup Luna \ud83d\udc15 Love basecamping and exploring dog-friendly trails!",
       "gender": "woman",
       "profile_type": "solo",
       "looking_for_dating": true,
@@ -626,16 +1143,42 @@
       "cover_url": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop",
       "current_location": "Estes Park, CO",
       "home_base": "Nashville, TN",
-      "hobbies": ["hiking", "photography", "dog_training", "camping"],
+      "hobbies": [
+        "hiking",
+        "photography",
+        "dog_training",
+        "camping"
+      ],
       "in_town_windows": [
-        {"city_area": "Estes Park, CO", "start_date": "2026-02-11", "end_date": "2026-02-28"},
-        {"city_area": "Canyonlands, UT", "start_date": "2026-02-28", "end_date": "2026-03-14"},
-        {"city_area": "Sequoia NP, CA", "start_date": "2026-03-14", "end_date": "2026-04-14"}
+        {
+          "city_area": "Estes Park, CO",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-28"
+        },
+        {
+          "city_area": "Canyonlands, UT",
+          "start_date": "2026-02-28",
+          "end_date": "2026-03-14"
+        },
+        {
+          "city_area": "Sequoia NP, CA",
+          "start_date": "2026-03-14",
+          "end_date": "2026-04-14"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "next_stop_journey", "answer": "Colorado mountains for hiking and hot springs"},
-        {"prompt_name": "impress_me_road_trip", "answer": "know a secret free campsite with amazing views"},
-        {"prompt_name": "traveling_with_my_pet", "answer": "finding dog-friendly hikes is an art form"}
+        {
+          "prompt_name": "next_stop_journey",
+          "answer": "Colorado mountains for hiking and hot springs"
+        },
+        {
+          "prompt_name": "impress_me_road_trip",
+          "answer": "know a secret free campsite with amazing views"
+        },
+        {
+          "prompt_name": "traveling_with_my_pet",
+          "answer": "finding dog-friendly hikes is an art form"
+        }
       ],
       "vehicle": {
         "vehicle_type": "rv",
@@ -644,7 +1187,12 @@
         "year": 2020,
         "build_status": "stock",
         "nickname": "Road Palace"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/brenda-gallery-1/900/1200",
+        "https://picsum.photos/seed/brenda-gallery-2/900/1200",
+        "https://picsum.photos/seed/brenda-gallery-3/900/1200"
+      ]
     },
     {
       "username": "charles",
@@ -679,18 +1227,49 @@
       "cover_url": "https://images.unsplash.com/photo-1533587851505-d119e13fa0d7?w=800&h=400&fit=crop",
       "current_location": "Denver, CO",
       "home_base": "Chicago, IL",
-      "hobbies": ["writing", "photography", "reading", "coffee"],
+      "hobbies": [
+        "writing",
+        "photography",
+        "reading",
+        "coffee"
+      ],
       "in_town_windows": [
-        {"city_area": "Denver, CO", "start_date": "2026-02-11", "end_date": "2026-02-24"},
-        {"city_area": "Park City, UT", "start_date": "2026-02-24", "end_date": "2026-03-10"},
-        {"city_area": "Reno, NV", "start_date": "2026-03-10", "end_date": "2026-04-10"}
+        {
+          "city_area": "Denver, CO",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-24"
+        },
+        {
+          "city_area": "Park City, UT",
+          "start_date": "2026-02-24",
+          "end_date": "2026-03-10"
+        },
+        {
+          "city_area": "Reno, NV",
+          "start_date": "2026-03-10",
+          "end_date": "2026-04-10"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "best_hidden_gem", "answer": "A canyon in Utah that's not on any map"},
-        {"prompt_name": "well_get_along_if", "answer": "good food and better conversation"},
-        {"prompt_name": "best_vanlife_hack", "answer": "befriend locals for the best spot recommendations"}
+        {
+          "prompt_name": "best_hidden_gem",
+          "answer": "A canyon in Utah that's not on any map"
+        },
+        {
+          "prompt_name": "well_get_along_if",
+          "answer": "good food and better conversation"
+        },
+        {
+          "prompt_name": "best_vanlife_hack",
+          "answer": "befriend locals for the best spot recommendations"
+        }
       ],
-      "vehicle": null
+      "vehicle": null,
+      "gallery_urls": [
+        "https://picsum.photos/seed/charles-gallery-1/900/1200",
+        "https://picsum.photos/seed/charles-gallery-2/900/1200",
+        "https://picsum.photos/seed/charles-gallery-3/900/1200"
+      ]
     },
     {
       "username": "diana",
@@ -725,16 +1304,42 @@
       "cover_url": "https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?w=800&h=400&fit=crop",
       "current_location": "Ouray, CO",
       "home_base": "Seattle, WA",
-      "hobbies": ["remote_work", "hiking", "yoga", "cooking"],
+      "hobbies": [
+        "remote_work",
+        "hiking",
+        "yoga",
+        "cooking"
+      ],
       "in_town_windows": [
-        {"city_area": "Ouray, CO", "start_date": "2026-02-11", "end_date": "2026-02-25"},
-        {"city_area": "Goblin Valley, UT", "start_date": "2026-02-25", "end_date": "2026-03-11"},
-        {"city_area": "Bishop, CA", "start_date": "2026-03-11", "end_date": "2026-04-11"}
+        {
+          "city_area": "Ouray, CO",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-25"
+        },
+        {
+          "city_area": "Goblin Valley, UT",
+          "start_date": "2026-02-25",
+          "end_date": "2026-03-11"
+        },
+        {
+          "city_area": "Bishop, CA",
+          "start_date": "2026-03-11",
+          "end_date": "2026-04-11"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "looking_for_travel_buddy", "answer": "find every hot spring in the Southwest"},
-        {"prompt_name": "ideal_vanlife_date", "answer": "Hot springs under the stars"},
-        {"prompt_name": "friends_know_me_as", "answer": "the spontaneous adventure planner"}
+        {
+          "prompt_name": "looking_for_travel_buddy",
+          "answer": "find every hot spring in the Southwest"
+        },
+        {
+          "prompt_name": "ideal_vanlife_date",
+          "answer": "Hot springs under the stars"
+        },
+        {
+          "prompt_name": "friends_know_me_as",
+          "answer": "the spontaneous adventure planner"
+        }
       ],
       "vehicle": {
         "vehicle_type": "van",
@@ -743,7 +1348,12 @@
         "year": 2021,
         "build_status": "full",
         "nickname": "Roadrunner"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/diana-gallery-1/900/1200",
+        "https://picsum.photos/seed/diana-gallery-2/900/1200",
+        "https://picsum.photos/seed/diana-gallery-3/900/1200"
+      ]
     },
     {
       "username": "ethan",
@@ -778,16 +1388,42 @@
       "cover_url": "https://images.unsplash.com/photo-1561361513-2d000a50f0dc?w=800&h=400&fit=crop",
       "current_location": "Crested Butte, CO",
       "home_base": "Boise, ID",
-      "hobbies": ["mountain_biking", "camping", "photography", "music"],
+      "hobbies": [
+        "mountain_biking",
+        "camping",
+        "photography",
+        "music"
+      ],
       "in_town_windows": [
-        {"city_area": "Crested Butte, CO", "start_date": "2026-02-11", "end_date": "2026-02-22"},
-        {"city_area": "Moab, UT", "start_date": "2026-02-22", "end_date": "2026-03-08"},
-        {"city_area": "Lake Tahoe, CA", "start_date": "2026-03-08", "end_date": "2026-04-08"}
+        {
+          "city_area": "Crested Butte, CO",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-22"
+        },
+        {
+          "city_area": "Moab, UT",
+          "start_date": "2026-02-22",
+          "end_date": "2026-03-08"
+        },
+        {
+          "city_area": "Lake Tahoe, CA",
+          "start_date": "2026-03-08",
+          "end_date": "2026-04-08"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "always_down_team_up", "answer": "mountain biking new trails"},
-        {"prompt_name": "swipe_right_if", "answer": "adventure is your love language"},
-        {"prompt_name": "friend_need", "answer": "explore a new area together"}
+        {
+          "prompt_name": "always_down_team_up",
+          "answer": "mountain biking new trails"
+        },
+        {
+          "prompt_name": "swipe_right_if",
+          "answer": "adventure is your love language"
+        },
+        {
+          "prompt_name": "friend_need",
+          "answer": "explore a new area together"
+        }
       ],
       "vehicle": {
         "vehicle_type": "van",
@@ -796,7 +1432,12 @@
         "year": 2023,
         "build_status": "partial",
         "nickname": "Freedom Machine"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/ethan-gallery-1/900/1200",
+        "https://picsum.photos/seed/ethan-gallery-2/900/1200",
+        "https://picsum.photos/seed/ethan-gallery-3/900/1200"
+      ]
     },
     {
       "username": "fiona",
@@ -831,16 +1472,42 @@
       "cover_url": "https://images.unsplash.com/photo-1527786356703-4b100091cd2c?w=800&h=400&fit=crop",
       "current_location": "Glenwood Springs, CO",
       "home_base": "Dublin, Ireland",
-      "hobbies": ["hiking", "photography", "music", "camping"],
+      "hobbies": [
+        "hiking",
+        "photography",
+        "music",
+        "camping"
+      ],
       "in_town_windows": [
-        {"city_area": "Glenwood Springs, CO", "start_date": "2026-02-11", "end_date": "2026-02-28"},
-        {"city_area": "Zion NP, UT", "start_date": "2026-02-28", "end_date": "2026-03-14"},
-        {"city_area": "Yosemite, CA", "start_date": "2026-03-14", "end_date": "2026-04-14"}
+        {
+          "city_area": "Glenwood Springs, CO",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-28"
+        },
+        {
+          "city_area": "Zion NP, UT",
+          "start_date": "2026-02-28",
+          "end_date": "2026-03-14"
+        },
+        {
+          "city_area": "Yosemite, CA",
+          "start_date": "2026-03-14",
+          "end_date": "2026-04-14"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "best_part_meeting_vanlifers", "answer": "Hearing wild travel stories around the campfire"},
-        {"prompt_name": "quickest_way_to_heart", "answer": "making me laugh on a long drive"},
-        {"prompt_name": "go_to_campfire_story", "answer": "when I accidentally camped on private land and met the nicest rancher"}
+        {
+          "prompt_name": "best_part_meeting_vanlifers",
+          "answer": "Hearing wild travel stories around the campfire"
+        },
+        {
+          "prompt_name": "quickest_way_to_heart",
+          "answer": "making me laugh on a long drive"
+        },
+        {
+          "prompt_name": "go_to_campfire_story",
+          "answer": "when I accidentally camped on private land and met the nicest rancher"
+        }
       ],
       "vehicle": {
         "vehicle_type": "van",
@@ -849,14 +1516,19 @@
         "year": 2021,
         "build_status": "full",
         "nickname": "The Beast"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/fiona-gallery-1/900/1200",
+        "https://picsum.photos/seed/fiona-gallery-2/900/1200",
+        "https://picsum.photos/seed/fiona-gallery-3/900/1200"
+      ]
     },
     {
       "username": "gabriel",
       "email": "gabriel@example.com",
       "password": "testpass123",
       "display_name": "Gabriel Santos",
-      "bio": "Chef turned van lifer. Cooking gourmet meals in my tiny kitchen. Food is love! 🍳",
+      "bio": "Chef turned van lifer. Cooking gourmet meals in my tiny kitchen. Food is love! \ud83c\udf73",
       "gender": "man",
       "profile_type": "solo",
       "looking_for_dating": true,
@@ -884,16 +1556,42 @@
       "cover_url": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=400&fit=crop",
       "current_location": "Colorado Springs, CO",
       "home_base": "Miami, FL",
-      "hobbies": ["cooking", "hiking", "photography", "camping"],
+      "hobbies": [
+        "cooking",
+        "hiking",
+        "photography",
+        "camping"
+      ],
       "in_town_windows": [
-        {"city_area": "Colorado Springs, CO", "start_date": "2026-02-11", "end_date": "2026-02-24"},
-        {"city_area": "Bears Ears, UT", "start_date": "2026-02-24", "end_date": "2026-03-10"},
-        {"city_area": "Lake Mead, NV", "start_date": "2026-03-10", "end_date": "2026-04-10"}
+        {
+          "city_area": "Colorado Springs, CO",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-24"
+        },
+        {
+          "city_area": "Bears Ears, UT",
+          "start_date": "2026-02-24",
+          "end_date": "2026-03-10"
+        },
+        {
+          "city_area": "Lake Mead, NV",
+          "start_date": "2026-03-10",
+          "end_date": "2026-04-10"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "perfect_vanlife_meetup", "answer": "Potluck dinner at a beach camp with sunset views"},
-        {"prompt_name": "ideal_vanlife_date", "answer": "Cooking a fancy meal in my tiny kitchen"},
-        {"prompt_name": "friends_know_me_as", "answer": "the campfire chef"}
+        {
+          "prompt_name": "perfect_vanlife_meetup",
+          "answer": "Potluck dinner at a beach camp with sunset views"
+        },
+        {
+          "prompt_name": "ideal_vanlife_date",
+          "answer": "Cooking a fancy meal in my tiny kitchen"
+        },
+        {
+          "prompt_name": "friends_know_me_as",
+          "answer": "the campfire chef"
+        }
       ],
       "vehicle": {
         "vehicle_type": "van",
@@ -902,9 +1600,13 @@
         "year": 2022,
         "build_status": "full",
         "nickname": "ProHome"
-      }
-    }
-,
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/gabriel-gallery-1/900/1200",
+        "https://picsum.photos/seed/gabriel-gallery-2/900/1200",
+        "https://picsum.photos/seed/gabriel-gallery-3/900/1200"
+      ]
+    },
     {
       "username": "sam_taylor",
       "email": "sam_taylor@example.com",
@@ -938,16 +1640,42 @@
       "cover_url": "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&h=400&fit=crop",
       "current_location": "Bryce Canyon, UT",
       "home_base": "Portland, OR",
-      "hobbies": ["hiking", "photography", "cooking", "stargazing"],
+      "hobbies": [
+        "hiking",
+        "photography",
+        "cooking",
+        "stargazing"
+      ],
       "in_town_windows": [
-        {"city_area": "Bryce Canyon, UT", "start_date": "2026-02-11", "end_date": "2026-02-25"},
-        {"city_area": "Durango, CO", "start_date": "2026-02-25", "end_date": "2026-03-11"},
-        {"city_area": "Joshua Tree, CA", "start_date": "2026-03-11", "end_date": "2026-04-11"}
+        {
+          "city_area": "Bryce Canyon, UT",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-25"
+        },
+        {
+          "city_area": "Durango, CO",
+          "start_date": "2026-02-25",
+          "end_date": "2026-03-11"
+        },
+        {
+          "city_area": "Joshua Tree, CA",
+          "start_date": "2026-03-11",
+          "end_date": "2026-04-11"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "next_stop_journey", "answer": "Moab area - can't get enough of those canyons"},
-        {"prompt_name": "best_part_meeting_vanlifers", "answer": "Building a community that spans the country"},
-        {"prompt_name": "motto_i_travel_by", "answer": "The journey is the destination"}
+        {
+          "prompt_name": "next_stop_journey",
+          "answer": "Moab area - can't get enough of those canyons"
+        },
+        {
+          "prompt_name": "best_part_meeting_vanlifers",
+          "answer": "Building a community that spans the country"
+        },
+        {
+          "prompt_name": "motto_i_travel_by",
+          "answer": "The journey is the destination"
+        }
       ],
       "vehicle": {
         "vehicle_type": "van",
@@ -956,7 +1684,12 @@
         "year": 2022,
         "build_status": "full",
         "nickname": "The Beast"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/sam_taylor-gallery-1/900/1200",
+        "https://picsum.photos/seed/sam_taylor-gallery-2/900/1200",
+        "https://picsum.photos/seed/sam_taylor-gallery-3/900/1200"
+      ]
     },
     {
       "username": "mike_sarah",
@@ -991,16 +1724,42 @@
       "cover_url": "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=800&h=400&fit=crop",
       "current_location": "Durango, CO",
       "home_base": "Atlanta, GA",
-      "hobbies": ["hiking", "camping", "dog_training", "kayaking"],
+      "hobbies": [
+        "hiking",
+        "camping",
+        "dog_training",
+        "kayaking"
+      ],
       "in_town_windows": [
-        {"city_area": "Durango, CO", "start_date": "2026-02-11", "end_date": "2026-02-28"},
-        {"city_area": "Arches NP, UT", "start_date": "2026-02-28", "end_date": "2026-03-14"},
-        {"city_area": "Lake Tahoe, CA", "start_date": "2026-03-14", "end_date": "2026-04-14"}
+        {
+          "city_area": "Durango, CO",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-28"
+        },
+        {
+          "city_area": "Arches NP, UT",
+          "start_date": "2026-02-28",
+          "end_date": "2026-03-14"
+        },
+        {
+          "city_area": "Lake Tahoe, CA",
+          "start_date": "2026-03-14",
+          "end_date": "2026-04-14"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "always_down_team_up", "answer": "exploring hidden hot springs"},
-        {"prompt_name": "traveling_with_my_pet", "answer": "the best adventures are shared with four-legged friends"},
-        {"prompt_name": "instant_friends_if", "answer": "you think \"home\" is wherever you park"}
+        {
+          "prompt_name": "always_down_team_up",
+          "answer": "exploring hidden hot springs"
+        },
+        {
+          "prompt_name": "traveling_with_my_pet",
+          "answer": "the best adventures are shared with four-legged friends"
+        },
+        {
+          "prompt_name": "instant_friends_if",
+          "answer": "you think \"home\" is wherever you park"
+        }
       ],
       "vehicle": {
         "vehicle_type": "rv",
@@ -1009,14 +1768,19 @@
         "year": 2021,
         "build_status": "stock",
         "nickname": "Silver Bullet"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/mike_sarah-gallery-1/900/1200",
+        "https://picsum.photos/seed/mike_sarah-gallery-2/900/1200",
+        "https://picsum.photos/seed/mike_sarah-gallery-3/900/1200"
+      ]
     },
     {
       "username": "jordan_casey",
       "email": "jordan_casey@example.com",
       "password": "testpass123",
       "display_name": "Jordan & Casey",
-      "bio": "Queer couple exploring the Southwest. Our van is small but our love is big! 🏳️‍🌈",
+      "bio": "Queer couple exploring the Southwest. Our van is small but our love is big! \ud83c\udff3\ufe0f\u200d\ud83c\udf08",
       "gender": "non_binary",
       "profile_type": "couple",
       "looking_for_dating": false,
@@ -1044,16 +1808,42 @@
       "cover_url": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop",
       "current_location": "Moab, UT",
       "home_base": "San Francisco, CA",
-      "hobbies": ["rock_climbing", "yoga", "photography", "music"],
+      "hobbies": [
+        "rock_climbing",
+        "yoga",
+        "photography",
+        "music"
+      ],
       "in_town_windows": [
-        {"city_area": "Moab, UT", "start_date": "2026-02-11", "end_date": "2026-02-24"},
-        {"city_area": "Red Rock Canyon, NV", "start_date": "2026-02-24", "end_date": "2026-03-10"},
-        {"city_area": "Big Sur, CA", "start_date": "2026-03-10", "end_date": "2026-04-10"}
+        {
+          "city_area": "Moab, UT",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-24"
+        },
+        {
+          "city_area": "Red Rock Canyon, NV",
+          "start_date": "2026-02-24",
+          "end_date": "2026-03-10"
+        },
+        {
+          "city_area": "Big Sur, CA",
+          "start_date": "2026-03-10",
+          "end_date": "2026-04-10"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "best_part_meeting_vanlifers", "answer": "Making friends who get why you live this way"},
-        {"prompt_name": "go_to_campfire_story", "answer": "meeting my best van life friends at a random campsite"},
-        {"prompt_name": "motto_i_travel_by", "answer": "Adventure before comfort"}
+        {
+          "prompt_name": "best_part_meeting_vanlifers",
+          "answer": "Making friends who get why you live this way"
+        },
+        {
+          "prompt_name": "go_to_campfire_story",
+          "answer": "meeting my best van life friends at a random campsite"
+        },
+        {
+          "prompt_name": "motto_i_travel_by",
+          "answer": "Adventure before comfort"
+        }
       ],
       "vehicle": {
         "vehicle_type": "van",
@@ -1062,7 +1852,12 @@
         "year": 2020,
         "build_status": "full",
         "nickname": "The Wanderer"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/jordan_casey-gallery-1/900/1200",
+        "https://picsum.photos/seed/jordan_casey-gallery-2/900/1200",
+        "https://picsum.photos/seed/jordan_casey-gallery-3/900/1200"
+      ]
     },
     {
       "username": "ben_lisa",
@@ -1097,16 +1892,42 @@
       "cover_url": "https://images.unsplash.com/photo-1533587851505-d119e13fa0d7?w=800&h=400&fit=crop",
       "current_location": "Park City, UT",
       "home_base": "Minneapolis, MN",
-      "hobbies": ["birdwatching", "hiking", "photography", "reading"],
+      "hobbies": [
+        "birdwatching",
+        "hiking",
+        "photography",
+        "reading"
+      ],
       "in_town_windows": [
-        {"city_area": "Park City, UT", "start_date": "2026-02-11", "end_date": "2026-02-25"},
-        {"city_area": "Great Basin NP, NV", "start_date": "2026-02-25", "end_date": "2026-03-11"},
-        {"city_area": "Mendocino, CA", "start_date": "2026-03-11", "end_date": "2026-04-11"}
+        {
+          "city_area": "Park City, UT",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-25"
+        },
+        {
+          "city_area": "Great Basin NP, NV",
+          "start_date": "2026-02-25",
+          "end_date": "2026-03-11"
+        },
+        {
+          "city_area": "Mendocino, CA",
+          "start_date": "2026-03-11",
+          "end_date": "2026-04-11"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "next_stop_journey", "answer": "Lake Tahoe region for summer vibes"},
-        {"prompt_name": "best_hidden_gem", "answer": "A quiet BLM spot near Valley of the Gods - incredible views, zero crowds"},
-        {"prompt_name": "best_vanlife_hack", "answer": "a collapsible everything - bowls, cups, you name it"}
+        {
+          "prompt_name": "next_stop_journey",
+          "answer": "Lake Tahoe region for summer vibes"
+        },
+        {
+          "prompt_name": "best_hidden_gem",
+          "answer": "A quiet BLM spot near Valley of the Gods - incredible views, zero crowds"
+        },
+        {
+          "prompt_name": "best_vanlife_hack",
+          "answer": "a collapsible everything - bowls, cups, you name it"
+        }
       ],
       "vehicle": {
         "vehicle_type": "rv",
@@ -1115,7 +1936,12 @@
         "year": 2023,
         "build_status": "stock",
         "nickname": "The Airstream"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/ben_lisa-gallery-1/900/1200",
+        "https://picsum.photos/seed/ben_lisa-gallery-2/900/1200",
+        "https://picsum.photos/seed/ben_lisa-gallery-3/900/1200"
+      ]
     },
     {
       "username": "harper",
@@ -1150,16 +1976,42 @@
       "cover_url": "https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?w=800&h=400&fit=crop",
       "current_location": "Joshua Tree, CA",
       "home_base": "Boston, MA",
-      "hobbies": ["hiking", "camping", "photography", "yoga"],
+      "hobbies": [
+        "hiking",
+        "camping",
+        "photography",
+        "yoga"
+      ],
       "in_town_windows": [
-        {"city_area": "Joshua Tree, CA", "start_date": "2026-02-11", "end_date": "2026-02-22"},
-        {"city_area": "Zion NP, UT", "start_date": "2026-02-22", "end_date": "2026-03-08"},
-        {"city_area": "Boulder, CO", "start_date": "2026-03-08", "end_date": "2026-04-08"}
+        {
+          "city_area": "Joshua Tree, CA",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-22"
+        },
+        {
+          "city_area": "Zion NP, UT",
+          "start_date": "2026-02-22",
+          "end_date": "2026-03-08"
+        },
+        {
+          "city_area": "Boulder, CO",
+          "start_date": "2026-03-08",
+          "end_date": "2026-04-08"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "looking_for_travel_buddy", "answer": "summit some Colorado 14ers"},
-        {"prompt_name": "dating_me_means", "answer": "spontaneous adventures are the norm"},
-        {"prompt_name": "instant_friends_if", "answer": "you don't mind a little sand in your bed"}
+        {
+          "prompt_name": "looking_for_travel_buddy",
+          "answer": "summit some Colorado 14ers"
+        },
+        {
+          "prompt_name": "dating_me_means",
+          "answer": "spontaneous adventures are the norm"
+        },
+        {
+          "prompt_name": "instant_friends_if",
+          "answer": "you don't mind a little sand in your bed"
+        }
       ],
       "vehicle": {
         "vehicle_type": "car",
@@ -1168,7 +2020,12 @@
         "year": 2022,
         "build_status": "partial",
         "nickname": "Subie"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/harper-gallery-1/900/1200",
+        "https://picsum.photos/seed/harper-gallery-2/900/1200",
+        "https://picsum.photos/seed/harper-gallery-3/900/1200"
+      ]
     },
     {
       "username": "noah",
@@ -1203,16 +2060,42 @@
       "cover_url": "https://images.unsplash.com/photo-1561361513-2d000a50f0dc?w=800&h=400&fit=crop",
       "current_location": "Yosemite, CA",
       "home_base": "San Jose, CA",
-      "hobbies": ["remote_work", "hiking", "photography", "coffee"],
+      "hobbies": [
+        "remote_work",
+        "hiking",
+        "photography",
+        "coffee"
+      ],
       "in_town_windows": [
-        {"city_area": "Yosemite, CA", "start_date": "2026-02-11", "end_date": "2026-02-28"},
-        {"city_area": "Steamboat Springs, CO", "start_date": "2026-02-28", "end_date": "2026-03-14"},
-        {"city_area": "Canyonlands, UT", "start_date": "2026-03-14", "end_date": "2026-04-14"}
+        {
+          "city_area": "Yosemite, CA",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-28"
+        },
+        {
+          "city_area": "Steamboat Springs, CO",
+          "start_date": "2026-02-28",
+          "end_date": "2026-03-14"
+        },
+        {
+          "city_area": "Canyonlands, UT",
+          "start_date": "2026-03-14",
+          "end_date": "2026-04-14"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "next_stop_journey", "answer": "The Rockies for some high altitude adventures"},
-        {"prompt_name": "well_get_along_if", "answer": "morning hikes and afternoon naps"},
-        {"prompt_name": "best_vanlife_hack", "answer": "always keep a full water jug for emergencies"}
+        {
+          "prompt_name": "next_stop_journey",
+          "answer": "The Rockies for some high altitude adventures"
+        },
+        {
+          "prompt_name": "well_get_along_if",
+          "answer": "morning hikes and afternoon naps"
+        },
+        {
+          "prompt_name": "best_vanlife_hack",
+          "answer": "always keep a full water jug for emergencies"
+        }
       ],
       "vehicle": {
         "vehicle_type": "van",
@@ -1221,9 +2104,13 @@
         "year": 2023,
         "build_status": "full",
         "nickname": "The Office"
-      }
-    }
-,
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/noah-gallery-1/900/1200",
+        "https://picsum.photos/seed/noah-gallery-2/900/1200",
+        "https://picsum.photos/seed/noah-gallery-3/900/1200"
+      ]
+    },
     {
       "username": "olivia",
       "email": "olivia@example.com",
@@ -1257,16 +2144,42 @@
       "cover_url": "https://images.unsplash.com/photo-1527786356703-4b100091cd2c?w=800&h=400&fit=crop",
       "current_location": "Salt Lake City, UT",
       "home_base": "Dallas, TX",
-      "hobbies": ["yoga", "hiking", "cooking", "reading"],
+      "hobbies": [
+        "yoga",
+        "hiking",
+        "cooking",
+        "reading"
+      ],
       "in_town_windows": [
-        {"city_area": "Salt Lake City, UT", "start_date": "2026-02-11", "end_date": "2026-02-24"},
-        {"city_area": "Denver, CO", "start_date": "2026-02-24", "end_date": "2026-03-10"},
-        {"city_area": "San Diego, CA", "start_date": "2026-03-10", "end_date": "2026-04-10"}
+        {
+          "city_area": "Salt Lake City, UT",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-24"
+        },
+        {
+          "city_area": "Denver, CO",
+          "start_date": "2026-02-24",
+          "end_date": "2026-03-10"
+        },
+        {
+          "city_area": "San Diego, CA",
+          "start_date": "2026-03-10",
+          "end_date": "2026-04-10"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "best_hidden_gem", "answer": "A secret hot spring in Nevada with mountain views"},
-        {"prompt_name": "impress_me_road_trip", "answer": "brew amazing pour-over coffee at sunrise"},
-        {"prompt_name": "friends_know_me_as", "answer": "the one with the best snack stash"}
+        {
+          "prompt_name": "best_hidden_gem",
+          "answer": "A secret hot spring in Nevada with mountain views"
+        },
+        {
+          "prompt_name": "impress_me_road_trip",
+          "answer": "brew amazing pour-over coffee at sunrise"
+        },
+        {
+          "prompt_name": "friends_know_me_as",
+          "answer": "the one with the best snack stash"
+        }
       ],
       "vehicle": {
         "vehicle_type": "van",
@@ -1275,14 +2188,19 @@
         "year": 2020,
         "build_status": "partial",
         "nickname": "Express Lane"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/olivia-gallery-1/900/1200",
+        "https://picsum.photos/seed/olivia-gallery-2/900/1200",
+        "https://picsum.photos/seed/olivia-gallery-3/900/1200"
+      ]
     },
     {
       "username": "liam",
       "email": "liam@example.com",
       "password": "testpass123",
       "display_name": "Liam O'Connor",
-      "bio": "Irish musician touring the US in my van. Catch me busking in a town near you! 🎸",
+      "bio": "Irish musician touring the US in my van. Catch me busking in a town near you! \ud83c\udfb8",
       "gender": "man",
       "profile_type": "solo",
       "looking_for_dating": false,
@@ -1310,16 +2228,42 @@
       "cover_url": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=400&fit=crop",
       "current_location": "Las Vegas, NV",
       "home_base": "Cork, Ireland",
-      "hobbies": ["music", "camping", "coffee", "photography"],
+      "hobbies": [
+        "music",
+        "camping",
+        "coffee",
+        "photography"
+      ],
       "in_town_windows": [
-        {"city_area": "Las Vegas, NV", "start_date": "2026-02-11", "end_date": "2026-02-22"},
-        {"city_area": "Colorado Springs, CO", "start_date": "2026-02-22", "end_date": "2026-03-08"},
-        {"city_area": "Santa Barbara, CA", "start_date": "2026-03-08", "end_date": "2026-04-08"}
+        {
+          "city_area": "Las Vegas, NV",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-22"
+        },
+        {
+          "city_area": "Colorado Springs, CO",
+          "start_date": "2026-02-22",
+          "end_date": "2026-03-08"
+        },
+        {
+          "city_area": "Santa Barbara, CA",
+          "start_date": "2026-03-08",
+          "end_date": "2026-04-08"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "perfect_vanlife_meetup", "answer": "Impromptu music jam around the fire"},
-        {"prompt_name": "friend_need", "answer": "jam on guitar around the fire"},
-        {"prompt_name": "go_to_campfire_story", "answer": "my first week of van life and everything that went wrong"}
+        {
+          "prompt_name": "perfect_vanlife_meetup",
+          "answer": "Impromptu music jam around the fire"
+        },
+        {
+          "prompt_name": "friend_need",
+          "answer": "jam on guitar around the fire"
+        },
+        {
+          "prompt_name": "go_to_campfire_story",
+          "answer": "my first week of van life and everything that went wrong"
+        }
       ],
       "vehicle": {
         "vehicle_type": "van",
@@ -1328,7 +2272,12 @@
         "year": 2019,
         "build_status": "partial",
         "nickname": "The Wanderer"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/liam-gallery-1/900/1200",
+        "https://picsum.photos/seed/liam-gallery-2/900/1200",
+        "https://picsum.photos/seed/liam-gallery-3/900/1200"
+      ]
     },
     {
       "username": "ava",
@@ -1363,16 +2312,42 @@
       "cover_url": "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&h=400&fit=crop",
       "current_location": "Aspen, CO",
       "home_base": "New York, NY",
-      "hobbies": ["hiking", "rock_climbing", "yoga", "reading"],
+      "hobbies": [
+        "hiking",
+        "rock_climbing",
+        "yoga",
+        "reading"
+      ],
       "in_town_windows": [
-        {"city_area": "Aspen, CO", "start_date": "2026-02-11", "end_date": "2026-02-25"},
-        {"city_area": "Kanab, UT", "start_date": "2026-02-25", "end_date": "2026-03-11"},
-        {"city_area": "Mammoth Lakes, CA", "start_date": "2026-03-11", "end_date": "2026-04-11"}
+        {
+          "city_area": "Aspen, CO",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-25"
+        },
+        {
+          "city_area": "Kanab, UT",
+          "start_date": "2026-02-25",
+          "end_date": "2026-03-11"
+        },
+        {
+          "city_area": "Mammoth Lakes, CA",
+          "start_date": "2026-03-11",
+          "end_date": "2026-04-11"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "looking_for_travel_buddy", "answer": "explore all the slot canyons in Utah"},
-        {"prompt_name": "quickest_way_to_heart", "answer": "being genuinely curious about my stories"},
-        {"prompt_name": "motto_i_travel_by", "answer": "The best views come after the hardest climbs"}
+        {
+          "prompt_name": "looking_for_travel_buddy",
+          "answer": "explore all the slot canyons in Utah"
+        },
+        {
+          "prompt_name": "quickest_way_to_heart",
+          "answer": "being genuinely curious about my stories"
+        },
+        {
+          "prompt_name": "motto_i_travel_by",
+          "answer": "The best views come after the hardest climbs"
+        }
       ],
       "vehicle": {
         "vehicle_type": "van",
@@ -1381,7 +2356,12 @@
         "year": 2023,
         "build_status": "full",
         "nickname": "Home Base"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/ava-gallery-1/900/1200",
+        "https://picsum.photos/seed/ava-gallery-2/900/1200",
+        "https://picsum.photos/seed/ava-gallery-3/900/1200"
+      ]
     },
     {
       "username": "mason",
@@ -1416,16 +2396,42 @@
       "cover_url": "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=800&h=400&fit=crop",
       "current_location": "Arches NP, UT",
       "home_base": "Los Angeles, CA",
-      "hobbies": ["photography", "hiking", "coffee", "writing"],
+      "hobbies": [
+        "photography",
+        "hiking",
+        "coffee",
+        "writing"
+      ],
       "in_town_windows": [
-        {"city_area": "Arches NP, UT", "start_date": "2026-02-11", "end_date": "2026-02-28"},
-        {"city_area": "Estes Park, CO", "start_date": "2026-02-28", "end_date": "2026-03-14"},
-        {"city_area": "Morro Bay, CA", "start_date": "2026-03-14", "end_date": "2026-04-14"}
+        {
+          "city_area": "Arches NP, UT",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-28"
+        },
+        {
+          "city_area": "Estes Park, CO",
+          "start_date": "2026-02-28",
+          "end_date": "2026-03-14"
+        },
+        {
+          "city_area": "Morro Bay, CA",
+          "start_date": "2026-03-14",
+          "end_date": "2026-04-14"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "best_part_meeting_vanlifers", "answer": "Trading renovation tips and learning from different builds"},
-        {"prompt_name": "friend_need", "answer": "share a meal and good conversation"},
-        {"prompt_name": "best_vanlife_hack", "answer": "fairy lights as a cozy nightlight"}
+        {
+          "prompt_name": "best_part_meeting_vanlifers",
+          "answer": "Trading renovation tips and learning from different builds"
+        },
+        {
+          "prompt_name": "friend_need",
+          "answer": "share a meal and good conversation"
+        },
+        {
+          "prompt_name": "best_vanlife_hack",
+          "answer": "fairy lights as a cozy nightlight"
+        }
       ],
       "vehicle": {
         "vehicle_type": "van",
@@ -1434,7 +2440,12 @@
         "year": 2021,
         "build_status": "full",
         "nickname": "The Nomad"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/mason-gallery-1/900/1200",
+        "https://picsum.photos/seed/mason-gallery-2/900/1200",
+        "https://picsum.photos/seed/mason-gallery-3/900/1200"
+      ]
     },
     {
       "username": "isabella",
@@ -1469,16 +2480,42 @@
       "cover_url": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop",
       "current_location": "Santa Barbara, CA",
       "home_base": "Rome, Italy",
-      "hobbies": ["cooking", "photography", "hiking", "yoga"],
+      "hobbies": [
+        "cooking",
+        "photography",
+        "hiking",
+        "yoga"
+      ],
       "in_town_windows": [
-        {"city_area": "Santa Barbara, CA", "start_date": "2026-02-11", "end_date": "2026-02-24"},
-        {"city_area": "Ouray, CO", "start_date": "2026-02-24", "end_date": "2026-03-10"},
-        {"city_area": "Bryce Canyon, UT", "start_date": "2026-03-10", "end_date": "2026-04-10"}
+        {
+          "city_area": "Santa Barbara, CA",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-24"
+        },
+        {
+          "city_area": "Ouray, CO",
+          "start_date": "2026-02-24",
+          "end_date": "2026-03-10"
+        },
+        {
+          "city_area": "Bryce Canyon, UT",
+          "start_date": "2026-03-10",
+          "end_date": "2026-04-10"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "always_down_team_up", "answer": "finding the best local taco spots"},
-        {"prompt_name": "ideal_vanlife_date", "answer": "Exploring a new town and finding the best local food"},
-        {"prompt_name": "friends_know_me_as", "answer": "the campfire chef"}
+        {
+          "prompt_name": "always_down_team_up",
+          "answer": "finding the best local taco spots"
+        },
+        {
+          "prompt_name": "ideal_vanlife_date",
+          "answer": "Exploring a new town and finding the best local food"
+        },
+        {
+          "prompt_name": "friends_know_me_as",
+          "answer": "the campfire chef"
+        }
       ],
       "vehicle": {
         "vehicle_type": "van",
@@ -1487,7 +2524,12 @@
         "year": 2022,
         "build_status": "full",
         "nickname": "Sprinter Life"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/isabella-gallery-1/900/1200",
+        "https://picsum.photos/seed/isabella-gallery-2/900/1200",
+        "https://picsum.photos/seed/isabella-gallery-3/900/1200"
+      ]
     },
     {
       "username": "jackson",
@@ -1522,16 +2564,42 @@
       "cover_url": "https://images.unsplash.com/photo-1533587851505-d119e13fa0d7?w=800&h=400&fit=crop",
       "current_location": "Great Basin NP, NV",
       "home_base": "Bozeman, MT",
-      "hobbies": ["fishing", "hiking", "stargazing", "reading"],
+      "hobbies": [
+        "fishing",
+        "hiking",
+        "stargazing",
+        "reading"
+      ],
       "in_town_windows": [
-        {"city_area": "Great Basin NP, NV", "start_date": "2026-02-11", "end_date": "2026-02-25"},
-        {"city_area": "Capitol Reef, UT", "start_date": "2026-02-25", "end_date": "2026-03-11"},
-        {"city_area": "Sequoia NP, CA", "start_date": "2026-03-11", "end_date": "2026-04-11"}
+        {
+          "city_area": "Great Basin NP, NV",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-25"
+        },
+        {
+          "city_area": "Capitol Reef, UT",
+          "start_date": "2026-02-25",
+          "end_date": "2026-03-11"
+        },
+        {
+          "city_area": "Sequoia NP, CA",
+          "start_date": "2026-03-11",
+          "end_date": "2026-04-11"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "next_stop_journey", "answer": "Joshua Tree for some desert magic"},
-        {"prompt_name": "best_hidden_gem", "answer": "A free campsite in the Sierras with a private lake view"},
-        {"prompt_name": "traveling_with_my_pet", "answer": "every window is a TV for my dog"}
+        {
+          "prompt_name": "next_stop_journey",
+          "answer": "Joshua Tree for some desert magic"
+        },
+        {
+          "prompt_name": "best_hidden_gem",
+          "answer": "A free campsite in the Sierras with a private lake view"
+        },
+        {
+          "prompt_name": "traveling_with_my_pet",
+          "answer": "every window is a TV for my dog"
+        }
       ],
       "vehicle": {
         "vehicle_type": "truck_camper",
@@ -1540,7 +2608,12 @@
         "year": 2020,
         "build_status": "full",
         "nickname": "Trailblazer"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/jackson-gallery-1/900/1200",
+        "https://picsum.photos/seed/jackson-gallery-2/900/1200",
+        "https://picsum.photos/seed/jackson-gallery-3/900/1200"
+      ]
     },
     {
       "username": "mia",
@@ -1575,18 +2648,49 @@
       "cover_url": "https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?w=800&h=400&fit=crop",
       "current_location": "Reno, NV",
       "home_base": "Sacramento, CA",
-      "hobbies": ["yoga", "hiking", "meditation", "photography"],
+      "hobbies": [
+        "yoga",
+        "hiking",
+        "meditation",
+        "photography"
+      ],
       "in_town_windows": [
-        {"city_area": "Reno, NV", "start_date": "2026-02-11", "end_date": "2026-02-22"},
-        {"city_area": "Goblin Valley, UT", "start_date": "2026-02-22", "end_date": "2026-03-08"},
-        {"city_area": "Glenwood Springs, CO", "start_date": "2026-03-08", "end_date": "2026-04-08"}
+        {
+          "city_area": "Reno, NV",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-22"
+        },
+        {
+          "city_area": "Goblin Valley, UT",
+          "start_date": "2026-02-22",
+          "end_date": "2026-03-08"
+        },
+        {
+          "city_area": "Glenwood Springs, CO",
+          "start_date": "2026-03-08",
+          "end_date": "2026-04-08"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "perfect_vanlife_meetup", "answer": "Group stargazing in a dark sky area"},
-        {"prompt_name": "swipe_right_if", "answer": "you value experiences over things"},
-        {"prompt_name": "motto_i_travel_by", "answer": "Say yes to detours"}
+        {
+          "prompt_name": "perfect_vanlife_meetup",
+          "answer": "Group stargazing in a dark sky area"
+        },
+        {
+          "prompt_name": "swipe_right_if",
+          "answer": "you value experiences over things"
+        },
+        {
+          "prompt_name": "motto_i_travel_by",
+          "answer": "Say yes to detours"
+        }
       ],
-      "vehicle": null
+      "vehicle": null,
+      "gallery_urls": [
+        "https://picsum.photos/seed/mia-gallery-1/900/1200",
+        "https://picsum.photos/seed/mia-gallery-2/900/1200",
+        "https://picsum.photos/seed/mia-gallery-3/900/1200"
+      ]
     },
     {
       "username": "william",
@@ -1621,16 +2725,42 @@
       "cover_url": "https://images.unsplash.com/photo-1561361513-2d000a50f0dc?w=800&h=400&fit=crop",
       "current_location": "Lake Tahoe, CA",
       "home_base": "San Francisco, CA",
-      "hobbies": ["remote_work", "hiking", "photography", "coffee"],
+      "hobbies": [
+        "remote_work",
+        "hiking",
+        "photography",
+        "coffee"
+      ],
       "in_town_windows": [
-        {"city_area": "Lake Tahoe, CA", "start_date": "2026-02-11", "end_date": "2026-02-28"},
-        {"city_area": "Telluride, CO", "start_date": "2026-02-28", "end_date": "2026-03-14"},
-        {"city_area": "Moab, UT", "start_date": "2026-03-14", "end_date": "2026-04-14"}
+        {
+          "city_area": "Lake Tahoe, CA",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-28"
+        },
+        {
+          "city_area": "Telluride, CO",
+          "start_date": "2026-02-28",
+          "end_date": "2026-03-14"
+        },
+        {
+          "city_area": "Moab, UT",
+          "start_date": "2026-03-14",
+          "end_date": "2026-04-14"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "next_stop_journey", "answer": "Southern Utah - chasing red rock sunsets and quiet BLM spots"},
-        {"prompt_name": "well_get_along_if", "answer": "coffee brewed over a camp stove"},
-        {"prompt_name": "best_vanlife_hack", "answer": "baby wipes are your best friend"}
+        {
+          "prompt_name": "next_stop_journey",
+          "answer": "Southern Utah - chasing red rock sunsets and quiet BLM spots"
+        },
+        {
+          "prompt_name": "well_get_along_if",
+          "answer": "coffee brewed over a camp stove"
+        },
+        {
+          "prompt_name": "best_vanlife_hack",
+          "answer": "baby wipes are your best friend"
+        }
       ],
       "vehicle": {
         "vehicle_type": "van",
@@ -1639,15 +2769,19 @@
         "year": 2024,
         "build_status": "full",
         "nickname": "The Beast"
-      }
-    }
-,
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/william-gallery-1/900/1200",
+        "https://picsum.photos/seed/william-gallery-2/900/1200",
+        "https://picsum.photos/seed/william-gallery-3/900/1200"
+      ]
+    },
     {
       "username": "zoe",
       "email": "zoe@example.com",
       "password": "testpass123",
       "display_name": "Zoe Anderson",
-      "bio": "Artist painting landscapes from my van. Every sunset is a new canvas. 🎨",
+      "bio": "Artist painting landscapes from my van. Every sunset is a new canvas. \ud83c\udfa8",
       "gender": "woman",
       "profile_type": "solo",
       "looking_for_dating": true,
@@ -1675,16 +2809,42 @@
       "cover_url": "https://images.unsplash.com/photo-1527786356703-4b100091cd2c?w=800&h=400&fit=crop",
       "current_location": "Mammoth Lakes, CA",
       "home_base": "Santa Fe, NM",
-      "hobbies": ["painting", "hiking", "photography", "yoga"],
+      "hobbies": [
+        "painting",
+        "hiking",
+        "photography",
+        "yoga"
+      ],
       "in_town_windows": [
-        {"city_area": "Mammoth Lakes, CA", "start_date": "2026-02-11", "end_date": "2026-02-24"},
-        {"city_area": "Crested Butte, CO", "start_date": "2026-02-24", "end_date": "2026-03-10"},
-        {"city_area": "Zion NP, UT", "start_date": "2026-03-10", "end_date": "2026-04-10"}
+        {
+          "city_area": "Mammoth Lakes, CA",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-24"
+        },
+        {
+          "city_area": "Crested Butte, CO",
+          "start_date": "2026-02-24",
+          "end_date": "2026-03-10"
+        },
+        {
+          "city_area": "Zion NP, UT",
+          "start_date": "2026-03-10",
+          "end_date": "2026-04-10"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "best_hidden_gem", "answer": "A mountain meadow in Colorado with wildflowers everywhere"},
-        {"prompt_name": "most_romantic_spot", "answer": "A meadow in the Sierras with wildflowers"},
-        {"prompt_name": "instant_friends_if", "answer": "you can name at least 5 constellations"}
+        {
+          "prompt_name": "best_hidden_gem",
+          "answer": "A mountain meadow in Colorado with wildflowers everywhere"
+        },
+        {
+          "prompt_name": "most_romantic_spot",
+          "answer": "A meadow in the Sierras with wildflowers"
+        },
+        {
+          "prompt_name": "instant_friends_if",
+          "answer": "you can name at least 5 constellations"
+        }
       ],
       "vehicle": {
         "vehicle_type": "van",
@@ -1693,7 +2853,12 @@
         "year": 2021,
         "build_status": "full",
         "nickname": "Freedom Machine"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/zoe-gallery-1/900/1200",
+        "https://picsum.photos/seed/zoe-gallery-2/900/1200",
+        "https://picsum.photos/seed/zoe-gallery-3/900/1200"
+      ]
     },
     {
       "username": "james",
@@ -1728,16 +2893,42 @@
       "cover_url": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=400&fit=crop",
       "current_location": "Valley of Fire, NV",
       "home_base": "Flagstaff, AZ",
-      "hobbies": ["hiking", "fishing", "stargazing", "meditation"],
+      "hobbies": [
+        "hiking",
+        "fishing",
+        "stargazing",
+        "meditation"
+      ],
       "in_town_windows": [
-        {"city_area": "Valley of Fire, NV", "start_date": "2026-02-11", "end_date": "2026-02-25"},
-        {"city_area": "Bears Ears, UT", "start_date": "2026-02-25", "end_date": "2026-03-11"},
-        {"city_area": "Death Valley, CA", "start_date": "2026-03-11", "end_date": "2026-04-11"}
+        {
+          "city_area": "Valley of Fire, NV",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-25"
+        },
+        {
+          "city_area": "Bears Ears, UT",
+          "start_date": "2026-02-25",
+          "end_date": "2026-03-11"
+        },
+        {
+          "city_area": "Death Valley, CA",
+          "start_date": "2026-03-11",
+          "end_date": "2026-04-11"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "looking_for_travel_buddy", "answer": "photograph the Milky Way in dark sky parks"},
-        {"prompt_name": "friend_need", "answer": "watch your van while you take a supply run"},
-        {"prompt_name": "motto_i_travel_by", "answer": "Leave no trace, take only memories"}
+        {
+          "prompt_name": "looking_for_travel_buddy",
+          "answer": "photograph the Milky Way in dark sky parks"
+        },
+        {
+          "prompt_name": "friend_need",
+          "answer": "watch your van while you take a supply run"
+        },
+        {
+          "prompt_name": "motto_i_travel_by",
+          "answer": "Leave no trace, take only memories"
+        }
       ],
       "vehicle": {
         "vehicle_type": "truck_camper",
@@ -1746,7 +2937,12 @@
         "year": 2019,
         "build_status": "full",
         "nickname": "Basecamp"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/james-gallery-1/900/1200",
+        "https://picsum.photos/seed/james-gallery-2/900/1200",
+        "https://picsum.photos/seed/james-gallery-3/900/1200"
+      ]
     },
     {
       "username": "chloe",
@@ -1781,16 +2977,42 @@
       "cover_url": "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&h=400&fit=crop",
       "current_location": "Bishop, CA",
       "home_base": "Denver, CO",
-      "hobbies": ["hiking", "photography", "music", "camping"],
+      "hobbies": [
+        "hiking",
+        "photography",
+        "music",
+        "camping"
+      ],
       "in_town_windows": [
-        {"city_area": "Bishop, CA", "start_date": "2026-02-11", "end_date": "2026-02-22"},
-        {"city_area": "Boulder, CO", "start_date": "2026-02-22", "end_date": "2026-03-08"},
-        {"city_area": "Arches NP, UT", "start_date": "2026-03-08", "end_date": "2026-04-08"}
+        {
+          "city_area": "Bishop, CA",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-22"
+        },
+        {
+          "city_area": "Boulder, CO",
+          "start_date": "2026-02-22",
+          "end_date": "2026-03-08"
+        },
+        {
+          "city_area": "Arches NP, UT",
+          "start_date": "2026-03-08",
+          "end_date": "2026-04-08"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "always_down_team_up", "answer": "sunset viewpoint hunting"},
-        {"prompt_name": "dating_me_means", "answer": "understanding I own more hiking boots than fancy shoes"},
-        {"prompt_name": "go_to_campfire_story", "answer": "the bear encounter that made me rethink food storage"}
+        {
+          "prompt_name": "always_down_team_up",
+          "answer": "sunset viewpoint hunting"
+        },
+        {
+          "prompt_name": "dating_me_means",
+          "answer": "understanding I own more hiking boots than fancy shoes"
+        },
+        {
+          "prompt_name": "go_to_campfire_story",
+          "answer": "the bear encounter that made me rethink food storage"
+        }
       ],
       "vehicle": {
         "vehicle_type": "van",
@@ -1799,14 +3021,19 @@
         "year": 2018,
         "build_status": "partial",
         "nickname": "The Cruiser"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/chloe-gallery-1/900/1200",
+        "https://picsum.photos/seed/chloe-gallery-2/900/1200",
+        "https://picsum.photos/seed/chloe-gallery-3/900/1200"
+      ]
     },
     {
       "username": "daniel",
       "email": "daniel@example.com",
       "password": "testpass123",
       "display_name": "Daniel Garcia",
-      "bio": "Climbing bum with a van. Red rocks are my playground. 🧗",
+      "bio": "Climbing bum with a van. Red rocks are my playground. \ud83e\uddd7",
       "gender": "man",
       "profile_type": "solo",
       "looking_for_dating": true,
@@ -1834,16 +3061,42 @@
       "cover_url": "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=800&h=400&fit=crop",
       "current_location": "Red Rock Canyon, NV",
       "home_base": "Boulder, CO",
-      "hobbies": ["rock_climbing", "hiking", "camping", "yoga"],
+      "hobbies": [
+        "rock_climbing",
+        "hiking",
+        "camping",
+        "yoga"
+      ],
       "in_town_windows": [
-        {"city_area": "Red Rock Canyon, NV", "start_date": "2026-02-11", "end_date": "2026-02-28"},
-        {"city_area": "Moab, UT", "start_date": "2026-02-28", "end_date": "2026-03-14"},
-        {"city_area": "Bishop, CA", "start_date": "2026-03-14", "end_date": "2026-04-14"}
+        {
+          "city_area": "Red Rock Canyon, NV",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-28"
+        },
+        {
+          "city_area": "Moab, UT",
+          "start_date": "2026-02-28",
+          "end_date": "2026-03-14"
+        },
+        {
+          "city_area": "Bishop, CA",
+          "start_date": "2026-03-14",
+          "end_date": "2026-04-14"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "next_stop_journey", "answer": "Moab area - can't get enough of those canyons"},
-        {"prompt_name": "swipe_right_if", "answer": "skinny-dipping in hot springs sounds fun"},
-        {"prompt_name": "friend_need", "answer": "be your hiking buddy for the day"}
+        {
+          "prompt_name": "next_stop_journey",
+          "answer": "Moab area - can't get enough of those canyons"
+        },
+        {
+          "prompt_name": "swipe_right_if",
+          "answer": "skinny-dipping in hot springs sounds fun"
+        },
+        {
+          "prompt_name": "friend_need",
+          "answer": "be your hiking buddy for the day"
+        }
       ],
       "vehicle": {
         "vehicle_type": "van",
@@ -1852,7 +3105,12 @@
         "year": 2020,
         "build_status": "partial",
         "nickname": "The Wanderer"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/daniel-gallery-1/900/1200",
+        "https://picsum.photos/seed/daniel-gallery-2/900/1200",
+        "https://picsum.photos/seed/daniel-gallery-3/900/1200"
+      ]
     },
     {
       "username": "grace",
@@ -1887,16 +3145,42 @@
       "cover_url": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop",
       "current_location": "Sedona, AZ",
       "home_base": "Portland, OR",
-      "hobbies": ["yoga", "meditation", "hiking", "reading"],
+      "hobbies": [
+        "yoga",
+        "meditation",
+        "hiking",
+        "reading"
+      ],
       "in_town_windows": [
-        {"city_area": "St. George, UT", "start_date": "2026-02-11", "end_date": "2026-02-24"},
-        {"city_area": "Aspen, CO", "start_date": "2026-02-24", "end_date": "2026-03-10"},
-        {"city_area": "Big Sur, CA", "start_date": "2026-03-10", "end_date": "2026-04-10"}
+        {
+          "city_area": "St. George, UT",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-24"
+        },
+        {
+          "city_area": "Aspen, CO",
+          "start_date": "2026-02-24",
+          "end_date": "2026-03-10"
+        },
+        {
+          "city_area": "Big Sur, CA",
+          "start_date": "2026-03-10",
+          "end_date": "2026-04-10"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "perfect_vanlife_meetup", "answer": "Sunrise yoga session with fellow travelers"},
-        {"prompt_name": "best_part_meeting_vanlifers", "answer": "Learning new skills from fellow travelers"},
-        {"prompt_name": "motto_i_travel_by", "answer": "Home is where I park it"}
+        {
+          "prompt_name": "perfect_vanlife_meetup",
+          "answer": "Sunrise yoga session with fellow travelers"
+        },
+        {
+          "prompt_name": "best_part_meeting_vanlifers",
+          "answer": "Learning new skills from fellow travelers"
+        },
+        {
+          "prompt_name": "motto_i_travel_by",
+          "answer": "Home is where I park it"
+        }
       ],
       "vehicle": {
         "vehicle_type": "van",
@@ -1905,7 +3189,12 @@
         "year": 2022,
         "build_status": "full",
         "nickname": "Rolling Thunder"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/grace-gallery-1/900/1200",
+        "https://picsum.photos/seed/grace-gallery-2/900/1200",
+        "https://picsum.photos/seed/grace-gallery-3/900/1200"
+      ]
     },
     {
       "username": "henry",
@@ -1940,16 +3229,42 @@
       "cover_url": "https://images.unsplash.com/photo-1533587851505-d119e13fa0d7?w=800&h=400&fit=crop",
       "current_location": "Canyonlands, UT",
       "home_base": "Tucson, AZ",
-      "hobbies": ["birdwatching", "photography", "hiking", "camping"],
+      "hobbies": [
+        "birdwatching",
+        "photography",
+        "hiking",
+        "camping"
+      ],
       "in_town_windows": [
-        {"city_area": "Canyonlands, UT", "start_date": "2026-02-11", "end_date": "2026-02-25"},
-        {"city_area": "Estes Park, CO", "start_date": "2026-02-25", "end_date": "2026-03-11"},
-        {"city_area": "Yosemite, CA", "start_date": "2026-03-11", "end_date": "2026-04-11"}
+        {
+          "city_area": "Canyonlands, UT",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-25"
+        },
+        {
+          "city_area": "Estes Park, CO",
+          "start_date": "2026-02-25",
+          "end_date": "2026-03-11"
+        },
+        {
+          "city_area": "Yosemite, CA",
+          "start_date": "2026-03-11",
+          "end_date": "2026-04-11"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "looking_for_travel_buddy", "answer": "kayak the Colorado River"},
-        {"prompt_name": "best_hidden_gem", "answer": "A riverside spot in Sedona with no tourists"},
-        {"prompt_name": "friends_know_me_as", "answer": "the one who can fix anything with duct tape"}
+        {
+          "prompt_name": "looking_for_travel_buddy",
+          "answer": "kayak the Colorado River"
+        },
+        {
+          "prompt_name": "best_hidden_gem",
+          "answer": "A riverside spot in Sedona with no tourists"
+        },
+        {
+          "prompt_name": "friends_know_me_as",
+          "answer": "the one who can fix anything with duct tape"
+        }
       ],
       "vehicle": {
         "vehicle_type": "van",
@@ -1958,14 +3273,19 @@
         "year": 2019,
         "build_status": "partial",
         "nickname": "Roadrunner"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/henry-gallery-1/900/1200",
+        "https://picsum.photos/seed/henry-gallery-2/900/1200",
+        "https://picsum.photos/seed/henry-gallery-3/900/1200"
+      ]
     },
     {
       "username": "lily",
       "email": "lily@example.com",
       "password": "testpass123",
       "display_name": "Lily Nguyen",
-      "bio": "Coffee snob and van dweller. I've rated every coffee shop from here to the coast. ☕",
+      "bio": "Coffee snob and van dweller. I've rated every coffee shop from here to the coast. \u2615",
       "gender": "woman",
       "profile_type": "solo",
       "looking_for_dating": true,
@@ -1993,16 +3313,42 @@
       "cover_url": "https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?w=800&h=400&fit=crop",
       "current_location": "Morro Bay, CA",
       "home_base": "Seattle, WA",
-      "hobbies": ["coffee", "photography", "yoga", "hiking"],
+      "hobbies": [
+        "coffee",
+        "photography",
+        "yoga",
+        "hiking"
+      ],
       "in_town_windows": [
-        {"city_area": "Morro Bay, CA", "start_date": "2026-02-11", "end_date": "2026-02-22"},
-        {"city_area": "Colorado Springs, CO", "start_date": "2026-02-22", "end_date": "2026-03-08"},
-        {"city_area": "Kanab, UT", "start_date": "2026-03-08", "end_date": "2026-04-08"}
+        {
+          "city_area": "Morro Bay, CA",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-22"
+        },
+        {
+          "city_area": "Colorado Springs, CO",
+          "start_date": "2026-02-22",
+          "end_date": "2026-03-08"
+        },
+        {
+          "city_area": "Kanab, UT",
+          "start_date": "2026-03-08",
+          "end_date": "2026-04-08"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "always_down_team_up", "answer": "coffee shop hopping in small towns"},
-        {"prompt_name": "impress_me_road_trip", "answer": "curate the perfect driving playlist"},
-        {"prompt_name": "instant_friends_if", "answer": "you've named your vehicle"}
+        {
+          "prompt_name": "always_down_team_up",
+          "answer": "coffee shop hopping in small towns"
+        },
+        {
+          "prompt_name": "impress_me_road_trip",
+          "answer": "curate the perfect driving playlist"
+        },
+        {
+          "prompt_name": "instant_friends_if",
+          "answer": "you've named your vehicle"
+        }
       ],
       "vehicle": {
         "vehicle_type": "van",
@@ -2011,7 +3357,12 @@
         "year": 2023,
         "build_status": "full",
         "nickname": "ProHome"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/lily-gallery-1/900/1200",
+        "https://picsum.photos/seed/lily-gallery-2/900/1200",
+        "https://picsum.photos/seed/lily-gallery-3/900/1200"
+      ]
     },
     {
       "username": "owen",
@@ -2046,16 +3397,42 @@
       "cover_url": "https://images.unsplash.com/photo-1561361513-2d000a50f0dc?w=800&h=400&fit=crop",
       "current_location": "Steamboat Springs, CO",
       "home_base": "Galway, Ireland",
-      "hobbies": ["hiking", "music", "photography", "camping"],
+      "hobbies": [
+        "hiking",
+        "music",
+        "photography",
+        "camping"
+      ],
       "in_town_windows": [
-        {"city_area": "Steamboat Springs, CO", "start_date": "2026-02-11", "end_date": "2026-02-28"},
-        {"city_area": "Salt Lake City, UT", "start_date": "2026-02-28", "end_date": "2026-03-14"},
-        {"city_area": "San Diego, CA", "start_date": "2026-03-14", "end_date": "2026-04-14"}
+        {
+          "city_area": "Steamboat Springs, CO",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-28"
+        },
+        {
+          "city_area": "Salt Lake City, UT",
+          "start_date": "2026-02-28",
+          "end_date": "2026-03-14"
+        },
+        {
+          "city_area": "San Diego, CA",
+          "start_date": "2026-03-14",
+          "end_date": "2026-04-14"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "best_part_meeting_vanlifers", "answer": "The spontaneous adventures that happen"},
-        {"prompt_name": "quickest_way_to_heart", "answer": "making s'mores under the Milky Way"},
-        {"prompt_name": "go_to_campfire_story", "answer": "the time I drove 100 miles for a hot spring that was closed"}
+        {
+          "prompt_name": "best_part_meeting_vanlifers",
+          "answer": "The spontaneous adventures that happen"
+        },
+        {
+          "prompt_name": "quickest_way_to_heart",
+          "answer": "making s'mores under the Milky Way"
+        },
+        {
+          "prompt_name": "go_to_campfire_story",
+          "answer": "the time I drove 100 miles for a hot spring that was closed"
+        }
       ],
       "vehicle": {
         "vehicle_type": "van",
@@ -2064,7 +3441,12 @@
         "year": 2021,
         "build_status": "partial",
         "nickname": "Freedom Machine"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/owen-gallery-1/900/1200",
+        "https://picsum.photos/seed/owen-gallery-2/900/1200",
+        "https://picsum.photos/seed/owen-gallery-3/900/1200"
+      ]
     },
     {
       "username": "scarlett",
@@ -2099,16 +3481,42 @@
       "cover_url": "https://images.unsplash.com/photo-1527786356703-4b100091cd2c?w=800&h=400&fit=crop",
       "current_location": "Death Valley, CA",
       "home_base": "Nashville, TN",
-      "hobbies": ["writing", "photography", "coffee", "hiking"],
+      "hobbies": [
+        "writing",
+        "photography",
+        "coffee",
+        "hiking"
+      ],
       "in_town_windows": [
-        {"city_area": "Death Valley, CA", "start_date": "2026-02-11", "end_date": "2026-02-24"},
-        {"city_area": "Glenwood Springs, CO", "start_date": "2026-02-24", "end_date": "2026-03-10"},
-        {"city_area": "Bryce Canyon, UT", "start_date": "2026-03-10", "end_date": "2026-04-10"}
+        {
+          "city_area": "Death Valley, CA",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-24"
+        },
+        {
+          "city_area": "Glenwood Springs, CO",
+          "start_date": "2026-02-24",
+          "end_date": "2026-03-10"
+        },
+        {
+          "city_area": "Bryce Canyon, UT",
+          "start_date": "2026-03-10",
+          "end_date": "2026-04-10"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "best_part_meeting_vanlifers", "answer": "Hearing wild travel stories around the campfire"},
-        {"prompt_name": "friend_need", "answer": "share a meal and good conversation"},
-        {"prompt_name": "best_vanlife_hack", "answer": "a secret chocolate supply hidden from myself"}
+        {
+          "prompt_name": "best_part_meeting_vanlifers",
+          "answer": "Hearing wild travel stories around the campfire"
+        },
+        {
+          "prompt_name": "friend_need",
+          "answer": "share a meal and good conversation"
+        },
+        {
+          "prompt_name": "best_vanlife_hack",
+          "answer": "a secret chocolate supply hidden from myself"
+        }
       ],
       "vehicle": {
         "vehicle_type": "van",
@@ -2117,7 +3525,12 @@
         "year": 2022,
         "build_status": "full",
         "nickname": "Sprinter Life"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/scarlett-gallery-1/900/1200",
+        "https://picsum.photos/seed/scarlett-gallery-2/900/1200",
+        "https://picsum.photos/seed/scarlett-gallery-3/900/1200"
+      ]
     },
     {
       "username": "leo",
@@ -2152,16 +3565,42 @@
       "cover_url": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=400&fit=crop",
       "current_location": "Sequoia NP, CA",
       "home_base": "San Diego, CA",
-      "hobbies": ["music", "photography", "camping", "coffee"],
+      "hobbies": [
+        "music",
+        "photography",
+        "camping",
+        "coffee"
+      ],
       "in_town_windows": [
-        {"city_area": "Sequoia NP, CA", "start_date": "2026-02-11", "end_date": "2026-02-25"},
-        {"city_area": "Denver, CO", "start_date": "2026-02-25", "end_date": "2026-03-11"},
-        {"city_area": "Las Vegas, NV", "start_date": "2026-03-11", "end_date": "2026-04-11"}
+        {
+          "city_area": "Sequoia NP, CA",
+          "start_date": "2026-02-11",
+          "end_date": "2026-02-25"
+        },
+        {
+          "city_area": "Denver, CO",
+          "start_date": "2026-02-25",
+          "end_date": "2026-03-11"
+        },
+        {
+          "city_area": "Las Vegas, NV",
+          "start_date": "2026-03-11",
+          "end_date": "2026-04-11"
+        }
       ],
       "prompt_answers": [
-        {"prompt_name": "always_down_team_up", "answer": "impromptu photo shoots with epic backdrops"},
-        {"prompt_name": "swipe_right_if", "answer": "you're not afraid of dirt and dust"},
-        {"prompt_name": "instant_friends_if", "answer": "you understand the joy of a hot shower after days without"}
+        {
+          "prompt_name": "always_down_team_up",
+          "answer": "impromptu photo shoots with epic backdrops"
+        },
+        {
+          "prompt_name": "swipe_right_if",
+          "answer": "you're not afraid of dirt and dust"
+        },
+        {
+          "prompt_name": "instant_friends_if",
+          "answer": "you understand the joy of a hot shower after days without"
+        }
       ],
       "vehicle": {
         "vehicle_type": "van",
@@ -2170,7 +3609,12 @@
         "year": 2020,
         "build_status": "partial",
         "nickname": "Express Lane"
-      }
+      },
+      "gallery_urls": [
+        "https://picsum.photos/seed/leo-gallery-1/900/1200",
+        "https://picsum.photos/seed/leo-gallery-2/900/1200",
+        "https://picsum.photos/seed/leo-gallery-3/900/1200"
+      ]
     }
   ]
 }

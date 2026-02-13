@@ -19,6 +19,7 @@ import EventSwipeDeck from '../../components/EventSwipeDeck';
 import Screen from '../../components/Screen';
 import { eventsAPI } from '../../services/api';
 import { colors } from '../../theme/colors';
+import { componentTokens, radius } from '../../theme/tokens';
 import {
   EVENT_STATUS,
   EVENT_TYPES,
@@ -28,6 +29,10 @@ import {
   getTimeWindowEmoji,
   getTimeWindowInfo,
 } from '../../utils/events';
+
+const FILTER_BAR = componentTokens.filter?.bar || {};
+const FILTER_ACTIVE = componentTokens.filter?.active || {};
+const CARD_SHELL = componentTokens.card?.shell || {};
 
 function normalizeListResponse(response) {
   const data = response?.data?.data ?? response?.data;
@@ -520,11 +525,12 @@ const styles = StyleSheet.create({
   },
   profileButton: {
     borderWidth: 1,
-    borderRadius: 999,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    paddingVertical: 9,
+    paddingHorizontal: 11,
+    backgroundColor: colors.panel,
     borderColor: colors.borderStrong,
+    ...FILTER_BAR,
   },
   profileIcon: {
     fontSize: 18,
@@ -533,13 +539,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
-    borderRadius: 12,
-    paddingVertical: 10,
+    borderRadius: radius.md,
+    minHeight: 42,
+    paddingVertical: 9,
     paddingHorizontal: 12,
+    justifyContent: 'center',
+    ...FILTER_BAR,
   },
   iconButtonActive: {
-    borderColor: colors.primary,
-    backgroundColor: `${colors.primary}26`,
+    borderColor: colors.primaryBorder,
+    backgroundColor: `${colors.primary}24`,
+    ...FILTER_ACTIVE,
   },
   iconButtonText: {
     color: colors.text,
@@ -556,17 +566,19 @@ const styles = StyleSheet.create({
   },
   modeTab: {
     flex: 1,
+    minHeight: 42,
     borderWidth: 1,
     borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
-    borderRadius: 12,
-    paddingVertical: 10,
+    borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
+    ...FILTER_BAR,
   },
   modeTabActive: {
-    borderColor: colors.primary,
-    backgroundColor: `${colors.primary}26`,
+    borderColor: colors.primaryBorder,
+    backgroundColor: `${colors.primary}24`,
+    ...FILTER_ACTIVE,
   },
   modeTabText: {
     color: colors.muted,
@@ -574,15 +586,16 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   modeTabTextActive: {
-    color: colors.primary,
+    color: colors.text,
   },
   filters: {
     borderWidth: 1,
     borderColor: colors.borderStrong,
     backgroundColor: colors.card,
-    borderRadius: 18,
+    borderRadius: radius.lg,
     padding: 14,
     gap: 8,
+    ...CARD_SHELL,
   },
   filterLabel: {
     color: colors.text,
@@ -598,13 +611,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
-    borderRadius: 999,
-    paddingVertical: 7,
-    paddingHorizontal: 11,
+    borderRadius: radius.md,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    ...FILTER_BAR,
   },
   typeChipActive: {
-    borderColor: colors.primary,
-    backgroundColor: `${colors.primary}38`,
+    borderColor: colors.primaryBorder,
+    backgroundColor: `${colors.primary}28`,
+    ...FILTER_ACTIVE,
   },
   typeChipText: {
     color: colors.muted,
@@ -619,7 +634,7 @@ const styles = StyleSheet.create({
     borderColor: colors.borderStrong,
     backgroundColor: colors.panel,
     color: colors.text,
-    borderRadius: 14,
+    borderRadius: radius.md,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
@@ -669,9 +684,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderStrong,
     backgroundColor: colors.card,
-    borderRadius: 18,
+    borderRadius: radius.lg,
     padding: 14,
     gap: 8,
+    ...CARD_SHELL,
   },
   eventCardHosted: {
     borderColor: colors.blue,

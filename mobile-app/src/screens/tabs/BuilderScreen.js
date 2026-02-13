@@ -16,7 +16,7 @@ import PaywallModal from '../../components/PaywallModal';
 import Screen from '../../components/Screen';
 import { builderAPI, subscriptionAPI } from '../../services/api';
 import { colors } from '../../theme/colors';
-import { radius } from '../../theme/tokens';
+import { componentTokens, radius } from '../../theme/tokens';
 import { normalizeImageUrl } from '../../utils/imageUrl';
 
 const FREE_PLACEHOLDER_IMAGES = {
@@ -64,6 +64,10 @@ const MARKETPLACE_BENEFITS = [
   'Message listing owners and helpers',
   'Plus 20 daily discovery swipes',
 ];
+
+const FILTER_BAR = componentTokens.filter?.bar || {};
+const FILTER_ACTIVE = componentTokens.filter?.active || {};
+const CARD_SHELL = componentTokens.card?.shell || {};
 
 function ListingCard({ item, onPress }) {
   const isOffering = item.listing_type === 'offering';
@@ -394,41 +398,84 @@ const styles = StyleSheet.create({
   title: { color: colors.text, fontSize: 21, fontWeight: '900', flex: 1 },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   profileButton: {
-    borderWidth: 1, borderRadius: 999, paddingVertical: 8, paddingHorizontal: 10,
-    backgroundColor: colors.surface, borderColor: colors.borderStrong,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.panel,
+    borderRadius: radius.md,
+    paddingVertical: 9,
+    paddingHorizontal: 11,
+    ...FILTER_BAR,
   },
   profileIcon: { fontSize: 18 },
   viewTabs: { flexDirection: 'row', gap: 8 },
   viewTab: {
-    flex: 1, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.panel,
-    borderRadius: radius.md, paddingVertical: 10, alignItems: 'center',
+    flex: 1,
+    minHeight: 42,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.panel,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...FILTER_BAR,
   },
-  viewTabActive: { borderColor: colors.primary, backgroundColor: `${colors.primary}26` },
+  viewTabActive: {
+    borderColor: colors.primaryBorder,
+    backgroundColor: `${colors.primary}24`,
+    ...FILTER_ACTIVE,
+  },
   viewTabText: { color: colors.muted, fontWeight: '900', fontSize: 13 },
-  viewTabTextActive: { color: colors.primary },
+  viewTabTextActive: { color: colors.text },
   typeTabs: { flexDirection: 'row', gap: 8 },
   typeTab: {
-    flex: 1, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.panel,
-    borderRadius: radius.md, paddingVertical: 10, alignItems: 'center',
+    flex: 1,
+    minHeight: 42,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.panel,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...FILTER_BAR,
   },
-  typeTabActive: { borderColor: colors.primary, backgroundColor: `${colors.primary}26` },
+  typeTabActive: {
+    borderColor: colors.primaryBorder,
+    backgroundColor: `${colors.primary}24`,
+    ...FILTER_ACTIVE,
+  },
   typeTabText: { color: colors.muted, fontWeight: '900', fontSize: 12 },
-  typeTabTextActive: { color: colors.primary },
+  typeTabTextActive: { color: colors.text },
   chipScroll: { maxHeight: 46 },
   chipRow: { paddingVertical: 4, paddingRight: 4, alignItems: 'center' },
   chip: {
-    borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.panel,
-    borderRadius: 999, minHeight: 36, paddingHorizontal: 14, marginRight: 8, justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.panel,
+    borderRadius: radius.md,
+    minHeight: 34,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginRight: 8,
+    justifyContent: 'center',
+    ...FILTER_BAR,
   },
-  chipActive: { borderColor: colors.primary, backgroundColor: `${colors.primary}38` },
+  chipActive: {
+    borderColor: colors.primaryBorder,
+    backgroundColor: `${colors.primary}28`,
+    ...FILTER_ACTIVE,
+  },
   chipText: { color: colors.muted, fontWeight: '800', fontSize: 12 },
   chipTextActive: { color: colors.text },
   list: { paddingTop: 6, paddingBottom: 16, gap: 10 },
   gridRow: { gap: 10, marginBottom: 10 },
   cardCell: { flex: 1, maxWidth: '49%' },
   card: {
-    borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.card,
-    borderRadius: radius.xl, overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.card,
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+    ...CARD_SHELL,
   },
   photoWrap: {
     width: '100%',

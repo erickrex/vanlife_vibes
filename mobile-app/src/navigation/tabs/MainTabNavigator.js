@@ -24,15 +24,32 @@ export default function MainTabNavigator() {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: colors.bgElevated,
+          backgroundColor: colors.panel,
           borderTopColor: colors.borderStrong,
           borderTopWidth: 1,
+          height: 66,
+          paddingTop: 6,
+          paddingBottom: 8,
+          shadowColor: colors.rose,
+          shadowOpacity: 0.16,
+          shadowOffset: { width: 0, height: -4 },
+          shadowRadius: 12,
+          elevation: 12,
         },
         tabBarHideOnKeyboard: true,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.muted,
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '800',
+          letterSpacing: 0.3,
+          marginBottom: 2,
+        },
+        tabBarItemStyle: {
+          paddingVertical: 2,
+        },
         tabBarIcon: ({ focused, color }) => (
-          <Text style={{ fontSize: 18, color }}>{iconForRoute(route.name, focused)}</Text>
+          <Text style={{ fontSize: 17, color }}>{iconForRoute(route.name, focused)}</Text>
         ),
       })}
     >

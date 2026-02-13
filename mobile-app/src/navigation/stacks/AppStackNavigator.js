@@ -24,11 +24,20 @@ export default function AppStackNavigator({ initialRouteName = 'Tabs' }) {
     <Stack.Navigator
       initialRouteName={initialRouteName}
       screenOptions={{
-        headerStyle: { backgroundColor: colors.bgElevated },
-        headerTitleStyle: { color: colors.text },
+        headerStyle: {
+          backgroundColor: colors.bgElevated,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.borderStrong,
+        },
+        headerTitleStyle: {
+          color: colors.text,
+          fontSize: 16,
+          fontWeight: '900',
+          letterSpacing: 0.2,
+        },
         headerTintColor: colors.text,
         contentStyle: { backgroundColor: colors.bg },
-        statusBarStyle: 'light',
+        statusBarStyle: 'dark',
         statusBarTranslucent: false,
       }}
     >

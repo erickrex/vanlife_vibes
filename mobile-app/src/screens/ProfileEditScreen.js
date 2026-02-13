@@ -237,6 +237,7 @@ export default function ProfileEditScreen() {
   const [fieldErrors, setFieldErrors] = useState({});
 
   const [displayName, setDisplayName] = useState('');
+  const [age, setAge] = useState('');
   const [bio, setBio] = useState('');
   const [gender, setGender] = useState('');
   const [lookingForDating, setLookingForDating] = useState(false);
@@ -296,10 +297,12 @@ export default function ProfileEditScreen() {
   const canSave = useMemo(() => {
     if (saving) return false;
     if (!displayName.trim()) return false;
+    const parsedAge = Number(age);
+    if (!age.trim() || !Number.isInteger(parsedAge) || parsedAge < 18 || parsedAge > 99) return false;
     if (!lookingForDating && !lookingForFriends) return false;
     if (hasVan && !vehicleType) return false;
     return true;
-  }, [displayName, hasVan, lookingForDating, lookingForFriends, saving, vehicleType]);
+  }, [age, displayName, hasVan, lookingForDating, lookingForFriends, saving, vehicleType]);
 
   const clearFieldError = (field) => {
     if (!fieldErrors[field]) return;
@@ -340,6 +343,7 @@ export default function ProfileEditScreen() {
       }
 
       setDisplayName(profile?.display_name || '');
+      setAge(profile?.age ? String(profile.age) : '');
       setBio(profile?.bio || '');
       setGender(profile?.gender || '');
       setLookingForDating(!!profile?.looking_for_dating);
@@ -643,6 +647,12 @@ export default function ProfileEditScreen() {
   const validate = () => {
     const nextErrors = {};
     if (!displayName.trim()) nextErrors.display_name = 'Display name is required.';
+    const parsedAge = Number(age);
+    if (!age.trim() || !Number.isInteger(parsedAge)) {
+      nextErrors.age = 'Age is required.';
+    } else if (parsedAge < 18 || parsedAge > 99) {
+      nextErrors.age = 'Age must be between 18 and 99.';
+    }
     if (!lookingForDating && !lookingForFriends) {
       nextErrors.looking_for = 'Enable Dating or Friends (or both).';
     }
@@ -671,6 +681,7 @@ export default function ProfileEditScreen() {
 
       const payload = {
         display_name: displayName.trim(),
+        age: Number(age),
         bio: bio.trim(),
         avatar_url: avatarUrlInput.trim() || null,
         cover_url: coverUrlInput.trim() || null,
@@ -780,6 +791,19 @@ export default function ProfileEditScreen() {
               error={fieldErrors.display_name}
             />
 
+            <FormTextInput
+              label="Age"
+              value={age}
+              onChangeText={(value) => {
+                setAge(value.replace(/[^0-9]/g, ''));
+                clearFieldError('age');
+              }}
+              placeholder="18"
+              keyboardType="number-pad"
+              editable={!saving}
+              error={fieldErrors.age}
+            />
+
             <View style={styles.fieldBlock}>
               <Text style={styles.label}>Bio</Text>
               <TextInput
@@ -814,7 +838,7 @@ export default function ProfileEditScreen() {
             <Text style={styles.emptyText}>
               Upload, reorder, and remove avatar, cover, and gallery photos.
             </Text>
-            <Text style={styles.metaText}>Gallery supports up to 6 photos.</Text>
+            <Text style={styles.metaText}>Gallery supports up to 5 photos.</Text>
 
             <View style={styles.uploadActions}>
               <AppButton
@@ -847,12 +871,12 @@ export default function ProfileEditScreen() {
                 title={
                   uploadingPhotoType === 'gallery'
                     ? 'Uploading gallery photo…'
-                    : galleryPhotos.length >= 6
-                      ? 'Gallery Full (6/6)'
+                    : galleryPhotos.length >= 5
+                      ? 'Gallery Full (5/5)'
                       : 'Add Gallery Photo'
                 }
                 onPress={() => pickAndUploadPhoto('gallery')}
-                disabled={!!photoLoadingId || !!uploadingPhotoType || saving || galleryPhotos.length >= 6}
+                disabled={!!photoLoadingId || !!uploadingPhotoType || saving || galleryPhotos.length >= 5}
                 variant="secondary"
                 style={styles.uploadActionButton}
               />

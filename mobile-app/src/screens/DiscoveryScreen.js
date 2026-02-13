@@ -305,9 +305,6 @@ export default function DiscoveryScreen({ mode = 'dating' }) {
           </>
         ) : null}
 
-        <Pressable onPress={bootstrap} style={styles.refreshLink} disabled={loading} accessibilityRole="button">
-          <Text style={styles.refreshText}>{loading ? 'Refreshing…' : 'Refresh'}</Text>
-        </Pressable>
       </View>
 
       <PaywallModal
@@ -324,8 +321,8 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
     paddingTop: 2,
-    paddingBottom: 10,
-    gap: 8,
+    paddingBottom: 4,
+    gap: 6,
   },
   header: {
     flexDirection: 'row',
@@ -457,14 +454,6 @@ const styles = StyleSheet.create({
   },
   emptyEmoji: {
     fontSize: 44,
-  },
-  refreshLink: {
-    alignSelf: 'center',
-    paddingVertical: 4,
-  },
-  refreshText: {
-    color: colors.muted,
-    fontWeight: '800',
   },
   pressed: {
     opacity: 0.9,

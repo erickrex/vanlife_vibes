@@ -335,6 +335,22 @@ class ProfileValidationTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('now_in_city', response.data['errors'])
 
+    def test_invalid_age_rejected(self):
+        """Test age outside supported range is rejected."""
+        data = {'age': 17}
+        response = self.client.patch('/api/v1/profiles/me/', data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('age', response.data['errors'])
+
+    def test_valid_age_saved(self):
+        """Test valid age is persisted on profile."""
+        data = {'age': 29}
+        response = self.client.patch('/api/v1/profiles/me/', data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['data']['age'], 29)
+
 
 class ProfileVehicleVisibilityTestCase(TestCase):
     """Test vehicle visibility based on has_van flag"""
