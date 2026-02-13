@@ -1189,13 +1189,24 @@ class DiscoveryViewSet(viewsets.GenericViewSet):
         
         # Check swipe limit before creating swipe
         if not SwipeLimitService.can_swipe(user_profile):
+            user_is_premium = SwipeLimitService.is_premium(user_profile)
+            daily_cap = (
+                SwipeLimitService.PREMIUM_DAILY_LIMIT
+                if user_is_premium
+                else SwipeLimitService.FREE_DAILY_LIMIT
+            )
+            message = (
+                f'Daily swipe limit reached. You have used all {daily_cap} swipes for today.'
+                if user_is_premium
+                else f'Daily swipe limit reached. Free plan allows {daily_cap} swipes/day. Upgrade for 20/day.'
+            )
             return Response({
                 'status': 'error',
-                'message': 'Daily swipe limit reached. Upgrade to Premium for unlimited swipes.',
+                'message': message,
                 'data': {
                     'swipe_limit_reached': True,
                     'remaining_swipes': 0,
-                    'is_premium': False
+                    'is_premium': user_is_premium
                 }
             }, status=status.HTTP_403_FORBIDDEN)
         

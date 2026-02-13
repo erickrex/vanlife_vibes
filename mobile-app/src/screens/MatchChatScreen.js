@@ -1,8 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Dimensions,
   FlatList,
-  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -226,11 +224,8 @@ export default function MatchChatScreen() {
     meet_preference: 'open_to_it',
   });
   const [selectedMiniCardPresetId, setSelectedMiniCardPresetId] = useState('');
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
-  const [windowHeight, setWindowHeight] = useState(Dimensions.get('window').height);
 
   const listRef = useRef(null);
-  const baseWindowHeightRef = useRef(Dimensions.get('window').height);
 
   const otherUser = match?.other_user || match?.user2_profile || match?.user1_profile;
 
@@ -239,31 +234,6 @@ export default function MatchChatScreen() {
       navigation.setOptions({ title: otherUser.display_name });
     }
   }, [navigation, otherUser?.display_name]);
-
-  useEffect(() => {
-    const subscription = Dimensions.addEventListener('change', ({ window }) => {
-      setWindowHeight(window.height);
-      if (keyboardHeight === 0) {
-        baseWindowHeightRef.current = window.height;
-      }
-    });
-    return () => subscription?.remove?.();
-  }, [keyboardHeight]);
-
-  useEffect(() => {
-    if (Platform.OS !== 'android') return undefined;
-    const showSubscription = Keyboard.addListener('keyboardDidShow', (event) => {
-      setKeyboardHeight(event?.endCoordinates?.height || 0);
-    });
-    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
-      setKeyboardHeight(0);
-      baseWindowHeightRef.current = Dimensions.get('window').height;
-    });
-    return () => {
-      showSubscription.remove();
-      hideSubscription.remove();
-    };
-  }, []);
 
   const loadMatch = useCallback(async () => {
     if (!matchId) return;
@@ -333,10 +303,6 @@ export default function MatchChatScreen() {
     [match, me, otherUser]
   );
   const miniCardPresets = useMemo(() => buildMiniCardPresets({ me, otherUser }), [me, otherUser]);
-  const androidWindowShrink = Math.max(0, baseWindowHeightRef.current - windowHeight);
-  const androidKeyboardCompensation =
-    Platform.OS === 'android' ? Math.max(0, keyboardHeight - androidWindowShrink) : 0;
-
   useEffect(() => {
     if (!listRef.current || timeline.length === 0) return;
     setTimeout(() => {
@@ -536,13 +502,13 @@ export default function MatchChatScreen() {
     <Screen>
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? headerHeight : 0}
       >
         <View
           style={[
             styles.container,
-            { paddingBottom: Math.max(insets.bottom, 10) + androidKeyboardCompensation },
+            { paddingBottom: Math.max(insets.bottom, 10) },
           ]}
         >
           <View style={styles.topMeta}>
@@ -608,7 +574,7 @@ export default function MatchChatScreen() {
             style={{ flex: 1 }}
             contentContainerStyle={styles.list}
             keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="interactive"
+            keyboardDismissMode="on-drag"
             renderItem={({ item }) => {
               if (item.type === 'date') {
                 return (
@@ -663,6 +629,11 @@ export default function MatchChatScreen() {
               style={styles.input}
               editable={!sending}
               multiline
+              onFocus={() => {
+                setTimeout(() => {
+                  listRef.current?.scrollToEnd?.({ animated: true });
+                }, 40);
+              }}
             />
             <Pressable
               onPress={sendMessage}

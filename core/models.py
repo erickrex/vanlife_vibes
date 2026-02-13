@@ -1034,6 +1034,9 @@ class UserSubscription(models.Model):
     revenuecat_app_user_id = models.CharField(max_length=255, blank=True, default='')
     current_period_end = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=False)
+    is_trial = models.BooleanField(default=False)
+    trial_started_at = models.DateTimeField(null=True, blank=True)
+    trial_ends_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -1135,4 +1138,3 @@ class BuilderMessage(models.Model):
 
     def __str__(self):
         return f"Builder msg from {self.sender.user.username} on {self.listing.title}"
-

@@ -21,7 +21,7 @@ export default function SwipeCounter({ remainingSwipes, isPremium }) {
   return (
     <View style={styles.container}>
       <Text style={[styles.text, atZero && { color: colors.danger }]}>
-        {remainingSwipes}/3 swipes left
+        {remainingSwipes}/5 swipes left
       </Text>
     </View>
   );

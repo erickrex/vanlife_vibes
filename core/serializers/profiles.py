@@ -1,5 +1,8 @@
 """Profile serializers for user profiles, vehicles, locations, and prompts."""
 
+from urllib.parse import urljoin
+
+from django.conf import settings
 from rest_framework import serializers
 from django.db import models
 from django.utils import timezone
@@ -11,8 +14,41 @@ from core.models import (
 from core.services.swipe_limit import SwipeLimitService
 
 
+def normalize_media_url(value, request=None):
+    """Normalize relative media paths to absolute URLs for API consumers."""
+    if not value:
+        return value
+
+    trimmed = str(value).strip()
+    if not trimmed:
+        return ''
+
+    if trimmed.startswith((
+        'http://',
+        'https://',
+        'file://',
+        'content://',
+        'ph://',
+        'asset://',
+        'data:',
+    )):
+        return trimmed
+
+    path = trimmed if trimmed.startswith('/') else f'/{trimmed}'
+
+    if request is not None:
+        return request.build_absolute_uri(path)
+
+    media_url = getattr(settings, 'MEDIA_URL', '') or ''
+    if media_url.startswith(('http://', 'https://')):
+        return urljoin(media_url.rstrip('/') + '/', trimmed.lstrip('/'))
+
+    return path
+
+
 class ProfileCardDataSerializer(serializers.ModelSerializer):
     """Compact profile serializer for profile card display."""
+    avatar_url = serializers.SerializerMethodField()
     vehicle = serializers.SerializerMethodField()
     
     class Meta:
@@ -31,6 +67,10 @@ class ProfileCardDataSerializer(serializers.ModelSerializer):
             }
         except Vehicle.DoesNotExist:
             return None
+
+    def get_avatar_url(self, obj):
+        request = self.context.get('request')
+        return normalize_media_url(obj.avatar_url, request=request)
 
 
 class CountrySerializer(serializers.ModelSerializer):
@@ -77,6 +117,8 @@ class ProfileSerializer(serializers.ModelSerializer):
     """Full profile serializer with nested data and derived location fields."""
     user_id = serializers.UUIDField(source='user.id', read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)
+    avatar_url = serializers.SerializerMethodField()
+    cover_url = serializers.SerializerMethodField()
     
     # Nested serializers
     vehicle = serializers.SerializerMethodField()
@@ -175,6 +217,14 @@ class ProfileSerializer(serializers.ModelSerializer):
             return VehicleSerializer(vehicle).data
         except Vehicle.DoesNotExist:
             return None
+
+    def get_avatar_url(self, obj):
+        request = self.context.get('request')
+        return normalize_media_url(obj.avatar_url, request=request)
+
+    def get_cover_url(self, obj):
+        request = self.context.get('request')
+        return normalize_media_url(obj.cover_url, request=request)
 
     def get_relevance_score(self, obj):
         """Return relevance_score if set during discovery ranking, else None."""
@@ -1036,6 +1086,7 @@ class VehiclePhotoCreateSerializer(serializers.ModelSerializer):
 
 class FeedCardSerializer(serializers.ModelSerializer):
     """Profile card for the nearby feed."""
+    avatar_url = serializers.SerializerMethodField()
     timing_label = serializers.CharField(read_only=True)
     
     class Meta:
@@ -1043,14 +1094,23 @@ class FeedCardSerializer(serializers.ModelSerializer):
         fields = ['id', 'display_name', 'avatar_url', 'timing_label']
         read_only_fields = ['id', 'display_name', 'avatar_url', 'timing_label']
 
+    def get_avatar_url(self, obj):
+        request = self.context.get('request')
+        return normalize_media_url(obj.avatar_url, request=request)
+
 
 class ProfileSummarySerializer(serializers.ModelSerializer):
     """Compact profile for followers/following lists."""
+    avatar_url = serializers.SerializerMethodField()
     
     class Meta:
         model = Profile
         fields = ['id', 'display_name', 'avatar_url']
         read_only_fields = ['id', 'display_name', 'avatar_url']
+
+    def get_avatar_url(self, obj):
+        request = self.context.get('request')
+        return normalize_media_url(obj.avatar_url, request=request)
 
 
 # ============================================================================

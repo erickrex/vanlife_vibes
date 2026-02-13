@@ -93,7 +93,16 @@ api.interceptors.response.use(
             errorMessage = errorMessages.join('. ');
           }
         } else if (typeof data === 'string') {
-          errorMessage = data;
+          const raw = data.trim();
+          if (/^<!doctype html/i.test(raw) || /^<html/i.test(raw)) {
+            const statusCode = error.response.status;
+            errorMessage =
+              statusCode >= 500
+                ? `Server error (${statusCode}). Please try again.`
+                : `Request failed (${statusCode}).`;
+          } else {
+            errorMessage = data;
+          }
         } else if (data.message && data.message !== 'Registration failed' && data.message !== 'Invalid credentials') {
           errorMessage = data.message;
         } else if (data.error) {
@@ -226,6 +235,7 @@ export const subscriptionAPI = {
       customer_info: customerInfo,
       entitlement_id: entitlementId,
     }),
+  startTrial: () => api.post('/subscription/start-trial/'),
 };
 
 // Builder Marketplace API

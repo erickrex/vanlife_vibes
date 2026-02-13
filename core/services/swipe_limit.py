@@ -4,9 +4,10 @@ from core.models import PersonSwipe, UserSubscription
 
 
 class SwipeLimitService:
-    """Enforces daily swipe limits (3/day for free users, unlimited for premium)."""
+    """Enforces daily swipe limits (5/day for free users, 20/day for premium)."""
 
-    FREE_DAILY_LIMIT = 3
+    FREE_DAILY_LIMIT = 5
+    PREMIUM_DAILY_LIMIT = 20
 
     @staticmethod
     def get_daily_swipe_count(profile) -> int:
@@ -18,19 +19,25 @@ class SwipeLimitService:
         ).count()
 
     @staticmethod
-    def get_remaining_swipes(profile) -> int | None:
-        """Return remaining swipes for free users, None for premium."""
-        if SwipeLimitService.is_premium(profile):
-            return None
+    def get_remaining_swipes(profile) -> int:
+        """Return remaining swipes for the profile's plan."""
+        daily_limit = (
+            SwipeLimitService.PREMIUM_DAILY_LIMIT
+            if SwipeLimitService.is_premium(profile)
+            else SwipeLimitService.FREE_DAILY_LIMIT
+        )
         count = SwipeLimitService.get_daily_swipe_count(profile)
-        return max(0, SwipeLimitService.FREE_DAILY_LIMIT - count)
+        return max(0, daily_limit - count)
 
     @staticmethod
     def can_swipe(profile) -> bool:
-        """Return True if the user can swipe (premium or under limit)."""
-        if SwipeLimitService.is_premium(profile):
-            return True
-        return SwipeLimitService.get_daily_swipe_count(profile) < SwipeLimitService.FREE_DAILY_LIMIT
+        """Return True if the user is under their plan's daily swipe limit."""
+        daily_limit = (
+            SwipeLimitService.PREMIUM_DAILY_LIMIT
+            if SwipeLimitService.is_premium(profile)
+            else SwipeLimitService.FREE_DAILY_LIMIT
+        )
+        return SwipeLimitService.get_daily_swipe_count(profile) < daily_limit
 
     @staticmethod
     def is_premium(profile) -> bool:

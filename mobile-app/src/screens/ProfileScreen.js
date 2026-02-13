@@ -9,6 +9,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { profilesAPI } from '../services/api';
 import { colors } from '../theme/colors';
 import { radius } from '../theme/tokens';
+import { normalizeImageUrl } from '../utils/imageUrl';
 
 const DEFAULT_COVER =
   'https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&fit=crop&w=1400&q=80';
@@ -61,6 +62,32 @@ function toTitle(value) {
     .filter(Boolean)
     .map((part) => part[0].toUpperCase() + part.slice(1))
     .join(' ');
+}
+
+function GalleryTile({ uri, large = false }) {
+  const normalizedUri = useMemo(() => normalizeImageUrl(uri || ''), [uri]);
+  const [loadFailed, setLoadFailed] = useState(false);
+
+  useEffect(() => {
+    setLoadFailed(false);
+  }, [normalizedUri]);
+
+  if (!normalizedUri || loadFailed) {
+    return (
+      <View style={[styles.galleryPhoto, large ? styles.galleryPhotoLarge : null, styles.galleryFallback]}>
+        <Text style={styles.galleryFallbackText}>Photo unavailable</Text>
+      </View>
+    );
+  }
+
+  return (
+    <Image
+      source={{ uri: normalizedUri }}
+      style={[styles.galleryPhoto, large ? styles.galleryPhotoLarge : null]}
+      resizeMode="cover"
+      onError={() => setLoadFailed(true)}
+    />
+  );
 }
 
 export default function ProfileScreen() {
@@ -116,6 +143,15 @@ export default function ProfileScreen() {
       : [];
     return [...galleryUrls, ...vehicleUrls];
   }, [profile]);
+  const normalizedCoverUrl = useMemo(
+    () => normalizeImageUrl(profile?.cover_url || '') || DEFAULT_COVER,
+    [profile?.cover_url],
+  );
+  const [coverImageUrl, setCoverImageUrl] = useState(normalizedCoverUrl);
+
+  useEffect(() => {
+    setCoverImageUrl(normalizedCoverUrl);
+  }, [normalizedCoverUrl]);
 
   const quickFacts = useMemo(() => {
     if (!profile) return [];
@@ -188,7 +224,26 @@ export default function ProfileScreen() {
     <Screen>
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.topCard}>
-          <Image source={{ uri: profile.cover_url || DEFAULT_COVER }} style={styles.cover} resizeMode="cover" />
+          <View style={styles.coverWrap}>
+            {coverImageUrl ? (
+              <Image
+                source={{ uri: coverImageUrl }}
+                style={styles.cover}
+                resizeMode="cover"
+                onError={() => {
+                  if (coverImageUrl !== DEFAULT_COVER) {
+                    setCoverImageUrl(DEFAULT_COVER);
+                    return;
+                  }
+                  setCoverImageUrl('');
+                }}
+              />
+            ) : (
+              <View style={[styles.cover, styles.coverFallback]}>
+                <Text style={styles.coverFallbackText}>No cover photo</Text>
+              </View>
+            )}
+          </View>
           <View style={styles.avatarWrap}>
             <ProfileAvatar uri={profile.avatar_url} name={profile.display_name} size={94} />
           </View>
@@ -299,11 +354,10 @@ export default function ProfileScreen() {
             <Text style={styles.sectionTitle}>Photo Highlights</Text>
             <View style={styles.galleryGrid}>
               {photoGallery.map((photoUrl, index) => (
-                <Image
+                <GalleryTile
                   key={`${photoUrl}-${index + 1}`}
-                  source={{ uri: photoUrl }}
-                  style={[styles.galleryPhoto, index === 0 ? styles.galleryPhotoLarge : null]}
-                  resizeMode="cover"
+                  uri={photoUrl}
+                  large={index === 0}
                 />
               ))}
             </View>
@@ -407,9 +461,22 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.borderStrong,
     overflow: 'hidden',
   },
+  coverWrap: {
+    width: '100%',
+    height: 180,
+    backgroundColor: colors.panel,
+  },
   cover: {
     width: '100%',
     height: 180,
+  },
+  coverFallback: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  coverFallbackText: {
+    color: colors.muted,
+    fontWeight: '800',
   },
   avatarWrap: {
     position: 'absolute',
@@ -628,6 +695,19 @@ const styles = StyleSheet.create({
   galleryPhotoLarge: {
     width: '100%',
     aspectRatio: 1.6,
+  },
+  galleryFallback: {
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+  },
+  galleryFallbackText: {
+    color: colors.muted,
+    fontSize: 12,
+    fontWeight: '700',
+    textAlign: 'center',
   },
   hobbyRow: {
     flexDirection: 'row',

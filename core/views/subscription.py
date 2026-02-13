@@ -141,3 +141,20 @@ class SubscriptionViewSet(ViewSet):
             {'status': 'success', 'data': data},
             status=status.HTTP_200_OK,
         )
+
+    @action(detail=False, methods=['post'], url_path='start-trial')
+    def start_trial(self, request):
+        """Activate a one-time seven day premium trial."""
+        profile = request.user.profile
+        try:
+            data = SubscriptionService.start_free_trial(profile=profile)
+        except ValueError as exc:
+            return Response(
+                {'status': 'error', 'message': str(exc)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(
+            {'status': 'success', 'data': data},
+            status=status.HTTP_200_OK,
+        )

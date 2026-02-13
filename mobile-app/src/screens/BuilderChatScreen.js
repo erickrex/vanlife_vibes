@@ -12,6 +12,8 @@ import {
   View,
 } from 'react-native';
 import { useRoute } from '@react-navigation/native';
+import { useHeaderHeight } from '@react-navigation/elements';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Screen from '../components/Screen';
 import { builderAPI } from '../services/api';
@@ -44,6 +46,8 @@ function MessageBubble({ msg, isMe }) {
 export default function BuilderChatScreen() {
   const { listingId, listingTitle, recipientId, listingOwnerUserId } = useRoute().params || {};
   const { user, profile } = useAuth();
+  const headerHeight = useHeaderHeight();
+  const insets = useSafeAreaInsets();
   const myProfileId = profile?.id ? String(profile.id) : null;
   const myUserId = user?.id ? String(user.id) : null;
   const isOwner = Boolean(myUserId && listingOwnerUserId && myUserId === String(listingOwnerUserId));
@@ -147,8 +151,8 @@ export default function BuilderChatScreen() {
     <Screen>
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={90}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? headerHeight : 0}
       >
         <View style={styles.headerBar}>
           <Text style={styles.headerTitle} numberOfLines={1}>
@@ -263,7 +267,12 @@ export default function BuilderChatScreen() {
         )}
 
         {!isOwner || selectedRecipientId !== null ? (
-          <View style={styles.inputBar}>
+          <View
+            style={[
+              styles.inputBar,
+              { paddingBottom: 10 + Math.max(insets.bottom - 4, 0) },
+            ]}
+          >
             <TextInput
               value={text}
               onChangeText={setText}

@@ -1,9 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Dimensions,
   FlatList,
-  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -104,11 +102,8 @@ export default function EventChatScreen() {
   const [error, setError] = useState('');
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
-  const [windowHeight, setWindowHeight] = useState(Dimensions.get('window').height);
 
   const listRef = useRef(null);
-  const baseWindowHeightRef = useRef(Dimensions.get('window').height);
 
   const loadEvent = useCallback(async () => {
     if (!eventId) return;
@@ -171,37 +166,7 @@ export default function EventChatScreen() {
     navigation.setOptions({ title: event.title.length > 24 ? `${event.title.slice(0, 24)}…` : event.title });
   }, [event?.title, navigation]);
 
-  useEffect(() => {
-    const subscription = Dimensions.addEventListener('change', ({ window }) => {
-      setWindowHeight(window.height);
-      if (keyboardHeight === 0) {
-        baseWindowHeightRef.current = window.height;
-      }
-    });
-    return () => subscription?.remove?.();
-  }, [keyboardHeight]);
-
-  useEffect(() => {
-    if (Platform.OS !== 'android') return undefined;
-
-    const showSubscription = Keyboard.addListener('keyboardDidShow', (event) => {
-      setKeyboardHeight(event?.endCoordinates?.height || 0);
-    });
-    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
-      setKeyboardHeight(0);
-      baseWindowHeightRef.current = Dimensions.get('window').height;
-    });
-
-    return () => {
-      showSubscription.remove();
-      hideSubscription.remove();
-    };
-  }, []);
-
   const timeline = useMemo(() => buildTimeline(messages), [messages]);
-  const androidWindowShrink = Math.max(0, baseWindowHeightRef.current - windowHeight);
-  const androidKeyboardCompensation =
-    Platform.OS === 'android' ? Math.max(0, keyboardHeight - androidWindowShrink) : 0;
   const attendeeCount = getAttendeeCount(event);
   const typeInfo = useMemo(() => getEventTypeInfo(event?.event_type), [event?.event_type]);
   const typeEmoji = useMemo(() => getEventTypeEmoji(event?.event_type), [event?.event_type]);
@@ -298,13 +263,13 @@ export default function EventChatScreen() {
     <Screen>
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? headerHeight : 0}
       >
         <View
           style={[
             styles.container,
-            { paddingBottom: Math.max(insets.bottom, 10) + androidKeyboardCompensation },
+            { paddingBottom: Math.max(insets.bottom, 10) },
           ]}
         >
           <View style={styles.eventMeta}>
@@ -346,7 +311,7 @@ export default function EventChatScreen() {
                 onRefresh={loadMessages}
                 refreshing={loadingMessages}
                 keyboardShouldPersistTaps="handled"
-                keyboardDismissMode="interactive"
+                keyboardDismissMode="on-drag"
                 renderItem={({ item }) => {
                   if (item.type === 'date') {
                     return (
@@ -399,6 +364,11 @@ export default function EventChatScreen() {
                   editable={!sending}
                   multiline
                   maxLength={500}
+                  onFocus={() => {
+                    setTimeout(() => {
+                      listRef.current?.scrollToEnd?.({ animated: true });
+                    }, 40);
+                  }}
                 />
                 <Pressable
                   onPress={sendMessage}

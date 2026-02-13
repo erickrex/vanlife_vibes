@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { colors } from '../theme/colors';
+import { normalizeImageUrl } from '../utils/imageUrl';
 
 function initialsForName(name) {
   if (!name) return '?';
@@ -13,14 +14,21 @@ function initialsForName(name) {
 
 export default function ProfileAvatar({ uri, name, size = 44, style }) {
   const initials = useMemo(() => initialsForName(name), [name]);
+  const normalizedUri = useMemo(() => normalizeImageUrl(uri), [uri]);
+  const [loadFailed, setLoadFailed] = useState(false);
   const dimension = { width: size, height: size, borderRadius: size / 2 };
 
-  if (uri) {
+  useEffect(() => {
+    setLoadFailed(false);
+  }, [normalizedUri]);
+
+  if (normalizedUri && !loadFailed) {
     return (
       <Image
-        source={{ uri }}
+        source={{ uri: normalizedUri }}
         style={[styles.image, dimension, style]}
         accessibilityLabel={name ? `${name} avatar` : 'Profile avatar'}
+        onError={() => setLoadFailed(true)}
       />
     );
   }

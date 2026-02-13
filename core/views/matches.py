@@ -1,6 +1,8 @@
 # core/views/matches.py
 """ViewSets for person matches and direct messaging."""
 
+import logging
+
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -23,6 +25,8 @@ from core.serializers import (
     UserReportCreateSerializer,
 )
 from .mixins import MessageMixin
+
+logger = logging.getLogger(__name__)
 
 
 class PersonMatchViewSet(MessageMixin, viewsets.GenericViewSet):
@@ -149,10 +153,19 @@ class PersonMatchViewSet(MessageMixin, viewsets.GenericViewSet):
             return
 
         for profile_id in (match.user1_id, match.user2_id):
-            async_to_sync(channel_layer.group_send)(
-                f"user_{profile_id}",
-                {'type': 'match.list.update'}
-            )
+            try:
+                async_to_sync(channel_layer.group_send)(
+                    f"user_{profile_id}",
+                    {'type': 'match.list.update'}
+                )
+            except Exception:
+                logger.exception(
+                    "Failed to broadcast match list update",
+                    extra={
+                        "match_id": str(match.id),
+                        "profile_id": str(profile_id),
+                    },
+                )
 
     def _broadcast_message_created(self, message):
         """Push a new message to the chat room and notify match lists."""
@@ -164,26 +177,45 @@ class PersonMatchViewSet(MessageMixin, viewsets.GenericViewSet):
         match = message.match
         match_id = str(match.id)
 
-        async_to_sync(channel_layer.group_send)(
-            f"match_{match_id}",
-            {
-                'type': 'chat.message',
-                'match_id': match_id,
-                'message': message_payload,
-            }
-        )
+        try:
+            async_to_sync(channel_layer.group_send)(
+                f"match_{match_id}",
+                {
+                    'type': 'chat.message',
+                    'match_id': match_id,
+                    'message': message_payload,
+                }
+            )
+        except Exception:
+            logger.exception(
+                "Failed to broadcast chat message",
+                extra={
+                    "match_id": match_id,
+                    "message_id": str(message.id),
+                },
+            )
 
         self._broadcast_match_list_update(match)
 
         recipient_id = str(match.user2_id if message.sender_id == match.user1_id else match.user1_id)
-        async_to_sync(channel_layer.group_send)(
-            f"user_{recipient_id}",
-            {
-                'type': 'notification.new.message',
-                'match_id': match_id,
-                'message_id': str(message.id),
-            }
-        )
+        try:
+            async_to_sync(channel_layer.group_send)(
+                f"user_{recipient_id}",
+                {
+                    'type': 'notification.new.message',
+                    'match_id': match_id,
+                    'message_id': str(message.id),
+                }
+            )
+        except Exception:
+            logger.exception(
+                "Failed to broadcast message notification",
+                extra={
+                    "match_id": match_id,
+                    "message_id": str(message.id),
+                    "recipient_id": recipient_id,
+                },
+            )
     
     # -------------------------------------------------------------------------
     # ViewSet actions

@@ -71,6 +71,70 @@ class SubscriptionServiceTestCase(TestCase):
         self.profile.subscription.refresh_from_db()
         self.assertTrue(self.profile.subscription.is_active)
 
+    def test_start_free_trial_activates_premium(self):
+        data = SubscriptionService.start_free_trial(self.profile)
+
+        self.assertEqual(data['plan'], 'premium')
+        self.assertTrue(data['is_premium'])
+        self.assertTrue(data['is_trial_active'])
+        self.assertTrue(data['trial_used'])
+        self.assertIsNotNone(data['trial_started_at'])
+        self.assertIsNotNone(data['trial_ends_at'])
+
+    def test_start_free_trial_is_idempotent_while_active(self):
+        first = SubscriptionService.start_free_trial(self.profile)
+        second = SubscriptionService.start_free_trial(self.profile)
+
+        self.assertTrue(first['is_trial_active'])
+        self.assertTrue(second['is_trial_active'])
+
+    def test_start_free_trial_rejects_restart_after_expiration(self):
+        UserSubscription.objects.create(
+            profile=self.profile,
+            plan='free',
+            is_active=False,
+            is_trial=False,
+            trial_started_at=timezone.now() - timedelta(days=8),
+            trial_ends_at=timezone.now() - timedelta(days=1),
+            current_period_end=timezone.now() - timedelta(days=1),
+        )
+
+        with self.assertRaises(ValueError):
+            SubscriptionService.start_free_trial(self.profile)
+
+    def test_start_free_trial_rejects_when_paid_premium_is_active(self):
+        UserSubscription.objects.create(
+            profile=self.profile,
+            plan='premium',
+            is_active=True,
+            is_trial=False,
+            current_period_end=timezone.now() + timedelta(days=30),
+        )
+
+        with self.assertRaises(ValueError):
+            SubscriptionService.start_free_trial(self.profile)
+
+    def test_trial_expiration_requires_billing_details(self):
+        subscription = UserSubscription.objects.create(
+            profile=self.profile,
+            plan='premium',
+            is_active=True,
+            is_trial=True,
+            trial_started_at=timezone.now() - timedelta(days=8),
+            trial_ends_at=timezone.now() - timedelta(days=1),
+            current_period_end=timezone.now() - timedelta(days=1),
+        )
+
+        data = SubscriptionService.get_subscription_status(self.profile)
+        subscription.refresh_from_db()
+
+        self.assertEqual(subscription.plan, 'free')
+        self.assertFalse(subscription.is_active)
+        self.assertFalse(subscription.is_trial)
+        self.assertFalse(data['is_premium'])
+        self.assertTrue(data['trial_used'])
+        self.assertTrue(data['requires_billing_details'])
+
 
 class SubscriptionSyncAPITestCase(TestCase):
     def setUp(self):
@@ -113,3 +177,20 @@ class SubscriptionSyncAPITestCase(TestCase):
         self.assertEqual(response.data['status'], 'success')
         self.assertEqual(response.data['data']['plan'], 'premium')
         self.assertTrue(response.data['data']['is_premium'])
+
+    def test_start_trial_endpoint_activates_trial(self):
+        response = self.client.post('/api/v1/subscription/start-trial/', {}, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['status'], 'success')
+        self.assertTrue(response.data['data']['is_premium'])
+        self.assertTrue(response.data['data']['is_trial_active'])
+        self.assertTrue(response.data['data']['trial_used'])
+
+    def test_start_trial_endpoint_is_idempotent_while_active(self):
+        self.client.post('/api/v1/subscription/start-trial/', {}, format='json')
+        response = self.client.post('/api/v1/subscription/start-trial/', {}, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['status'], 'success')
+        self.assertTrue(response.data['data']['is_trial_active'])

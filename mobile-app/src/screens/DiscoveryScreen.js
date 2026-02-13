@@ -145,7 +145,11 @@ export default function DiscoveryScreen({ mode = 'dating' }) {
     if (data?.error) {
       if (typeof data.error === 'string' && data.error.toLowerCase().includes('swipe limit')) {
         setRemainingSwipes(0);
-        setPaywallVisible(true);
+        if (isPremium || data?.is_premium) {
+          setError(data.error || 'Daily swipe limit reached. Please try again tomorrow.');
+        } else {
+          setPaywallVisible(true);
+        }
       }
       return;
     }
@@ -155,7 +159,7 @@ export default function DiscoveryScreen({ mode = 'dating' }) {
     if (data?.is_premium !== undefined) {
       setIsPremium(data.is_premium);
     }
-  }, []);
+  }, [isPremium]);
 
   const handleSubscribed = useCallback(() => {
     setPaywallVisible(false);
@@ -164,7 +168,7 @@ export default function DiscoveryScreen({ mode = 'dating' }) {
     loadProfiles();
   }, [loadProfiles]);
 
-  const swipesDisabled = remainingSwipes === 0 && !isPremium;
+  const swipesDisabled = remainingSwipes === 0;
 
   return (
     <Screen>
@@ -288,7 +292,13 @@ export default function DiscoveryScreen({ mode = 'dating' }) {
                   onNavigateToChat={handleNavigateToChat}
                   onEmpty={() => setExhausted(true)}
                   swipesDisabled={swipesDisabled}
-                  onSwipeLimitReached={() => setPaywallVisible(true)}
+                  onSwipeLimitReached={() => {
+                    if (isPremium) {
+                      setError('Daily swipe limit reached. Please try again tomorrow.');
+                      return;
+                    }
+                    setPaywallVisible(true);
+                  }}
                 />
               </View>
             ) : null}

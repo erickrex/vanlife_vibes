@@ -142,10 +142,35 @@ function normalizePhotoUrl(value) {
   if (!value || typeof value !== 'string') return '';
   const trimmed = value.trim();
   if (!trimmed) return '';
-  if (/^(https?:\/\/|file:\/\/|content:\/\/|ph:\/\/|asset:\/\/)/i.test(trimmed)) return trimmed;
   const origin = API_BASE_URL.replace(/\/api\/v1\/?$/i, '');
+  if (/^(https?:\/\/|file:\/\/|content:\/\/|ph:\/\/|asset:\/\/)/i.test(trimmed)) {
+    try {
+      const apiUrl = new URL(origin);
+      const imgUrl = new URL(trimmed);
+      if (apiUrl.protocol === 'https:' && imgUrl.protocol === 'http:' && apiUrl.host === imgUrl.host) {
+        return `https://${imgUrl.host}${imgUrl.pathname}${imgUrl.search}${imgUrl.hash}`;
+      }
+    } catch {
+      // Ignore parse issues and use the input URL.
+    }
+    return trimmed;
+  }
   if (!origin) return trimmed;
   return `${origin}${trimmed.startsWith('/') ? '' : '/'}${trimmed}`;
+}
+
+function extractUploadPhotoUrl(response) {
+  const payload = response?.data?.data ?? response?.data ?? response ?? null;
+  if (!payload || typeof payload !== 'object') return '';
+  return normalizePhotoUrl(
+    payload.image ||
+      payload.image_url ||
+      payload.url ||
+      payload.uri ||
+      payload.photo?.image ||
+      payload.photo?.image_url ||
+      ''
+  );
 }
 
 export default function OnboardingScreen() {
@@ -180,11 +205,20 @@ export default function OnboardingScreen() {
   const [prompt2Answer, setPrompt2Answer] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [coverUrl, setCoverUrl] = useState('');
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState('');
+  const [coverPreviewUrl, setCoverPreviewUrl] = useState('');
+  const [avatarLocalPreviewUrl, setAvatarLocalPreviewUrl] = useState('');
+  const [coverLocalPreviewUrl, setCoverLocalPreviewUrl] = useState('');
+  const [avatarPreviewBroken, setAvatarPreviewBroken] = useState(false);
+  const [coverPreviewBroken, setCoverPreviewBroken] = useState(false);
   const [uploadingPhotoType, setUploadingPhotoType] = useState('');
   const [photoError, setPhotoError] = useState('');
   const [photoNotice, setPhotoNotice] = useState('');
   const [showPhotoUrlFallback, setShowPhotoUrlFallback] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
+  const [subscriptionStatus, setSubscriptionStatus] = useState(null);
+  const [startingTrial, setStartingTrial] = useState(false);
+  const [trialError, setTrialError] = useState('');
   const [avatarUploaded, setAvatarUploaded] = useState(false);
   const [coverUploaded, setCoverUploaded] = useState(false);
 
@@ -209,6 +243,7 @@ export default function OnboardingScreen() {
 
         setPrompts(Array.isArray(promptsData) ? promptsData : []);
         setIsPremium(!!subscriptionData?.is_premium);
+        setSubscriptionStatus(subscriptionData);
         setDisplayName(profileData.display_name || '');
         setBio(profileData.bio || '');
         setGender(profileData.gender || '');
@@ -216,6 +251,10 @@ export default function OnboardingScreen() {
         const initialCoverUrl = normalizePhotoUrl(profileData.cover_url || '');
         setAvatarUrl(initialAvatarUrl);
         setCoverUrl(initialCoverUrl);
+        setAvatarPreviewUrl(initialAvatarUrl);
+        setCoverPreviewUrl(initialCoverUrl);
+        setAvatarLocalPreviewUrl('');
+        setCoverLocalPreviewUrl('');
         setAvatarUploaded(!!initialAvatarUrl);
         setCoverUploaded(!!initialCoverUrl);
         setNowInCity(profileData.now_in_city || '');
@@ -242,6 +281,14 @@ export default function OnboardingScreen() {
       mounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    setAvatarPreviewBroken(false);
+  }, [avatarPreviewUrl, avatarLocalPreviewUrl]);
+
+  useEffect(() => {
+    setCoverPreviewBroken(false);
+  }, [coverPreviewUrl, coverLocalPreviewUrl]);
 
   const stepData = STEPS[step];
   const isLastStep = step === STEPS.length - 1;
@@ -317,6 +364,22 @@ export default function OnboardingScreen() {
     stepData,
   ]);
 
+  const handleStartTrial = async () => {
+    if (startingTrial) return;
+    setStartingTrial(true);
+    setTrialError('');
+    try {
+      const response = await subscriptionAPI.startTrial();
+      const data = response?.data?.data || response?.data || {};
+      setSubscriptionStatus(data);
+      setIsPremium(!!data?.is_premium);
+    } catch (trialErr) {
+      setTrialError(trialErr.message || 'Unable to start free trial right now.');
+    } finally {
+      setStartingTrial(false);
+    }
+  };
+
   const pickAndUploadPhoto = async (photoType) => {
     if (!photoType || saving || uploadingPhotoType) return;
 
@@ -346,6 +409,16 @@ export default function OnboardingScreen() {
         return;
       }
 
+      const localPreviewUrl = normalizePhotoUrl(asset.uri);
+      if (photoType === 'avatar') {
+        setAvatarLocalPreviewUrl(localPreviewUrl);
+        setAvatarPreviewUrl(localPreviewUrl);
+      }
+      if (photoType === 'cover') {
+        setCoverLocalPreviewUrl(localPreviewUrl);
+        setCoverPreviewUrl(localPreviewUrl);
+      }
+
       const uriParts = asset.uri.split('.');
       const fallbackExt = uriParts.length > 1 ? uriParts[uriParts.length - 1] : 'jpg';
       const extension = (asset.mimeType?.split('/')?.[1] || fallbackExt || 'jpg').toLowerCase();
@@ -365,17 +438,34 @@ export default function OnboardingScreen() {
       });
 
       const response = await profilesAPI.uploadPhoto(formData);
-      const uploadedPhoto = response?.data?.data ?? response?.data ?? null;
-      const uploadedUrl = normalizePhotoUrl(uploadedPhoto?.image || uploadedPhoto?.image_url || '');
+      let uploadedUrl = extractUploadPhotoUrl(response);
+
+      if (!uploadedUrl) {
+        const profileResponse = await profilesAPI.getMyProfile();
+        const profileData = profileResponse?.data?.data ?? profileResponse?.data ?? {};
+        uploadedUrl = normalizePhotoUrl(photoType === 'avatar' ? profileData?.avatar_url : profileData?.cover_url);
+      }
 
       if (photoType === 'avatar') {
-        setAvatarUrl(uploadedUrl || asset.uri);
-        setAvatarUploaded(true);
-        setPhotoNotice('Avatar uploaded.');
+        if (uploadedUrl) {
+          setAvatarUrl(uploadedUrl);
+          setAvatarPreviewUrl(uploadedUrl);
+          setAvatarUploaded(true);
+          setPhotoNotice('Avatar uploaded.');
+        } else {
+          setAvatarUploaded(false);
+          setPhotoNotice('Avatar selected for preview. Upload is still syncing.');
+        }
       } else if (photoType === 'cover') {
-        setCoverUrl(uploadedUrl || asset.uri);
-        setCoverUploaded(true);
-        setPhotoNotice('Cover uploaded.');
+        if (uploadedUrl) {
+          setCoverUrl(uploadedUrl);
+          setCoverPreviewUrl(uploadedUrl);
+          setCoverUploaded(true);
+          setPhotoNotice('Cover uploaded.');
+        } else {
+          setCoverUploaded(false);
+          setPhotoNotice('Cover selected for preview. Upload is still syncing.');
+        }
       }
 
       await refreshProfile();
@@ -573,8 +663,19 @@ export default function OnboardingScreen() {
 
               <View style={styles.photoPreviewRow}>
                 <View style={styles.avatarPreviewWrap}>
-                  {avatarUrl ? (
-                    <Image source={{ uri: avatarUrl }} style={styles.avatarPreview} resizeMode="cover" />
+                  {(avatarPreviewUrl || avatarLocalPreviewUrl) && !avatarPreviewBroken ? (
+                    <Image
+                      source={{ uri: avatarPreviewUrl || avatarLocalPreviewUrl }}
+                      style={styles.avatarPreview}
+                      resizeMode="cover"
+                      onError={() => {
+                        if (avatarLocalPreviewUrl && avatarPreviewUrl !== avatarLocalPreviewUrl) {
+                          setAvatarPreviewUrl(avatarLocalPreviewUrl);
+                          return;
+                        }
+                        setAvatarPreviewBroken(true);
+                      }}
+                    />
                   ) : (
                     <View style={styles.photoFallback}>
                       <Text style={styles.photoFallbackText}>
@@ -585,8 +686,19 @@ export default function OnboardingScreen() {
                 </View>
 
                 <View style={styles.coverPreviewWrap}>
-                  {coverUrl ? (
-                    <Image source={{ uri: coverUrl }} style={styles.coverPreview} resizeMode="cover" />
+                  {(coverPreviewUrl || coverLocalPreviewUrl) && !coverPreviewBroken ? (
+                    <Image
+                      source={{ uri: coverPreviewUrl || coverLocalPreviewUrl }}
+                      style={styles.coverPreview}
+                      resizeMode="cover"
+                      onError={() => {
+                        if (coverLocalPreviewUrl && coverPreviewUrl !== coverLocalPreviewUrl) {
+                          setCoverPreviewUrl(coverLocalPreviewUrl);
+                          return;
+                        }
+                        setCoverPreviewBroken(true);
+                      }}
+                    />
                   ) : (
                     <View style={styles.coverFallback}>
                       <Text style={styles.photoFallbackText}>Cover preview</Text>
@@ -641,6 +753,8 @@ export default function OnboardingScreen() {
                   value={avatarUrl}
                   onChangeText={(value) => {
                     setAvatarUrl(value);
+                    setAvatarLocalPreviewUrl('');
+                    setAvatarPreviewUrl(normalizePhotoUrl(value));
                     setAvatarUploaded(!!value.trim());
                     if (photoError) setPhotoError('');
                   }}
@@ -789,9 +903,14 @@ export default function OnboardingScreen() {
                 <View style={styles.premiumLockCard}>
                   <Text style={styles.premiumLockTitle}>Premium: Future location matching</Text>
                   <Text style={styles.premiumLockBody}>
-                    Unlock more matches with Next week and Next month location timeline, plus unlimited swipes.
+                    Unlock more matches based on your planned trips. We will match travelers crossing paths in the future. Also, 4X the swipes!
                     You can enable this later from Subscription.
                   </Text>
+                  {subscriptionStatus?.requires_billing_details ? (
+                    <Text style={styles.premiumReminder}>
+                      Your trial has ended. Add billing details to keep Premium access.
+                    </Text>
+                  ) : null}
 
                   <CityAutocomplete
                     label="Next week (Premium)"
@@ -812,10 +931,18 @@ export default function OnboardingScreen() {
                   />
 
                   <AppButton
+                    title={subscriptionStatus?.trial_used ? '7-day Trial Used' : (startingTrial ? 'Starting free trial…' : 'Start 7-day Free Trial')}
+                    onPress={handleStartTrial}
+                    variant="primary"
+                    disabled={startingTrial || !!subscriptionStatus?.trial_used}
+                  />
+                  <AppButton
                     title="Unlock Premium"
                     onPress={() => navigation.navigate('Subscription')}
-                    variant="primary"
+                    variant="secondary"
                   />
+                  {trialError ? <Text style={styles.inlineError}>{trialError}</Text> : null}
+                  <Text style={styles.poweredBy}>Powered by RevenueCat</Text>
                 </View>
               )}
             </View>
@@ -917,6 +1044,16 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontSize: 12,
     lineHeight: 18,
+  },
+  premiumReminder: {
+    color: colors.danger,
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  poweredBy: {
+    color: colors.muted,
+    fontSize: 11,
+    textAlign: 'center',
   },
   label: {
     color: colors.secondary,

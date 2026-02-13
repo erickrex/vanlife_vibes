@@ -12,6 +12,7 @@ import {
 import { discoveryAPI } from '../services/api';
 import { colors } from '../theme/colors';
 import { componentTokens, radius, shadow } from '../theme/tokens';
+import { normalizeImageUrl } from '../utils/imageUrl';
 import ProfileAvatar from './ProfileAvatar';
 import { buildCompatibilityChips } from '../utils/compatibility';
 
@@ -27,6 +28,13 @@ function CardContent({ profile, currentProfile, mode, accentColor }) {
   const displayName = profile?.display_name || profile?.username || 'Unknown';
   const location = profile?.now_in_city || profile?.current_location || '';
   const bio = profile?.bio || '';
+  const coverUrl = useMemo(() => normalizeImageUrl(profile?.cover_url || ''), [profile?.cover_url]);
+  const avatarUrl = useMemo(() => normalizeImageUrl(profile?.avatar_url || ''), [profile?.avatar_url]);
+  const [activePhotoUrl, setActivePhotoUrl] = useState(coverUrl || avatarUrl || '');
+
+  useEffect(() => {
+    setActivePhotoUrl(coverUrl || avatarUrl || '');
+  }, [avatarUrl, coverUrl]);
 
   const overlapBadge = useMemo(() => {
     const windows = profile?.overlap_windows;
@@ -42,11 +50,18 @@ function CardContent({ profile, currentProfile, mode, accentColor }) {
   return (
     <View style={styles.cardInner}>
       <View style={styles.photoWrap}>
-        {profile?.cover_url || profile?.avatar_url ? (
+        {activePhotoUrl ? (
           <Animated.Image
-            source={{ uri: profile.cover_url || profile.avatar_url }}
+            source={{ uri: activePhotoUrl }}
             style={styles.photo}
             resizeMode="cover"
+            onError={() => {
+              if (activePhotoUrl === coverUrl && avatarUrl && avatarUrl !== coverUrl) {
+                setActivePhotoUrl(avatarUrl);
+                return;
+              }
+              setActivePhotoUrl('');
+            }}
           />
         ) : (
           <View style={styles.photoFallback}>
@@ -130,6 +145,14 @@ export default function DiscoverySwipeDeck({
   const [matchVisible, setMatchVisible] = useState(false);
   const [matchedProfile, setMatchedProfile] = useState(null);
   const [matchId, setMatchId] = useState(null);
+  const matchHeartScale = useRef(new Animated.Value(0.6)).current;
+  const matchHeartOpacity = useRef(new Animated.Value(0)).current;
+  const matchRingScale = useRef(new Animated.Value(0.65)).current;
+  const matchRingOpacity = useRef(new Animated.Value(0)).current;
+  const floatingHeartAnims = useRef(Array.from({ length: 5 }, () => new Animated.Value(0))).current;
+  const heartPulseLoopRef = useRef(null);
+  const floatingHeartLoopsRef = useRef([]);
+  const floatingHeartOffsets = useMemo(() => [-54, -26, 0, 26, 54], []);
 
   const activeProfile = profiles[currentIndex];
   const nextProfile = profiles[currentIndex + 1];
@@ -144,6 +167,111 @@ export default function DiscoverySwipeDeck({
       onEmpty?.();
     }
   }, [currentIndex, onEmpty, profiles.length]);
+
+  useEffect(() => {
+    const stopMatchAnimations = () => {
+      if (heartPulseLoopRef.current) {
+        heartPulseLoopRef.current.stop();
+        heartPulseLoopRef.current = null;
+      }
+      if (floatingHeartLoopsRef.current.length > 0) {
+        floatingHeartLoopsRef.current.forEach((animation) => animation?.stop?.());
+        floatingHeartLoopsRef.current = [];
+      }
+    };
+
+    if (!matchVisible) {
+      stopMatchAnimations();
+      return undefined;
+    }
+
+    matchHeartScale.setValue(0.6);
+    matchHeartOpacity.setValue(0);
+    matchRingScale.setValue(0.65);
+    matchRingOpacity.setValue(0);
+    floatingHeartAnims.forEach((anim) => anim.setValue(0));
+
+    Animated.parallel([
+      Animated.spring(matchHeartScale, {
+        toValue: 1,
+        useNativeDriver: true,
+        friction: 6,
+        tension: 100,
+      }),
+      Animated.timing(matchHeartOpacity, {
+        toValue: 1,
+        duration: 220,
+        useNativeDriver: true,
+      }),
+      Animated.sequence([
+        Animated.parallel([
+          Animated.timing(matchRingScale, {
+            toValue: 1.25,
+            duration: 540,
+            useNativeDriver: true,
+          }),
+          Animated.timing(matchRingOpacity, {
+            toValue: 0.7,
+            duration: 180,
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.timing(matchRingOpacity, {
+          toValue: 0,
+          duration: 360,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start(() => {
+      const pulse = Animated.loop(
+        Animated.sequence([
+          Animated.timing(matchHeartScale, {
+            toValue: 1.12,
+            duration: 360,
+            useNativeDriver: true,
+          }),
+          Animated.timing(matchHeartScale, {
+            toValue: 1,
+            duration: 360,
+            useNativeDriver: true,
+          }),
+        ]),
+      );
+      heartPulseLoopRef.current = pulse;
+      pulse.start();
+    });
+
+    floatingHeartLoopsRef.current = floatingHeartAnims.map((anim, index) => {
+      const loop = Animated.loop(
+        Animated.sequence([
+          Animated.delay(index * 120),
+          Animated.timing(anim, {
+            toValue: 1,
+            duration: 1200,
+            useNativeDriver: true,
+          }),
+          Animated.timing(anim, {
+            toValue: 0,
+            duration: 0,
+            useNativeDriver: true,
+          }),
+        ]),
+      );
+      loop.start();
+      return loop;
+    });
+
+    return () => {
+      stopMatchAnimations();
+    };
+  }, [
+    floatingHeartAnims,
+    matchHeartOpacity,
+    matchHeartScale,
+    matchRingOpacity,
+    matchRingScale,
+    matchVisible,
+  ]);
 
   const rotate = position.x.interpolate({
     inputRange: [-width, 0, width],
@@ -345,6 +473,59 @@ export default function DiscoverySwipeDeck({
       <Modal visible={matchVisible} transparent animationType="fade" onRequestClose={closeMatch}>
         <View style={styles.matchBackdrop}>
           <View style={styles.matchCard}>
+            <View style={styles.matchAnimationWrap}>
+              <Animated.View
+                style={[
+                  styles.matchRing,
+                  {
+                    opacity: matchRingOpacity,
+                    transform: [{ scale: matchRingScale }],
+                  },
+                ]}
+              />
+              {floatingHeartAnims.map((anim, index) => (
+                <Animated.Text
+                  key={`float-heart-${index}`}
+                  style={[
+                    styles.matchFloatingHeart,
+                    {
+                      marginLeft: floatingHeartOffsets[index],
+                      opacity: anim.interpolate({
+                        inputRange: [0, 0.15, 0.75, 1],
+                        outputRange: [0, 0.85, 0.45, 0],
+                      }),
+                      transform: [
+                        {
+                          translateY: anim.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [16, -88 - index * 8],
+                          }),
+                        },
+                        {
+                          scale: anim.interpolate({
+                            inputRange: [0, 0.22, 1],
+                            outputRange: [0.6, 1.12, 0.88],
+                          }),
+                        },
+                      ],
+                    },
+                  ]}
+                >
+                  ❤
+                </Animated.Text>
+              ))}
+              <Animated.Text
+                style={[
+                  styles.matchHeart,
+                  {
+                    opacity: matchHeartOpacity,
+                    transform: [{ scale: matchHeartScale }],
+                  },
+                ]}
+              >
+                ❤
+              </Animated.Text>
+            </View>
             <Text style={styles.matchTitle}>It's a match!</Text>
             <Text style={styles.matchSubtitle}>{`You matched in ${prettyMode(mode)}.`}</Text>
             <ProfileAvatar uri={matchedProfile?.avatar_url} name={matchedProfile?.display_name} size={72} />
@@ -625,6 +806,38 @@ const styles = StyleSheet.create({
     padding: 18,
     alignItems: 'center',
     gap: 10,
+  },
+  matchAnimationWrap: {
+    width: 168,
+    height: 118,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 2,
+  },
+  matchRing: {
+    position: 'absolute',
+    width: 98,
+    height: 98,
+    borderRadius: 49,
+    borderWidth: 2,
+    borderColor: `${colors.rose}88`,
+    backgroundColor: `${colors.rose}10`,
+  },
+  matchHeart: {
+    color: colors.rose,
+    fontSize: 62,
+    fontWeight: '900',
+    textShadowColor: `${colors.rose}88`,
+    textShadowOffset: { width: 0, height: 4 },
+    textShadowRadius: 14,
+  },
+  matchFloatingHeart: {
+    position: 'absolute',
+    bottom: 24,
+    left: '50%',
+    color: colors.rose,
+    fontSize: 22,
+    fontWeight: '900',
   },
   matchTitle: {
     color: colors.text,

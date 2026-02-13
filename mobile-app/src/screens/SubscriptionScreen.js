@@ -15,7 +15,7 @@ import { revenueCatClient } from '../services/revenuecat';
 import { colors } from '../theme/colors';
 
 const BENEFITS = [
-  'Unlimited daily swipes',
+  '20 daily swipes',
   'Future-location matching boosts',
   'See who liked you',
   'Priority in discovery',
@@ -37,6 +37,7 @@ export default function SubscriptionScreen() {
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [startingTrial, setStartingTrial] = useState(false);
   const [purchasing, setPurchasing] = useState(false);
   const [purchaseError, setPurchaseError] = useState(null);
   const [pkg, setPkg] = useState(null);
@@ -116,6 +117,19 @@ export default function SubscriptionScreen() {
     }
   };
 
+  const handleStartTrial = async () => {
+    setStartingTrial(true);
+    setPurchaseError(null);
+    try {
+      const response = await subscriptionAPI.startTrial();
+      setStatus(response?.data?.data ?? response?.data ?? null);
+    } catch (trialErr) {
+      setPurchaseError(trialErr.message || 'Unable to start free trial right now.');
+    } finally {
+      setStartingTrial(false);
+    }
+  };
+
   if (loading) {
     return (
       <Screen>
@@ -143,6 +157,8 @@ export default function SubscriptionScreen() {
   const planName = status?.plan ?? 'free';
   const renewalDate = formatRenewalDate(status?.current_period_end);
   const priceLabel = pkg?.product?.priceString ?? null;
+  const trialUsed = !!status?.trial_used;
+  const requiresBillingDetails = !!status?.requires_billing_details;
 
   return (
     <Screen>
@@ -170,8 +186,13 @@ export default function SubscriptionScreen() {
           <View style={styles.section}>
             <Text style={styles.title}>Upgrade to Premium</Text>
             <Text style={styles.subtitle}>
-              Get the most out of VanlifeVibes with unlimited swipes and exclusive features.
+              Get the most out of VanlifeVibes with 20 daily swipes and exclusive features.
             </Text>
+            {requiresBillingDetails ? (
+              <Text style={styles.billingReminder}>
+                Your trial has ended. Add billing details to continue Premium access.
+              </Text>
+            ) : null}
 
             <View style={styles.benefitsList}>
               {BENEFITS.map((b) => (
@@ -193,20 +214,37 @@ export default function SubscriptionScreen() {
                 {purchaseError && <Text style={styles.errorText}>{purchaseError}</Text>}
 
                 <Pressable
+                  onPress={handleStartTrial}
+                  disabled={startingTrial || purchasing || trialUsed}
+                  style={({ pressed }) => [
+                    styles.trialButton,
+                    (startingTrial || purchasing || trialUsed) && styles.disabled,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  {startingTrial ? (
+                    <ActivityIndicator color={colors.primaryText} size="small" />
+                  ) : (
+                    <Text style={styles.subscribeText}>{trialUsed ? '7-day Trial Used' : 'Start 7-day Free Trial'}</Text>
+                  )}
+                </Pressable>
+
+                <Pressable
                   onPress={handleSubscribe}
-                  disabled={purchasing || !pkg}
+                  disabled={purchasing || startingTrial || !pkg}
                   style={({ pressed }) => [
                     styles.subscribeButton,
-                    (purchasing || !pkg) && styles.disabled,
+                    (purchasing || startingTrial || !pkg) && styles.disabled,
                     pressed && styles.pressed,
                   ]}
                 >
                   {purchasing ? (
-                    <ActivityIndicator color={colors.primaryText} size="small" />
+                    <ActivityIndicator color={colors.text} size="small" />
                   ) : (
-                    <Text style={styles.subscribeText}>Subscribe to Premium</Text>
+                    <Text style={[styles.subscribeText, styles.subscribeTextSecondary]}>Subscribe to Premium</Text>
                   )}
                 </Pressable>
+                <Text style={styles.poweredBy}>Powered by RevenueCat</Text>
               </>
             )}
           </View>
@@ -291,7 +329,7 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     marginTop: 4,
   },
-  subscribeButton: {
+  trialButton: {
     width: '100%',
     paddingVertical: 16,
     borderRadius: 16,
@@ -300,10 +338,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 4,
   },
+  subscribeButton: {
+    width: '100%',
+    paddingVertical: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.panel,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+  },
   subscribeText: {
     color: colors.primaryText,
     fontSize: 16,
     fontWeight: '900',
+  },
+  subscribeTextSecondary: {
+    color: colors.text,
   },
   manageButton: {
     width: '100%',
@@ -323,6 +375,16 @@ const styles = StyleSheet.create({
   errorText: {
     color: colors.danger,
     fontSize: 13,
+    textAlign: 'center',
+  },
+  billingReminder: {
+    color: colors.danger,
+    fontSize: 12,
+    textAlign: 'center',
+  },
+  poweredBy: {
+    color: colors.muted,
+    fontSize: 11,
     textAlign: 'center',
   },
   retryButton: {

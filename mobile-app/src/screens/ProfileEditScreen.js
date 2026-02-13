@@ -22,6 +22,7 @@ import Screen from '../components/Screen';
 import { useAuth } from '../contexts/AuthContext';
 import { profilesAPI, subscriptionAPI } from '../services/api';
 import { colors } from '../theme/colors';
+import { normalizeImageUrl } from '../utils/imageUrl';
 
 const GENDER_OPTIONS = [
   { value: '', label: 'Not set' },
@@ -186,6 +187,40 @@ function normalizeList(response) {
   return [];
 }
 
+function normalizePhotoList(items) {
+  if (!Array.isArray(items)) return [];
+  return items.map((photo) => ({
+    ...photo,
+    image: normalizeImageUrl(photo?.image || ''),
+  }));
+}
+
+function PhotoThumb({ uri, style, label = 'Photo' }) {
+  const normalizedUri = useMemo(() => normalizeImageUrl(uri || ''), [uri]);
+  const [loadFailed, setLoadFailed] = useState(false);
+
+  useEffect(() => {
+    setLoadFailed(false);
+  }, [normalizedUri]);
+
+  if (!normalizedUri || loadFailed) {
+    return (
+      <View style={[styles.photoThumb, style, styles.photoThumbFallback]}>
+        <Text style={styles.photoThumbFallbackText}>{label}</Text>
+      </View>
+    );
+  }
+
+  return (
+    <Image
+      source={{ uri: normalizedUri }}
+      style={[styles.photoThumb, style]}
+      resizeMode="cover"
+      onError={() => setLoadFailed(true)}
+    />
+  );
+}
+
 export default function ProfileEditScreen() {
   const navigation = useNavigation();
   const headerHeight = useHeaderHeight();
@@ -195,6 +230,9 @@ export default function ProfileEditScreen() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [isPremium, setIsPremium] = useState(false);
+  const [subscriptionStatus, setSubscriptionStatus] = useState(null);
+  const [startingTrial, setStartingTrial] = useState(false);
+  const [trialError, setTrialError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
 
   const [displayName, setDisplayName] = useState('');
@@ -289,7 +327,7 @@ export default function ProfileEditScreen() {
       const hobbies = normalizeList(hobbyRes);
       const promptList = normalizeList(promptsRes);
       const availablePromptList = normalizeList(availablePromptsRes);
-      const profilePhotoList = normalizeList(photosRes);
+      const profilePhotoList = normalizePhotoList(normalizeList(photosRes));
       const subscription = subscriptionRes?.data?.data || subscriptionRes?.data || {};
 
       let vehicle = null;
@@ -331,14 +369,15 @@ export default function ProfileEditScreen() {
       setNextMonthInStartDate(profile?.next_month_in_start_date || '');
       setNextMonthInEndDate(profile?.next_month_in_end_date || '');
       setCampingPreferences(Array.isArray(profile?.camping_preferences) ? profile.camping_preferences : []);
-      setAvatarUrlInput(profile?.avatar_url || '');
-      setCoverUrlInput(profile?.cover_url || '');
+      setAvatarUrlInput(normalizeImageUrl(profile?.avatar_url || ''));
+      setCoverUrlInput(normalizeImageUrl(profile?.cover_url || ''));
       setHobbyTags(hobbies);
       setSelectedHobbyIds(Array.isArray(profile?.hobbies) ? profile.hobbies.map((hobby) => String(hobby.id)) : []);
       setPrompts(promptList);
       setAvailablePrompts(availablePromptList);
       setPhotos(profilePhotoList);
       setIsPremium(!!subscription?.is_premium);
+      setSubscriptionStatus(subscription);
       setPromptError('');
       setPhotoError('');
 
@@ -355,6 +394,22 @@ export default function ProfileEditScreen() {
       setLoading(false);
     }
   }, []);
+
+  const handleStartTrial = async () => {
+    if (startingTrial) return;
+    setStartingTrial(true);
+    setTrialError('');
+    try {
+      const response = await subscriptionAPI.startTrial();
+      const data = response?.data?.data || response?.data || {};
+      setSubscriptionStatus(data);
+      setIsPremium(!!data?.is_premium);
+    } catch (trialErr) {
+      setTrialError(trialErr.message || 'Unable to start free trial right now.');
+    } finally {
+      setStartingTrial(false);
+    }
+  };
 
   useEffect(() => {
     loadData();
@@ -416,7 +471,7 @@ export default function ProfileEditScreen() {
 
   const refreshPhotos = useCallback(async () => {
     const response = await profilesAPI.getPhotos();
-    setPhotos(normalizeList(response));
+    setPhotos(normalizePhotoList(normalizeList(response)));
   }, []);
 
   const pickAndUploadPhoto = async (photoType) => {
@@ -468,10 +523,10 @@ export default function ProfileEditScreen() {
       const uploadResponse = await profilesAPI.uploadPhoto(formData);
       const uploadedPhoto = normalizeProfile(uploadResponse);
       if (photoType === 'avatar' && uploadedPhoto?.image) {
-        setAvatarUrlInput(uploadedPhoto.image);
+        setAvatarUrlInput(normalizeImageUrl(uploadedPhoto.image));
       }
       if (photoType === 'cover' && uploadedPhoto?.image) {
-        setCoverUrlInput(uploadedPhoto.image);
+        setCoverUrlInput(normalizeImageUrl(uploadedPhoto.image));
       }
       await refreshPhotos();
       await refreshProfile();
@@ -975,6 +1030,11 @@ export default function ProfileEditScreen() {
                 <Text style={styles.premiumLocationBody}>
                   Unlock Next week and Next month timeline fields to get ranked for future-location matches.
                 </Text>
+                {subscriptionStatus?.requires_billing_details ? (
+                  <Text style={styles.premiumReminder}>
+                    Your trial has ended. Add billing details to keep Premium access.
+                  </Text>
+                ) : null}
                 <CityAutocomplete
                   label="Next week in city (Premium)"
                   value=""
@@ -992,10 +1052,18 @@ export default function ProfileEditScreen() {
                   placeholder="Premium required"
                 />
                 <AppButton
+                  title={subscriptionStatus?.trial_used ? '7-day Trial Used' : (startingTrial ? 'Starting free trial…' : 'Start 7-day Free Trial')}
+                  onPress={handleStartTrial}
+                  variant="primary"
+                  disabled={startingTrial || !!subscriptionStatus?.trial_used}
+                />
+                <AppButton
                   title="Unlock Premium"
                   onPress={() => navigation.navigate('Subscription')}
-                  variant="primary"
+                  variant="secondary"
                 />
+                {trialError ? <Text style={styles.errorText}>{trialError}</Text> : null}
+                <Text style={styles.poweredBy}>Powered by RevenueCat</Text>
               </View>
             )}
           </View>
@@ -1206,7 +1274,7 @@ export default function ProfileEditScreen() {
 
             {avatarPhoto ? (
               <View style={styles.photoRow}>
-                <Image source={{ uri: avatarPhoto.image }} style={styles.photoThumb} resizeMode="cover" />
+                <PhotoThumb uri={avatarPhoto.image} label="Avatar" />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.photoTitle}>Avatar</Text>
                   <Text style={styles.photoMeta}>{`Order ${avatarPhoto.display_order || 0}`}</Text>
@@ -1229,7 +1297,7 @@ export default function ProfileEditScreen() {
 
             {coverPhoto ? (
               <View style={styles.photoRow}>
-                <Image source={{ uri: coverPhoto.image }} style={[styles.photoThumb, styles.photoThumbWide]} resizeMode="cover" />
+                <PhotoThumb uri={coverPhoto.image} style={styles.photoThumbWide} label="Cover" />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.photoTitle}>Cover</Text>
                   <Text style={styles.photoMeta}>{`Order ${coverPhoto.display_order || 0}`}</Text>
@@ -1257,7 +1325,7 @@ export default function ProfileEditScreen() {
               ) : (
                 galleryPhotos.map((photo, index) => (
                   <View key={photo.id} style={styles.photoRow}>
-                    <Image source={{ uri: photo.image }} style={styles.photoThumb} resizeMode="cover" />
+                    <PhotoThumb uri={photo.image} label={`#${index + 1}`} />
                     <View style={{ flex: 1 }}>
                       <Text style={styles.photoTitle}>{`Gallery #${index + 1}`}</Text>
                       <Text style={styles.photoMeta}>{`Order ${photo.display_order || 0}`}</Text>
@@ -1506,6 +1574,16 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
   },
+  premiumReminder: {
+    color: colors.danger,
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  poweredBy: {
+    color: colors.muted,
+    fontSize: 11,
+    textAlign: 'center',
+  },
   label: {
     color: colors.secondary,
     fontSize: 13,
@@ -1709,6 +1787,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderStrong,
     backgroundColor: colors.bg,
+  },
+  photoThumbFallback: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.panel,
+  },
+  photoThumbFallbackText: {
+    color: colors.muted,
+    fontSize: 10,
+    fontWeight: '800',
   },
   photoThumbWide: {
     width: 80,

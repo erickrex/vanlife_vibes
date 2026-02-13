@@ -71,6 +71,7 @@ INSTALLED_APPS = [
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
+    "storages",
     # Local apps
     "core",
 ]
@@ -194,7 +195,7 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 # Storage backend selection (local for development, S3 for production)
-USE_S3_STORAGE = config("USE_S3_STORAGE", default=False, cast=bool)
+USE_S3_STORAGE = config("USE_S3_STORAGE", default=IS_PRODUCTION, cast=bool)
 
 if USE_S3_STORAGE:
     # AWS S3 Configuration (Django 4.2+ STORAGES dict)
@@ -211,7 +212,12 @@ if USE_S3_STORAGE:
     AWS_S3_FILE_OVERWRITE = False
     AWS_DEFAULT_ACL = None
     AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
-    AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
+    AWS_S3_CUSTOM_DOMAIN = config(
+        "AWS_S3_CUSTOM_DOMAIN",
+        default=f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com",
+    )
+    # Public media URLs for app clients; avoid expiring signed links in profile fields.
+    AWS_QUERYSTRING_AUTH = config("AWS_QUERYSTRING_AUTH", default=False, cast=bool)
     STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/static/"
     MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/media/"
 

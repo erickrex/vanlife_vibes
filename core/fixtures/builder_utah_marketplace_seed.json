@@ -1,0 +1,129 @@
+{
+  "dataset": "builder_utah_marketplace_seed",
+  "version": 1,
+  "notes": "Seed data for Builder Marketplace testing. Includes 2 owner users and 10 Utah listings.",
+  "users": [
+    {
+      "username": "utah_builder_ryan",
+      "email": "utah_builder_ryan@example.com",
+      "password": "testpass123",
+      "display_name": "Ryan Carter",
+      "bio": "Van electrical and solar helper based in Utah.",
+      "is_premium": true,
+      "avatar_url": "https://i.pravatar.cc/300?img=31",
+      "current_location": "Moab, UT"
+    },
+    {
+      "username": "utah_builder_lena",
+      "email": "utah_builder_lena@example.com",
+      "password": "testpass123",
+      "display_name": "Lena Brooks",
+      "bio": "Interior and systems builder helping travelers around Utah.",
+      "is_premium": true,
+      "avatar_url": "https://i.pravatar.cc/300?img=45",
+      "current_location": "Salt Lake City, UT"
+    }
+  ],
+  "listings": [
+    {
+      "owner_username": "utah_builder_ryan",
+      "title": "Solar Panel Troubleshooting",
+      "description": "I can diagnose low-output solar setups and optimize wiring.",
+      "category": "solar",
+      "listing_type": "offering",
+      "price": 120,
+      "city_display_name": "Moab, UT",
+      "photo_url": "https://source.unsplash.com/800x600/?van,camper"
+    },
+    {
+      "owner_username": "utah_builder_lena",
+      "title": "Need Help With Insulation in Cargo Van",
+      "description": "Looking for someone in SLC to help finish wall insulation this week.",
+      "category": "insulation",
+      "listing_type": "requesting",
+      "price": 200,
+      "city_display_name": "Salt Lake City, UT",
+      "photo_url": "https://source.unsplash.com/800x600/?camper-van"
+    },
+    {
+      "owner_username": "utah_builder_ryan",
+      "title": "12V Fuse Box and Shore Power Install",
+      "description": "Offering clean electrical installs for weekend builders.",
+      "category": "electrical",
+      "listing_type": "offering",
+      "price": 350,
+      "city_display_name": "St. George, UT",
+      "photo_url": "https://source.unsplash.com/800x600/?car,roadtrip"
+    },
+    {
+      "owner_username": "utah_builder_lena",
+      "title": "Looking for Plumbing Layout Advice",
+      "description": "Need help routing fresh and grey water lines in a Sprinter build.",
+      "category": "plumbing",
+      "listing_type": "requesting",
+      "price": 90,
+      "city_display_name": "Provo, UT",
+      "photo_url": "https://source.unsplash.com/800x600/?vanlife"
+    },
+    {
+      "owner_username": "utah_builder_ryan",
+      "title": "Roof Vent and Fan Install Service",
+      "description": "Fast roof vent installations with weatherproof sealing.",
+      "category": "general",
+      "listing_type": "offering",
+      "price": 180,
+      "city_display_name": "Ogden, UT",
+      "photo_url": "https://source.unsplash.com/800x600/?van,offroad"
+    },
+    {
+      "owner_username": "utah_builder_lena",
+      "title": "Help Needed: Cabinet Carpentry Finish Work",
+      "description": "Seeking a carpenter for upper cabinet face frame adjustments.",
+      "category": "carpentry",
+      "listing_type": "requesting",
+      "price": 260,
+      "city_display_name": "Park City, UT",
+      "photo_url": "https://source.unsplash.com/800x600/?car,camping"
+    },
+    {
+      "owner_username": "utah_builder_ryan",
+      "title": "Mobile Mechanical Check for Camper Vans",
+      "description": "Pre-trip mechanical inspection and basic maintenance.",
+      "category": "mechanical",
+      "listing_type": "offering",
+      "price": 140,
+      "city_display_name": "Cedar City, UT",
+      "photo_url": "https://source.unsplash.com/800x600/?camper,vehicle"
+    },
+    {
+      "owner_username": "utah_builder_lena",
+      "title": "Requesting Exterior Paint and Seal Help",
+      "description": "Need one day of help painting and sealing a high-roof van exterior.",
+      "category": "painting",
+      "listing_type": "requesting",
+      "price": 150,
+      "city_display_name": "Logan, UT",
+      "photo_url": "https://source.unsplash.com/800x600/?van,garage"
+    },
+    {
+      "owner_username": "utah_builder_ryan",
+      "title": "Composting Toilet Install + Vent Setup",
+      "description": "Offering clean installs with odor-managed vent routing.",
+      "category": "plumbing",
+      "listing_type": "offering",
+      "price": 210,
+      "city_display_name": "Kanab, UT",
+      "photo_url": "https://source.unsplash.com/800x600/?car,mechanic"
+    },
+    {
+      "owner_username": "utah_builder_lena",
+      "title": "Need General Build Partner for Weekend Sprint",
+      "description": "Two-day build push for floor, storage, and finishing tasks.",
+      "category": "general",
+      "listing_type": "requesting",
+      "price": 300,
+      "city_display_name": "Moab, UT",
+      "photo_url": "https://source.unsplash.com/800x600/?van,travel"
+    }
+  ]
+}
